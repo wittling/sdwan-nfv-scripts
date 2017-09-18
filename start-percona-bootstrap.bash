@@ -85,16 +85,21 @@ systemctl start ${SVCNAME}
 logger "Script: start-percona-bootstrap.bash: INFO: Waiting for DB to initialize..."
 sleep ${DBINITIALIZE} 
 
+for i in 1 2 3; do
 RC=`systemctl is-active ${SVCNAME}`
 if [ ${RC} -eq 0 ]; then
    logger "Script: start-percona-bootstrap.bash: INFO: Service ${SVCNAME} reported as active..."
-   exit 0
+   break
+elif [ ${RC} -eq 1 ]; then
+   logger "Script: start-percona-bootstrap.bash: INFO: Service ${SVCNAME} trying to activate..."
+   sleep 2
 else
    echo "ERROR: Service ${SVCNAME} NOT reported as active." 
    logger "Script: start-percona-bootstrap.bash: ERROR: Service ${SVCNAME} NOT reported as active..."
    logger "Script: start-percona-bootstrap.bash: ERROR: Manual intervention required to start ${SVCNAME} properly!"
    exit 1
 fi
+done
 
 # Check and make sure the status is actually primary.
 KEY=wsrep_cluster_status
