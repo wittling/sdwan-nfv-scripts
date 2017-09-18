@@ -7,6 +7,7 @@ UNITNAME=mysql
 # Process happens to be same in this case.
 PROCESS=${UNITNAME}
 SVCNAME="${UNITNAME}@bootstrap.service"
+DBINITIALIZE=12
 
 # Go ahead and shut down the DPS Services so that we can start everything in proper sequence.
 logger "Script: start-percona-bootstrap.bash: Stopping DPS Services so we can start Percona bootstrap"
@@ -50,6 +51,10 @@ fi
 # Start the bootstrap
 logger "Script: start-percona-bootstrap.bash: Attempting to start Percona as bootstrap..."
 systemctl start ${SVCNAME}
+
+logger "Script: start-percona-bootstrap.bash: INFO: Waiting for DB to initialize..."
+sleep ${DBINITIALIZE} 
+
 RC=`systemctl is-active ${SVCNAME}`
 if [ ${RC} -eq 0 ]; then
    logger "Script: start-percona-bootstrap.bash: INFO: Service ${SVCNAME} reported as active..."
@@ -58,6 +63,20 @@ else
    echo "ERROR: Service ${SVCNAME} NOT reported as active." 
    logger "Script: start-percona-bootstrap.bash: ERROR: Service ${SVCNAME} NOT reported as active..."
    logger "Script: start-percona-bootstrap.bash: ERROR: Manual intervention required to start ${SVCNAME} properly!"
+   exit 1
+fi
+
+# Check and make sure the status is actually primary.
+KEY=wsrep_cluster_status
+STATUS=Primary
+mysql --silent --host=localhost --user=root --password=$1 <<EOS | grep -i ${KEY} | awk '{print $2}' | grep -i ${STATUS}
+
+SHOW STATUS LIKE 'wsrep_%';
+EOS
+if [ $? -eq 0 ]; then
+   logger "Script: start-percona-bootstrap.bash: INFO: Percona is running as a Primary Node!"
+else
+   logger "Script: start-percona-bootstrap.bash: ERROR: Percona is NOT running as a Primary Node!"
    exit 1
 fi
 
