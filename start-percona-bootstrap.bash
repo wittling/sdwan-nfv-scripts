@@ -12,24 +12,24 @@ DBINITIALIZE=12
 # Go ahead and shut down the DPS Services so that we can start everything in proper sequence.
 logger "Script: start-percona-bootstrap.bash: Stopping DPS Services so we can start Percona bootstrap"
 systemctl stop dps.service
-RC=`systemctl is-active dps.service`
-if [ ${RC} -eq 0 ]; then
+OUTPUT=`systemctl is-active dps.service`
+if [ $? -eq 0 ]; then
    logger "Script: start-percona-bootstrap.bash: WARNING: dps.service did not stop. non-fatal. We will continue."
 else
    logger "Script: start-percona-bootstrap.bash: INFO: dps.service stopped."
 fi
 
 systemctl stop dart-rest.service
-RC=`systemctl is-active dart-rest.service`
-if [ ${RC} -eq 0 ]; then
+OUTPUT=`systemctl is-active dart-rest.service`
+if [ $? -eq 0 ]; then
    logger "Script: start-percona-bootstrap.bash: WARNING: dart-rest.service did not stop. non-fatal. We will continue."
 else
    logger "Script: start-percona-bootstrap.bash: INFO: dart-rest.service stopped."
 fi
 
 systemctl stop dart3.service
-RC=`systemctl is-active dart3.service`
-if [ ${RC} -eq 0 ]; then
+OUTPUT=`systemctl is-active dart3.service`
+if [ $? -eq 0 ]; then
    logger "Script: start-percona-bootstrap.bash: WARNING: dart3.service did not stop. non-fatal. We will continue."
 else
    logger "Script: start-percona-bootstrap.bash: INFO: dart3.service stopped."
@@ -40,8 +40,8 @@ fi
 
 systemctl stop ${UNITNAME}
 sleep 3
-RC=`systemctl is-active ${UNITNAME}`
-if [ ${RC} -eq 0 ]; then
+OUTPUT=`systemctl is-active ${UNITNAME}`
+if [ $? -eq 0 ]; then
    logger "Script: start-percona-bootstrap.bash: ERROR: ${UNITNAME}.service did not stop. non-fatal. We will continue."
    exit 1
 else
@@ -50,8 +50,8 @@ fi
 
 systemctl stop ${SVCNAME}
 sleep 3
-RC=`systemctl is-active ${SVCNAME}`
-if [ ${RC} -eq 0 ]; then
+OUTPUT=`systemctl is-active ${SVCNAME}`
+if [ $? -eq 0 ]; then
    logger "Script: start-percona-bootstrap.bash: ERROR: ${SVCNAME}.service did not stop. non-fatal. We will continue."
    exit 1
 else
@@ -59,11 +59,11 @@ else
 fi
 
 # Check and make sure mysql is not running. If it is, shut it down.
-RC=`pgrep -lf ${PROCESS}`
+OUTPUT=`pgrep -lf ${PROCESS}`
 
 # If we do not stop the service and just kill the process it may just restart on us.
 # So make sure we put a stop on it from a service perspective first.
-if [ ${RC} -eq 0 ]; then
+if [ $? -eq 0 ]; then
    logger "Script: start-percona-bootstrap.bash: Detected mysql running. Attempting to stop..."
    systemctl stop ${UNITNAME}
    systemctl stop ${SVCNAME}
@@ -71,8 +71,8 @@ if [ ${RC} -eq 0 ]; then
 fi   
 
 # Check it again. If we see it kill it.
-RC=`pgrep -lf ${PROCESS}`
-if [ ${RC} -eq 0 ]; then
+OUTPUT=`pgrep -lf ${PROCESS}`
+if [ $? -eq 0 ]; then
    logger "Script: start-percona-bootstrap.bash: mysql STILL running. Attempting to kill it..."
    pkill ${PROCESS}
    sleep 2
@@ -87,8 +87,9 @@ logger "Script: start-percona-bootstrap.bash: INFO: Waiting ${DBINITIALIZE}..."
 sleep ${DBINITIALIZE} 
 
 for i in 1 2 3; do
-RC=`systemctl is-active ${SVCNAME}`
-logger "Script: start-percona-bootstrap.bash: DEBUG: Return code from is-active on ${SVCNAME}: ${RC}"
+OUTPUT=`systemctl is-active ${SVCNAME}`
+logger "Script: start-percona-bootstrap.bash: DEBUG: Return code from is-active on ${SVCNAME}: ${OUTPUT}"
+RC=$?
 if [ ${RC} -eq 0 ]; then
    logger "Script: start-percona-bootstrap.bash: INFO: Service ${SVCNAME} reported as active..."
    break
@@ -125,8 +126,8 @@ fi
 logger "Script: start-percona-bootstrap.bash: INFO: Restarting dps.service after Percona Bootstrap startup."
 systemctl start dps.service
 sleep 3
-RC=`systemctl is-active dps.service`
-if [ ${RC} -eq 0 ]; then
+OUTPUT=`systemctl is-active dps.service`
+if [ $? -eq 0 ]; then
    logger "Script: start-percona-bootstrap.bash: INFO: dps.service restarted."
 else
    logger "Script: start-percona-bootstrap.bash: INFO: dps.service did NOT restart. Manual intervention required."
@@ -134,16 +135,16 @@ fi
 
 systemctl start dart3.service
 sleep 3
-RC=`systemctl is-active dart3.service`
-if [ ${RC} -eq 0 ]; then
+OUTPUT=`systemctl is-active dart3.service`
+if [ $? -eq 0 ]; then
    logger "Script: start-percona-bootstrap.bash: INFO: dart3.service (node) restarted."
 else
    logger "Script: start-percona-bootstrap.bash: INFO: dart3.service (node) did NOT restart. Manual intervention required."
 fi
 
 systemctl start dart-rest.service
-RC=`systemctl is-active dart-rest.service`
-if [ ${RC} -eq 0 ]; then
+OUTPUT=`systemctl is-active dart-rest.service`
+if [ $? -eq 0 ]; then
    logger "Script: start-percona-bootstrap.bash: INFO: dart-rest.service (node) restarted."
 else
    logger "Script: start-percona-bootstrap.bash: INFO: dart-rest.service (node) did NOT restart. Manual intervention required."
