@@ -82,11 +82,13 @@ fi
 logger "Script: start-percona-bootstrap.bash: Attempting to start Percona as bootstrap..."
 systemctl start ${SVCNAME}
 
-logger "Script: start-percona-bootstrap.bash: INFO: Waiting for DB to initialize..."
+logger "Script: start-percona-bootstrap.bash: INFO: Percona takes a while to initialize..."
+logger "Script: start-percona-bootstrap.bash: INFO: Waiting ${DBINITIALIZE}..."
 sleep ${DBINITIALIZE} 
 
 for i in 1 2 3; do
 RC=`systemctl is-active ${SVCNAME}`
+logger "Script: start-percona-bootstrap.bash: DEBUG: Return code from is-active on ${SVCNAME}: ${RC}"
 if [ ${RC} -eq 0 ]; then
    logger "Script: start-percona-bootstrap.bash: INFO: Service ${SVCNAME} reported as active..."
    break
@@ -96,8 +98,11 @@ elif [ ${RC} -eq 1 ]; then
 else
    echo "ERROR: Service ${SVCNAME} NOT reported as active." 
    logger "Script: start-percona-bootstrap.bash: ERROR: Service ${SVCNAME} NOT reported as active..."
-   logger "Script: start-percona-bootstrap.bash: ERROR: Manual intervention required to start ${SVCNAME} properly!"
-   exit 1
+   if [ $i -eq 3 ]; then
+      logger "Script: start-percona-bootstrap.bash: ERROR: Manual intervention required to start ${SVCNAME} properly!"
+      logger "Script: start-percona-bootstrap.bash: ERROR: Giving up on required service ${SVCNAME}. Exiting."
+      exit 1
+   fi
 fi
 done
 
