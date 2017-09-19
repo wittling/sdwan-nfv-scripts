@@ -2,9 +2,10 @@
 
 env
 set -x
-logger "bootstrapdsx_configure.bash: CONFIGURATION of the Bootstrap DSX"
-logger "bootstrapdsx_configure.bash: Hostname: $deflect_hostname"
-logger "bootstrapdsx_configure.bash: Control Plane IP: $bootstrapdsx_dsxnet"
-logger "bootstrapdsx_configure.bash: Control Plane Interface: $deflect_ifacetraffic"
-logger "bootstrapdsx_configure.bash: Reserved: $deflect_reserved"
+logger "bootstrapdsx_configure.bash: CONFIGURATION"
+logger "bootstrapdsx_configure.bash: Hostname: ${hostname}"
+logger "bootstrapdsx_configure.bash: DSX IP: ${bootstrapdsx_dsxnet}"
+logger "bootstrapdsx_configure.bash: Traffic Interface: ${ifacetraffic}"
+logger "bootstrapdsx_configure.bash: DSX Control Plane Interface: ${ifacectlplane}"
+logger "bootstrapdsx_configure.bash: Reserved: ${reserved}"
 set +x
