@@ -157,5 +157,5 @@ logger "bootstrapdsx_instantiate: INSTANTIATION of the Deflect"
 
 logger "bootstrapdsx_instantiate: Hostname: ${hostname}"
 logger "bootstrapdsx_instantiate: IP Address: ${dsxnet}" 
-logger "bootstrapdsx_instantiate: Traffic Interface: ${ctlplaneiface}" 
+logger "bootstrapdsx_instantiate: Traffic Interface: ${ifacectlplane}" 
 logger "bootstrapdsx_instantiate: Reserved: ${reserved}" 
