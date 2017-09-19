@@ -1,8 +1,8 @@
 #!/bin/bash
 
-logger "CONFIGURATION of the Deflect"
+logger "deflect_configure: CONFIGURATION of the Deflect"
 
-logger "Hostname: ${hostname}"
-logger "Traffic IP Address: ${deflect_ip}" 
-logger "Traffic Interface: ${trafficiface}" 
-logger "DSX IP Address: ${bootstrapdsx_ip}"
+logger "deflect_configure: Hostname: ${hostname}"
+logger "deflect_configure: Traffic IP Address: ${deflect_ip}" 
+logger "deflect_configure: Traffic Interface: ${trafficiface}" 
+logger "deflect_configure: DSX IP Address: ${bootstrapdsx_ip}"
