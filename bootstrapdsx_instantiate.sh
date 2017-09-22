@@ -110,18 +110,19 @@ fi
 done
 
 # Check and make sure the status is actually primary.
-KEY=wsrep_cluster_status
-STATUS=Primary
-mysql --silent --host=localhost --user=root --password=$1 <<EOS | grep -i ${KEY} | awk '{print $2}' | grep -i ${STATUS}
-
-SHOW STATUS LIKE 'wsrep_%';
-EOS
-if [ $? -eq 0 ]; then
-   logger "Script: bootstrapdsx_instantiate.bash: INFO: Percona is running as a Primary Node!"
-else
-   logger "Script: bootstrapdsx_instantiate.bash: ERROR: Percona is NOT running as a Primary Node!"
-   exit 1
-fi
+# -- COMMENTED OUT 
+#KEY=wsrep_cluster_status
+#STATUS=Primary
+#mysql --silent --host=localhost --user=root --password=$1 <<EOS | grep -i ${KEY} | awk '{print $2}' | grep -i ${STATUS}
+#
+#SHOW STATUS LIKE 'wsrep_%';
+#EOS
+#if [ $? -eq 0 ]; then
+#   logger "Script: bootstrapdsx_instantiate.bash: INFO: Percona is running as a Primary Node!"
+#else
+#   logger "Script: bootstrapdsx_instantiate.bash: ERROR: Percona is NOT running as a Primary Node!"
+#   exit 1
+#fi
 
 # Now restart the DPS Services
 
