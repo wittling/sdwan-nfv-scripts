@@ -158,8 +158,8 @@ logger "bootstrapdsx_instantiate: INSTANTIATION of the Bootstrap DSX"
 logger "bootstrapdsx_instantiate: Hostname: ${hostname}"
 logger "bootstrapdsx_instantiate: IP Address: ${dsxnet}" 
 logger "bootstrapdsx_instantiate: Traffic Interface: ${ifacectlplane}" 
-logger "bootstrapdsx_instantiate: Registration Port: ${regport}" 
-logger "bootstrapdsx_instantiate: REST API Port: ${restport}" 
+logger "bootstrapdsx_instantiate: Registration Port: ${portreg}" 
+logger "bootstrapdsx_instantiate: REST API Port: ${portrest}" 
 
 logger "bootstrapdsx_instantiate: Changing vtc_config_template to use IP Address: ${dsxnet}" 
 DIR="/usr/local/dps/cfg/vtc_reg_templates"
@@ -167,7 +167,7 @@ TMPLT="vtc_config_template.json"
 # Back up old json. We will use dollar dollar to avoid exists issues and such.
 if [ -f ${DIR}/vtc_reg_templates.json ]; then
    pushd ${DIR}
-   mv ${TMPLT} ${TMPLT}.$$
+   cp ${TMPLT} ${TMPLT}.$$
    sed -i "s+\"ip\"\:\"\([1-9]\)\{1,3\}\(\.[0-9]\{1,3\}\)\{3\}+\"ip\"\:\${dsxnet}+" ${TMPLT}
    if [ $? -eq 0 ]; then
       logger "bootstrapdsx_instantiate: IP successfully replaced in ${TMPLT}" 
