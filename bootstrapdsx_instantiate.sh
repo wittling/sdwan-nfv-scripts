@@ -163,22 +163,26 @@ logger "bootstrapdsx_instantiate: REST API Port: ${portrest}"
 
 logger "bootstrapdsx_instantiate: Changing vtc_config_template to use IP Address: ${dsxnet}" 
 DIR="/usr/local/dps/cfg/vtc_reg_templates"
-TMPLT="vtc_config_template.json"
-# Back up old json. We will use dollar dollar to avoid exists issues and such.
-if [ -f ${DIR}/vtc_reg_templates.json ]; then
-   pushd ${DIR}
-   cp ${TMPLT} ${TMPLT}.$$
-   sed -i "s+\"ip\"\:\"\([1-9]\)\{1,3\}\(\.[0-9]\{1,3\}\)\{3\}+\"ip\"\:\${dsxnet}+" ${TMPLT}
-   if [ $? -eq 0 ]; then
-      logger "bootstrapdsx_instantiate: IP successfully replaced in ${TMPLT}" 
+if [ ! -d ${DIR} ]; then
+   logger "bootstrapdsx_instantiate: Dir not found: ${DIR}" 
+   exit 1
+else
+   TMPLT="vtc_config_template.json"
+   # Back up old json. We will use dollar dollar to avoid exists issues and such.
+   if [ -f ${DIR}/${TMPLT} ]; then
+      pushd ${DIR}
+      cp ${TMPLT} ${TMPLT}.$$
+      sed -i "s+\"ip\"\:\"\([1-9]\)\{1,3\}\(\.[0-9]\{1,3\}\)\{3\}+\"ip\"\:\${dsxnet}+" ${TMPLT}
+      if [ $? -eq 0 ]; then
+         logger "bootstrapdsx_instantiate: IP successfully replaced in ${TMPLT}" 
+      else
+         logger "bootstrapdsx_instantiate: ERROR replacing IP in ${TMPLT}" 
+         exit 1
+      fi
+      popd
    else
-      logger "bootstrapdsx_instantiate: ERROR replacing IP in ${TMPLT}" 
+      logger "bootstrapdsx_instantiate: File not found: ${DIR}/${TMPLT}" 
       exit 1
    fi
-   popd
-else
-   logger "bootstrapdsx_instantiate: File not found: ${DIR}/${TMPLT}" 
-   exit 1
 fi
-
 exit 0
