@@ -1,5 +1,7 @@
 #!/bin/bash
 
+logger "bootstrapdsx_instantiate: INSTANTIATION of the Bootstrap DSX"
+
 # The first node up in a percona cluster needs to be cranked as a bootstrap service.
 # This script will attempt to do that.
 
@@ -150,10 +152,11 @@ else
    logger "Script: bootstrapdsx_instantiate.bash: INFO: dart-rest.service (node) did NOT restart. Manual intervention required."
 fi
 
-logger "bootstrapdsx_instantiate: INSTANTIATION of the Deflect"
+logger "bootstrapdsx_instantiate: INSTANTIATION of the Bootstrap DSX"
 
 logger "bootstrapdsx_instantiate: Hostname: ${hostname}"
 logger "bootstrapdsx_instantiate: IP Address: ${dsxnet}" 
 logger "bootstrapdsx_instantiate: Traffic Interface: ${ifacectlplane}" 
-logger "bootstrapdsx_instantiate: Reserved: ${reserved}" 
+logger "bootstrapdsx_instantiate: Registration Port: ${regport}" 
+logger "bootstrapdsx_instantiate: REST API Port: ${restport}" 
 exit 0
