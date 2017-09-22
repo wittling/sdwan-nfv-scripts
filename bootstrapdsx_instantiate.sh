@@ -172,7 +172,7 @@ else
    if [ -f ${DIR}/${TMPLT} ]; then
       pushd ${DIR}
       cp ${TMPLT} ${TMPLT}.$$
-      sed -i "s+\"ip\"\:\"\([1-9]\)\{1,3\}\(\.[0-9]\{1,3\}\)\{3\}+\"ip\"\:\${dsxnet}+" ${TMPLT}
+      sed -i 's+\"ip\"\:\"\([1-9]\)\{1,3\}\(\.[0-9]\{1,3\}\)\{3\}+\"ip\"\:\'"$dsxnet"'+' ${TMPLT}
       if [ $? -eq 0 ]; then
          logger "bootstrapdsx_instantiate: IP successfully replaced in ${TMPLT}" 
       else
