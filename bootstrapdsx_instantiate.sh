@@ -163,16 +163,20 @@ logger "bootstrapdsx_instantiate: REST API Port: ${restport}"
 logger "bootstrapdsx_instantiate: Changing vtc_config_template to use IP Address: ${dsxnet}" 
 DIR="/usr/local/dps/cfg/vtc_reg_templates"
 # Back up old json. We will use dollar dollar to avoid exists issues and such.
-#if [ -f ${DIR}/vtc_reg_templates.json ]; then
-#   pushd ${DIR}
-#   mv vtc_config_template.json vtc_config_template.$$
-#   sed -i 's+\"ip\"\:\"\([1-9]\)\{1,3\}\(\.[0-9]\{1,3\}\)\{3\}+\"ip\"\:\"172\.31\.0\.137+' vtc_config_template.json
-#   if [ $? -eq 0 ]; then
-#      logger "bootstrapdsx_instantiate: IP successfully replaced in vtc_config.json" 
-#   fi
-#   popd
-#else
-#   logger "bootstrapdsx_instantiate: File not found: ${DIR}/vtc_reg_template.json" 
-#fi
+if [ -f ${DIR}/vtc_reg_templates.json ]; then
+   pushd ${DIR}
+   mv vtc_config_template.json vtc_config_template.$$
+   sed -i "s+\"ip\"\:\"\([1-9]\)\{1,3\}\(\.[0-9]\{1,3\}\)\{3\}+\"ip\"\:\${dsxnet}+" vtc_config_template.json
+   if [ $? -eq 0 ]; then
+      logger "bootstrapdsx_instantiate: IP successfully replaced in vtc_config.json" 
+   else
+      logger "bootstrapdsx_instantiate: ERROR replacing IP in vtc_config.json" 
+      exit 1
+   fi
+   popd
+else
+   logger "bootstrapdsx_instantiate: File not found: ${DIR}/vtc_reg_template.json" 
+   exit 1
+fi
 
 exit 0
