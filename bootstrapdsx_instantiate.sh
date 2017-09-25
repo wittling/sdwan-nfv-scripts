@@ -172,9 +172,20 @@ else
    if [ -f ${DIR}/${TMPLT} ]; then
       pushd ${DIR}
       cp ${TMPLT} ${TMPLT}.$$
-      sed -i 's+\"ip\"\:\"\([1-9]\)\{1,3\}\(\.[0-9]\{1,3\}\)\{3\}+\"ip\"\:\'"$dsxnet"'+' ${TMPLT}
+
+      # This sed below is not working properly...bug in sed? Or an issue w the expression? Not sureyet.
+      # sed -i 's+\"ip\"\:\"\([1-9]\)\{1,3\}\(\.[0-9]\{1,3\}\)\{3\}+\"ip\"\:\'"$dsxnet"'+' ${TMPLT}
+
+      # This works - not pretty, not elegant, and not efficient, but it gets the job done.
+      sed -in 's+\"ip\"\:\"\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\)+\"ip\"\:\"MARKER+' ${TMPLT}
       if [ $? -eq 0 ]; then
-         logger "bootstrapdsx_instantiate: IP successfully replaced in ${TMPLT}" 
+         sed -in 's+MARKER+'"$dsxnet"'+' ${TMPLT}
+         if [ $? -eq 0 ]; then
+            logger "bootstrapdsx_instantiate: IP successfully replaced in ${TMPLT}" 
+         else
+            logger "bootstrapdsx_instantiate: ERROR replacing IP in ${TMPLT}" 
+            exit 1
+         fi
       else
          logger "bootstrapdsx_instantiate: ERROR replacing IP in ${TMPLT}" 
          exit 1
