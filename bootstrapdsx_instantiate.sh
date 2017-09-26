@@ -5,7 +5,6 @@
 function replaceIp
 {
    FILENAME=""
-   CFGTMPL=""
    FILECODE=""
 
    if [ -z $1 -o -z $2 ]; then
@@ -39,11 +38,14 @@ function replaceIp
       # This sed below is not working properly...bug in sed? Or an issue w the expression? Not sureyet.
       # sed -i 's+\"ip\"\:\"\([1-9]\)\{1,3\}\(\.[0-9]\{1,3\}\)\{3\}+\"ip\"\:\'"$NEWIP"'+' ${TMPLT}
    
+      # Using sed to parse jsons is not a workable thing to do long-term. I will need to use a real json parser
+      # of some kind. But I will use this sed for now.
+
       # This works - not pretty, not elegant, and not efficient, but it gets the job done.
-      if [ ${FILECODE} == "REST" ]; then
+      if [ ${FILECODE} == "CFGTMPL" ]; then
          (sed -i 's+\"ip\"\:\"\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\)+\"ip\"\:\"MARKER+' ${FILENAME} ; 
           sed -i 's+MARKER+'"$NEWIP"'+' ${FILENAME})
-      elif [ ${FILECODE} == "CFGTMPL" ]; then
+      elif [ ${FILECODE} == "REST" ]; then
          (sed -i 's+\"dsx_ip\"\: \"\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\)+\"ip\"\:\"MARKER+' ${FILENAME} ;
           sed -i 's+MARKER+'"$NEWIP"'+' ${FILENAME})
       else
@@ -238,12 +240,12 @@ else
    exit 1 
 fi
 
-logger "bootstrapdsx_instantiate: Changing IP Address in DARTREST: ${dsxnet}" 
-replaceIp DARTREST ${dsxnet}
+logger "bootstrapdsx_instantiate: Changing IP Address in REST: ${dsxnet}" 
+replaceIp REST ${dsxnet}
 if [ $? -eq 0 ]; then
-   logger "bootstrapdsx_instantiate: INFO: IP $dsxnet Replaced for file code: DARTREST ." 
+   logger "bootstrapdsx_instantiate: INFO: IP $dsxnet Replaced for file code: REST ." 
 else
-   logger "bootstrapdsx_instantiate: ERROR: IP $dsxnet NOT Replaced for file code: DARTREST." 
+   logger "bootstrapdsx_instantiate: ERROR: IP $dsxnet NOT Replaced for file code: REST." 
    exit 1 
 fi
 
