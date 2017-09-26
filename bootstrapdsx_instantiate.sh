@@ -6,27 +6,26 @@ function replaceIp
 {
    FILENAME=""
    CFGTMPL=""
-   SEDKEY=""
+   FILECODE=""
 
    if [ -z $1 -o -z $2 ]; then
       echo "Invalid Function Call replaceIp: Required: FILECODE NEWIP"
       return 1
    fi
 
-
    case $1 in
       "REST") 
-           FILENAME=/usr/local/dart-rest/my_package.json;; 
-           SEDKEY='"ip":'
+           FILENAME=/usr/local/dart-rest/my_package.json
+           NEWIP=$2
+           FILECODE=$1;;
       "CFGTMPL") 
            FILENAME=/usr/local/dps/cfg/vtc_reg_templates/vtc_config_template.json;; 
-           SEDKEY='"dsx_ip": '
+           NEWIP=$2
+           FILECODE=$1;;
       *) return 1;;
    esac
 
-   NEWIP=$2
-
-   DIRNAME=`dirname ${FILENAME}
+   DIRNAME=`dirname ${FILENAME}`
    if [ ! -d ${DIRNAME} ]; then
       logger "bootstrapdsx_instantiate: Dir not found: ${DIRNAME}"
       return 1
@@ -41,19 +40,23 @@ function replaceIp
       # sed -i 's+\"ip\"\:\"\([1-9]\)\{1,3\}\(\.[0-9]\{1,3\}\)\{3\}+\"ip\"\:\'"$NEWIP"'+' ${TMPLT}
    
       # This works - not pretty, not elegant, and not efficient, but it gets the job done.
-      #sed -i 's+\"ip\"\:\"\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\)+\"ip\"\:\"MARKER+' ${FILENAME}
-      sed -i 's+'$SEDKEY'\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\)+\"ip\"\:\"MARKER+' ${FILENAME}
-      if [ $? -eq 0 ]; then
-         sed -i 's+MARKER+'"$NEWIP"'+' ${FILENAME}
-         if [ $? -eq 0 ]; then
-            logger "bootstrapdsx_instantiate: replaceIp: INFO: IP successfully replaced in ${FILENAME}"
-         else
-            logger "bootstrapdsx_instantiate: replaceIp: ERROR: err replacing IP in ${FILENAME}"
-            popd
-            return 1
-         fi
+      if [ ${FILECODE} == "REST" ]; then
+         (sed -i 's+\"ip\"\:\"\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\)+\"ip\"\:\"MARKER+' ${FILENAME} ; 
+          sed -i 's+MARKER+'"$NEWIP"'+' ${FILENAME})
+      elif [ ${FILECODE} == "CFGTMPL" ]; then
+         (sed -i 's+\"dsx_ip\"\: \"\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\)+\"ip\"\:\"MARKER+' ${FILENAME} ;
+          sed -i 's+MARKER+'"$NEWIP"'+' ${FILENAME})
       else
-         logger "bootstrapdsx_instantiate: replaceIp: ERROR: err replacing IP in ${FILENAME}"
+         logger "bootstrapdsx_instantiate: replaceIp: ERROR: No sed statement for file code ${FILECODE}."
+         popd
+         return 1
+      fi
+
+      if [ $? -eq 0 ]; then
+         logger "bootstrapdsx_instantiate: replaceIp: INFO: IP successfully replaced in ${FILENAME}"
+         popd
+      else
+         logger "bootstrapdsx_instantiate: replaceIp: ERROR: Error replacing IP in ${FILENAME}"
          popd
          return 1
       fi
@@ -62,7 +65,6 @@ function replaceIp
       popd
       return 1
    fi
-   popd
    return 0
 }
 
