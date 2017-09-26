@@ -2,24 +2,28 @@
 
 
 # This is a function because we may replace IPs in several files.
-function replaceIp
+function replaceJsonParm
 {
    FILENAME=""
    FILECODE=""
 
    if [ -z $1 -o -z $2 ]; then
-      echo "Invalid Function Call replaceIp: Required: FILECODE NEWIP"
+      echo "Invalid Function Call replaceJsonParm: Required: FILECODE NEWIP"
       return 1
    fi
 
    case $1 in
-      "REST") 
+      "RESTIP") 
            FILENAME=/usr/local/dart-rest/package.json
-           NEWIP=$2
+           NEWPARM=$2
+           FILECODE=$1;;
+      "RESTPORT") 
+           FILENAME=/usr/local/dart-rest/package.json
+           NEWPARM=$2
            FILECODE=$1;;
       "CFGTMPL") 
            FILENAME=/usr/local/dps/cfg/vtc_reg_templates/vtc_config_template.json
-           NEWIP=$2
+           NEWPARM=$2
            FILECODE=$1;;
       *) return 1;;
    esac
@@ -36,7 +40,7 @@ function replaceIp
       cp ${TMPLT} ${TMPLT}.$$
 
       # This sed below is not working properly...bug in sed? Or an issue w the expression? Not sureyet.
-      # sed -i 's+\"ip\"\:\"\([1-9]\)\{1,3\}\(\.[0-9]\{1,3\}\)\{3\}+\"ip\"\:\'"$NEWIP"'+' ${TMPLT}
+      # sed -i 's+\"ip\"\:\"\([1-9]\)\{1,3\}\(\.[0-9]\{1,3\}\)\{3\}+\"ip\"\:\'"$NEWPARM"'+' ${TMPLT}
    
       # Using sed to parse jsons is not a workable thing to do long-term. I will need to use a real json parser
       # of some kind. But I will use this sed for now.
@@ -44,30 +48,133 @@ function replaceIp
       # This works - not pretty, not elegant, and not efficient, but it gets the job done.
       if [ ${FILECODE} == "CFGTMPL" ]; then
          (sed -i 's+\"ip\"\:\"\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\)+\"ip\"\:\"MARKER+' ${FILENAME} ; 
-          sed -i 's+MARKER+'"$NEWIP"'+' ${FILENAME})
-      elif [ ${FILECODE} == "REST" ]; then
+          sed -i 's+MARKER+'"$NEWPARM"'+' ${FILENAME})
+      elif [ ${FILECODE} == "RESTIP" ]; then
          (sed -i 's+\"dsx_ip\"\: \"\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\)+\"ip\"\:\"MARKER+' ${FILENAME} ;
-          sed -i 's+MARKER+'"$NEWIP"'+' ${FILENAME})
+          sed -i 's+MARKER+'"$NEWPARM"'+' ${FILENAME})
+      elif [ ${FILECODE} == "RESTPORT" ]; then
+         (sed -i 's+\"dsx_ip\"\: \"\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\)+\"ip\"\:\"MARKER+' ${FILENAME} ;
+          sed -i 's+MARKER+'"$NEWPARM"'+' ${FILENAME})
       else
-         logger "bootstrapdsx_instantiate: replaceIp: ERROR: No sed statement for file code ${FILECODE}."
+         logger "bootstrapdsx_instantiate: replaceJsonParm: ERROR: No sed statement for file code ${FILECODE}."
          popd
          return 1
       fi
 
       if [ $? -eq 0 ]; then
-         logger "bootstrapdsx_instantiate: replaceIp: INFO: IP successfully replaced in ${FILENAME}"
+         logger "bootstrapdsx_instantiate: replaceJsonParm: INFO: IP successfully replaced in ${FILENAME}"
          popd
       else
-         logger "bootstrapdsx_instantiate: replaceIp: ERROR: Error replacing IP in ${FILENAME}"
+         logger "bootstrapdsx_instantiate: replaceJsonParm: ERROR: Error replacing IP in ${FILENAME}"
          popd
          return 1
       fi
    else
-      logger "bootstrapdsx_instantiate: replaceIp: ERROR: File not found: ${DIR}/${TMPLT}" 
+      logger "bootstrapdsx_instantiate: replaceJsonParm: ERROR: File not found: ${DIR}/${TMPLT}" 
       popd
       return 1
    fi
    return 0
+}
+
+function jsonParmSwap
+{
+   # Check for Python and see if it is installed (no sense wasting gas)
+   logger "bootstrapdsx_instantiate: jsonParmSwap: INFO: Checking Python Version"
+   pyver=$(python -V 2>&1 | grep -Po '(?<=Python )(.+)')
+   if [[ -z "$pyver" ]]; then
+      logger "bootstrapdsx_instantiate: jsonParmSwap: ERROR: No Python Version!"
+      return 1
+   else
+      logger "bootstrapdsx_instantiate: jsonParmSwap: INFO: Python Version: ${pyver}"
+   fi
+      
+   FILENAME=""
+   FILECODE=""
+
+   if [ -z $1 -o -z $2 ]; then
+      echo "Invalid Function Call replaceJsonParm: Required: FILECODE NEWIP"
+      return 1
+   fi
+
+   case $1 in
+      "RESTIP") 
+           FILENAME=/usr/local/dart-rest/package.json
+           NEWPARM=$2
+           FILECODE=$1;;
+      "RESTPORT") 
+           FILENAME=/usr/local/dart-rest/package.json
+           NEWPARM=$2
+           FILECODE=$1;;
+      "CFGTMPL") 
+           FILENAME=/usr/local/dps/cfg/vtc_reg_templates/vtc_config_template.json
+           NEWPARM=$2
+           FILECODE=$1;;
+      *) return 1;;
+   esac
+
+   DIRNAME=`dirname ${FILENAME}`
+   if [ ! -d ${DIRNAME} ]; then
+      logger "bootstrapdsx_instantiate: jsonParmSwap: ERROR: Dir not found: ${DIRNAME}"
+      return 1
+   fi
+
+   if [ -f ${FILENAME} ]; then
+      # Cleaner to drop into the directory when you are doing sed stuff
+      pushd ${DIRNAME}
+
+      # LOCALFILE=`basename ${FILENAME}`
+      parse_json_script=$(mktemp parse_json.XXXX.py)
+
+      if [ ${FILECODE} == "RESTIP" ]; then
+         cat > "$parse_json_script" <<SCRIPT
+#!/usr/bin/env python
+import json
+with open("${FILENAME}",'r+') as f:
+    data=json.load(f)
+    data["config"]["ip"] = ${NEWPARM}
+    f.seek(0)
+    json.dump(data, f, indent=4)
+SCRIPT
+      elif [ ${FILECODE} == "RESTPORT" ]; then
+
+         cat > "$parse_json_script" <<SCRIPT
+#!/usr/bin/env python
+import json
+with open("${FILENAME}",'r+') as f:
+    data=json.load(f)
+    data["config"]["dsx_port"] = ${NEWPARM}
+    f.seek(0)
+    json.dump(data, f, indent=4)
+SCRIPT
+      elif [ ${FILECODE} == "CFGTMPL" ]; then
+
+         cat > "$parse_json_script" <<SCRIPT
+#!/usr/bin/env python
+import json
+with open("${FILENAME}",'r+') as f:
+    data=json.load(f)
+    data["vtc_config"]["domains"][1][dps_list][1][ip] = ${NEWPARM}
+    f.seek(0)
+    json.dump(data, f, indent=4)
+SCRIPT
+
+      else
+         logger "bootstrapdsx_instantiate: jsonParmSwap: ERROR: Invalid File Code."
+         rm $parse_json_script
+         popd
+         return 1
+      fi
+         
+      python $parse_json_script && rm $parse_json_script
+      if [ $? -eq 0 ]; then
+         logger "bootstrapdsx_instantiate: jsonParmSwap: INFO: Parm Replaced"
+      else
+         logger "bootstrapdsx_instantiate: jsonParmSwap: ERROR: Parm NOT Replaced"
+         popd
+         return 1
+      fi   
+   fi
 }
 
 logger "bootstrapdsx_instantiate: INSTANTIATION of the Bootstrap DSX"
@@ -230,9 +337,11 @@ logger "bootstrapdsx_instantiate: IP Address: ${dsxnet}"
 logger "bootstrapdsx_instantiate: Traffic Interface: ${ifacectlplane}" 
 logger "bootstrapdsx_instantiate: Registration Port: ${portreg}" 
 logger "bootstrapdsx_instantiate: REST API Port: ${portrest}" 
+logger "bootstrapdsx_instantiate: REST Admin Port: ${portadmin}" 
 
 logger "bootstrapdsx_instantiate: Changing IP Address in CFGTMPL: ${dsxnet}" 
-replaceIp CFGTMPL ${dsxnet}
+#jsonParmSwap CFGTMPL ${dsxnet}
+replaceJsonParm CFGTMPL ${dsxnet}
 if [ $? -eq 0 ]; then
    logger "bootstrapdsx_instantiate: INFO: IP $dsxnet Replaced for file code: CFGTMPL."
    systemctl restart dps
@@ -242,12 +351,24 @@ else
 fi
 
 logger "bootstrapdsx_instantiate: Changing IP Address in REST: ${dsxnet}" 
-replaceIp REST ${dsxnet}
+jsonParmSwap RESTIP ${dsxnet}
+#replaceJsonParm RESTIP ${dsxnet}
 if [ $? -eq 0 ]; then
    logger "bootstrapdsx_instantiate: INFO: IP $dsxnet Replaced for file code: REST ." 
    systemctl restart dart-rest
 else
    logger "bootstrapdsx_instantiate: ERROR: IP $dsxnet NOT Replaced for file code: REST." 
+   exit 1 
+fi
+
+logger "bootstrapdsx_instantiate: Changing Port in REST: ${dsxnet}" 
+jsonParmSwap RESTPORT ${portadmin}
+#replaceJsonParm RESTPORT ${portadmin}
+if [ $? -eq 0 ]; then
+   logger "bootstrapdsx_instantiate: INFO: Port $portadmin Replaced for file code: REST ." 
+   systemctl restart dart-rest
+else
+   logger "bootstrapdsx_instantiate: ERROR: Port $portadmin NOT Replaced for file code: REST." 
    exit 1 
 fi
 
