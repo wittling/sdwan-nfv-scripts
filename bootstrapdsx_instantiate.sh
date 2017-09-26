@@ -19,7 +19,7 @@ function replaceIp
            NEWIP=$2
            FILECODE=$1;;
       "CFGTMPL") 
-           FILENAME=/usr/local/dps/cfg/vtc_reg_templates/vtc_config_template.json;; 
+           FILENAME=/usr/local/dps/cfg/vtc_reg_templates/vtc_config_template.json
            NEWIP=$2
            FILECODE=$1;;
       *) return 1;;
