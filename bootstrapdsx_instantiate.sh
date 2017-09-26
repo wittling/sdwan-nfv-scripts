@@ -14,7 +14,7 @@ function replaceIp
 
    case $1 in
       "REST") 
-           FILENAME=/usr/local/dart-rest/my_package.json
+           FILENAME=/usr/local/dart-rest/package.json
            NEWIP=$2
            FILECODE=$1;;
       "CFGTMPL") 
@@ -235,6 +235,7 @@ logger "bootstrapdsx_instantiate: Changing IP Address in CFGTMPL: ${dsxnet}"
 replaceIp CFGTMPL ${dsxnet}
 if [ $? -eq 0 ]; then
    logger "bootstrapdsx_instantiate: INFO: IP $dsxnet Replaced for file code: CFGTMPL."
+   systemctl restart dps
 else
    logger "bootstrapdsx_instantiate: ERROR: IP $dsxnet NOT Replaced for file code CFGTMPL." 
    exit 1 
@@ -244,6 +245,7 @@ logger "bootstrapdsx_instantiate: Changing IP Address in REST: ${dsxnet}"
 replaceIp REST ${dsxnet}
 if [ $? -eq 0 ]; then
    logger "bootstrapdsx_instantiate: INFO: IP $dsxnet Replaced for file code: REST ." 
+   systemctl restart dart-rest
 else
    logger "bootstrapdsx_instantiate: ERROR: IP $dsxnet NOT Replaced for file code: REST." 
    exit 1 
