@@ -336,8 +336,8 @@ logger "bootstrapdsx_instantiate: Hostname: ${hostname}"
 logger "bootstrapdsx_instantiate: IP Address: ${dsxnet}" 
 logger "bootstrapdsx_instantiate: Traffic Interface: ${ifacectlplane}" 
 logger "bootstrapdsx_instantiate: Registration Port: ${portreg}" 
-logger "bootstrapdsx_instantiate: REST API Port: ${portrest}" 
-logger "bootstrapdsx_instantiate: REST Admin Port: ${portadmin}" 
+logger "bootstrapdsx_instantiate: REST API Port: ${portrestweb}" 
+logger "bootstrapdsx_instantiate: REST Admin Port: ${portrestapi}" 
 
 logger "bootstrapdsx_instantiate: Changing IP Address in CFGTMPL: ${dsxnet}" 
 #jsonParmSwap CFGTMPL ${dsxnet}
@@ -361,9 +361,9 @@ else
    exit 1 
 fi
 
-logger "bootstrapdsx_instantiate: Changing Port in REST: ${dsxnet}" 
-jsonParmSwap RESTPORT ${portadmin}
-#replaceJsonParm RESTPORT ${portadmin}
+logger "bootstrapdsx_instantiate: Changing Port in REST: ${portrestapi}" 
+jsonParmSwap RESTPORT ${portrestapi}
+#replaceJsonParm RESTPORT ${portrestapi}
 if [ $? -eq 0 ]; then
    logger "bootstrapdsx_instantiate: INFO: Port $portadmin Replaced for file code: REST ." 
    systemctl restart dart-rest
