@@ -1,5 +1,71 @@
 #!/bin/bash
 
+
+# This is a function because we may replace IPs in several files.
+function replaceIp
+{
+   FILENAME=""
+   CFGTMPL=""
+   SEDKEY=""
+
+   if [ -z $1 -o -z $2 ]; then
+      echo "Invalid Function Call replaceIp: Required: FILECODE NEWIP"
+      return 1
+   fi
+
+
+   case $1 in
+      "REST") 
+           FILENAME=/usr/local/dart-rest/my_package.json;; 
+           SEDKEY='"ip":'
+      "CFGTMPL") 
+           FILENAME=/usr/local/dps/cfg/vtc_reg_templates/vtc_config_template.json;; 
+           SEDKEY='"dsx_ip": '
+      *) return 1;;
+   esac
+
+   NEWIP=$2
+
+   DIRNAME=`dirname ${FILENAME}
+   if [ ! -d ${DIRNAME} ]; then
+      logger "bootstrapdsx_instantiate: Dir not found: ${DIRNAME}"
+      return 1
+   fi
+
+   if [ -f ${FILENAME} ]; then
+      # Cleaner to drop into the directory when you are doing sed stuff
+      pushd ${DIRNAME}
+      cp ${TMPLT} ${TMPLT}.$$
+
+      # This sed below is not working properly...bug in sed? Or an issue w the expression? Not sureyet.
+      # sed -i 's+\"ip\"\:\"\([1-9]\)\{1,3\}\(\.[0-9]\{1,3\}\)\{3\}+\"ip\"\:\'"$NEWIP"'+' ${TMPLT}
+   
+      # This works - not pretty, not elegant, and not efficient, but it gets the job done.
+      #sed -i 's+\"ip\"\:\"\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\)+\"ip\"\:\"MARKER+' ${FILENAME}
+      sed -i 's+'$SEDKEY'\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\)+\"ip\"\:\"MARKER+' ${FILENAME}
+      if [ $? -eq 0 ]; then
+         sed -i 's+MARKER+'"$NEWIP"'+' ${FILENAME}
+         if [ $? -eq 0 ]; then
+            logger "bootstrapdsx_instantiate: replaceIp: INFO: IP successfully replaced in ${FILENAME}"
+         else
+            logger "bootstrapdsx_instantiate: replaceIp: ERROR: err replacing IP in ${FILENAME}"
+            popd
+            return 1
+         fi
+      else
+         logger "bootstrapdsx_instantiate: replaceIp: ERROR: err replacing IP in ${FILENAME}"
+         popd
+         return 1
+      fi
+   else
+      logger "bootstrapdsx_instantiate: replaceIp: ERROR: File not found: ${DIR}/${TMPLT}" 
+      popd
+      return 1
+   fi
+   popd
+   return 0
+}
+
 logger "bootstrapdsx_instantiate: INSTANTIATION of the Bootstrap DSX"
 
 # The first node up in a percona cluster needs to be cranked as a bootstrap service.
@@ -161,39 +227,22 @@ logger "bootstrapdsx_instantiate: Traffic Interface: ${ifacectlplane}"
 logger "bootstrapdsx_instantiate: Registration Port: ${portreg}" 
 logger "bootstrapdsx_instantiate: REST API Port: ${portrest}" 
 
-logger "bootstrapdsx_instantiate: Changing vtc_config_template to use IP Address: ${dsxnet}" 
-DIR="/usr/local/dps/cfg/vtc_reg_templates"
-if [ ! -d ${DIR} ]; then
-   logger "bootstrapdsx_instantiate: Dir not found: ${DIR}" 
-   exit 1
+logger "bootstrapdsx_instantiate: Changing IP Address in CFGTMPL: ${dsxnet}" 
+replaceIp CFGTMPL ${dsxnet}
+if [ $? -eq 0 ]; then
+   logger "bootstrapdsx_instantiate: INFO: IP $dsxnet Replaced for file code: CFGTMPL."
 else
-   TMPLT="vtc_config_template.json"
-   # Back up old json. We will use dollar dollar to avoid exists issues and such.
-   if [ -f ${DIR}/${TMPLT} ]; then
-      pushd ${DIR}
-      cp ${TMPLT} ${TMPLT}.$$
-
-      # This sed below is not working properly...bug in sed? Or an issue w the expression? Not sureyet.
-      # sed -i 's+\"ip\"\:\"\([1-9]\)\{1,3\}\(\.[0-9]\{1,3\}\)\{3\}+\"ip\"\:\'"$dsxnet"'+' ${TMPLT}
-
-      # This works - not pretty, not elegant, and not efficient, but it gets the job done.
-      sed -in 's+\"ip\"\:\"\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\)+\"ip\"\:\"MARKER+' ${TMPLT}
-      if [ $? -eq 0 ]; then
-         sed -in 's+MARKER+'"$dsxnet"'+' ${TMPLT}
-         if [ $? -eq 0 ]; then
-            logger "bootstrapdsx_instantiate: IP successfully replaced in ${TMPLT}" 
-         else
-            logger "bootstrapdsx_instantiate: ERROR replacing IP in ${TMPLT}" 
-            exit 1
-         fi
-      else
-         logger "bootstrapdsx_instantiate: ERROR replacing IP in ${TMPLT}" 
-         exit 1
-      fi
-      popd
-   else
-      logger "bootstrapdsx_instantiate: File not found: ${DIR}/${TMPLT}" 
-      exit 1
-   fi
+   logger "bootstrapdsx_instantiate: ERROR: IP $dsxnet NOT Replaced for file code CFGTMPL." 
+   exit 1 
 fi
+
+logger "bootstrapdsx_instantiate: Changing IP Address in DARTREST: ${dsxnet}" 
+replaceIp DARTREST ${dsxnet}
+if [ $? -eq 0 ]; then
+   logger "bootstrapdsx_instantiate: INFO: IP $dsxnet Replaced for file code: DARTREST ." 
+else
+   logger "bootstrapdsx_instantiate: ERROR: IP $dsxnet NOT Replaced for file code: DARTREST." 
+   exit 1 
+fi
+
 exit 0
