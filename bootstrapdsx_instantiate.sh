@@ -132,7 +132,7 @@ function jsonParmSwap
 import json
 with open("${FILENAME}",'r+') as f:
     data=json.load(f)
-    data["config"]["ip"] = "${NEWPARM}"
+    data["config"]["dsx_ip"] = "${NEWPARM}"
     f.seek(0)
     json.dump(data, f, indent=4)
 SCRIPT
@@ -336,8 +336,8 @@ logger "bootstrapdsx_instantiate: Hostname: ${hostname}"
 logger "bootstrapdsx_instantiate: IP Address: ${dsxnet}" 
 logger "bootstrapdsx_instantiate: Traffic Interface: ${ifacectlplane}" 
 logger "bootstrapdsx_instantiate: Registration Port: ${portreg}" 
-logger "bootstrapdsx_instantiate: REST API Port: ${portrestweb}" 
-logger "bootstrapdsx_instantiate: REST Admin Port: ${portrestapi}" 
+logger "bootstrapdsx_instantiate: REST RA Port: ${portra}" 
+logger "bootstrapdsx_instantiate: REST RW Port: ${portrw}" 
 
 logger "bootstrapdsx_instantiate: Changing IP Address in CFGTMPL: ${dsxnet}" 
 #jsonParmSwap CFGTMPL ${dsxnet}
@@ -355,15 +355,14 @@ jsonParmSwap RESTIP ${dsxnet}
 #replaceJsonParm RESTIP ${dsxnet}
 if [ $? -eq 0 ]; then
    logger "bootstrapdsx_instantiate: INFO: IP $dsxnet Replaced for file code: REST ." 
-   systemctl restart dart-rest
 else
    logger "bootstrapdsx_instantiate: ERROR: IP $dsxnet NOT Replaced for file code: REST." 
    exit 1 
 fi
 
 logger "bootstrapdsx_instantiate: Changing Port in REST: ${portrestapi}" 
-jsonParmSwap RESTPORT ${portrestapi}
-#replaceJsonParm RESTPORT ${portrestapi}
+jsonParmSwap RESTPORT ${portra}
+#replaceJsonParm RESTPORT ${portra}
 if [ $? -eq 0 ]; then
    logger "bootstrapdsx_instantiate: INFO: Port $portadmin Replaced for file code: REST ." 
    systemctl restart dart-rest
