@@ -348,7 +348,11 @@ if [ $? -eq 0 ]; then
                logger "bootstrap_instantiate:INFO: Deflect Pool OPENBATON properly provisioned!"
             elif [ $? -eq 4 ]; then
                logger "bootstrap_instantiate:INFO: Deflect Pool already provisioned (assumed correct)."
-            popd
+            else
+               logger "bootstrap_instantiate:ERROR: Error occured in attempt to provision Service Group."
+               popd
+               exit 1
+            fi
          else
             logger "bootstrap_instantiate:ERROR: Error occured in attempt to provision Service Group."
             popd
