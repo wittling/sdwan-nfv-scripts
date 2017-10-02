@@ -1,82 +1,11 @@
 #!/bin/bash
 
-
-# This is a function because we may replace IPs in several files.
-function replaceJsonParm
-{
-   FILENAME=""
-   FILECODE=""
-
-   if [ -z $1 -o -z $2 ]; then
-      echo "Invalid Function Call replaceJsonParm: Required: FILECODE NEWIP"
-      return 1
-   fi
-
-   case $1 in
-      "RESTIP") 
-           FILENAME=/usr/local/dart-rest/package.json
-           NEWPARM=$2
-           FILECODE=$1;;
-      "RESTPORT") 
-           FILENAME=/usr/local/dart-rest/package.json
-           NEWPARM=$2
-           FILECODE=$1;;
-      "CFGTMPL") 
-           FILENAME=/usr/local/dps/cfg/vtc_reg_templates/vtc_config_template.json
-           NEWPARM=$2
-           FILECODE=$1;;
-      *) return 1;;
-   esac
-
-   DIRNAME=`dirname ${FILENAME}`
-   if [ ! -d ${DIRNAME} ]; then
-      logger "bootstrapdsx_instantiate: Dir not found: ${DIRNAME}"
-      return 1
-   fi
-
-   if [ -f ${FILENAME} ]; then
-      # Cleaner to drop into the directory when you are doing sed stuff
-      pushd ${DIRNAME}
-      cp ${TMPLT} ${TMPLT}.$$
-
-      # This sed below is not working properly...bug in sed? Or an issue w the expression? Not sureyet.
-      # sed -i 's+\"ip\"\:\"\([1-9]\)\{1,3\}\(\.[0-9]\{1,3\}\)\{3\}+\"ip\"\:\'"$NEWPARM"'+' ${TMPLT}
-   
-      # Using sed to parse jsons is not a workable thing to do long-term. I will need to use a real json parser
-      # of some kind. But I will use this sed for now.
-
-      # This works - not pretty, not elegant, and not efficient, but it gets the job done.
-      if [ ${FILECODE} == "CFGTMPL" ]; then
-         (sed -i 's+\"ip\"\:\"\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\)+\"ip\"\:\"MARKER+' ${FILENAME} ; 
-          sed -i 's+MARKER+'"$NEWPARM"'+' ${FILENAME})
-      elif [ ${FILECODE} == "RESTIP" ]; then
-         (sed -i 's+\"dsx_ip\"\: \"\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\)+\"ip\"\:\"MARKER+' ${FILENAME} ;
-          sed -i 's+MARKER+'"$NEWPARM"'+' ${FILENAME})
-      elif [ ${FILECODE} == "RESTPORT" ]; then
-         (sed -i 's+\"dsx_ip\"\: \"\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\)+\"ip\"\:\"MARKER+' ${FILENAME} ;
-          sed -i 's+MARKER+'"$NEWPARM"'+' ${FILENAME})
-      else
-         logger "bootstrapdsx_instantiate: replaceJsonParm: ERROR: No sed statement for file code ${FILECODE}."
-         popd
-         return 1
-      fi
-
-      if [ $? -eq 0 ]; then
-         logger "bootstrapdsx_instantiate: replaceJsonParm: INFO: IP successfully replaced in ${FILENAME}"
-         popd
-      else
-         logger "bootstrapdsx_instantiate: replaceJsonParm: ERROR: Error replacing IP in ${FILENAME}"
-         popd
-         return 1
-      fi
-   else
-      logger "bootstrapdsx_instantiate: replaceJsonParm: ERROR: File not found: ${DIR}/${TMPLT}" 
-      popd
-      return 1
-   fi
-   return 0
-}
-
+# Originally we wanted to just swap an IP address and used sed as the way to do this. It did not
+# take long before we had more parameters and quickly figured out that sed was NOT the way to edit
+# parms in json files. So we ditched the sed and instead used this python script, which of course
+# now means that this will not work if python is not installed on the target. The good news is that
+# this script should work with python 2 or python 3. But we check first to make sure python is
+# installed before proceeding.
 function jsonParmSwap
 {
    # Check for Python and see if it is installed (no sense wasting gas)
@@ -340,8 +269,7 @@ logger "bootstrapdsx_instantiate: REST RA Port: ${portra}"
 logger "bootstrapdsx_instantiate: REST RW Port: ${portrw}" 
 
 logger "bootstrapdsx_instantiate: Changing IP Address in CFGTMPL: ${dsxnet}" 
-#jsonParmSwap CFGTMPL ${dsxnet}
-replaceJsonParm CFGTMPL ${dsxnet}
+jsonParmSwap CFGTMPL ${dsxnet}
 if [ $? -eq 0 ]; then
    logger "bootstrapdsx_instantiate: INFO: IP $dsxnet Replaced for file code: CFGTMPL."
    systemctl restart dps
@@ -352,7 +280,6 @@ fi
 
 logger "bootstrapdsx_instantiate: Changing IP Address in REST: ${dsxnet}" 
 jsonParmSwap RESTIP ${dsxnet}
-#replaceJsonParm RESTIP ${dsxnet}
 if [ $? -eq 0 ]; then
    logger "bootstrapdsx_instantiate: INFO: IP $dsxnet Replaced for file code: REST ." 
 else
@@ -362,13 +289,64 @@ fi
 
 logger "bootstrapdsx_instantiate: Changing Port in REST: ${portrestapi}" 
 jsonParmSwap RESTPORT ${portra}
-#replaceJsonParm RESTPORT ${portra}
 if [ $? -eq 0 ]; then
    logger "bootstrapdsx_instantiate: INFO: Port $portadmin Replaced for file code: REST ." 
    systemctl restart dart-rest
 else
    logger "bootstrapdsx_instantiate: ERROR: Port $portadmin NOT Replaced for file code: REST." 
    exit 1 
+fi
+
+logger "bootstrapdsx_instantiate: Attempting to provision service group via REST interface" 
+python3 -V
+if [ $? -eq 0 ]; then
+   RESTCLTDIR="/usr/local/dart-rest-client/local-client-projects"
+   if [ -d ${RESTCLTDIR} ]; then
+      if [ -f servicegroup.py ]; then
+         if [ ! -x servicegroup.py ]; then
+            chmod +x servicegroup.py
+         fi
+         pushd
+         logger "bootstrapdsx_instantiate: INFO: Attempting to provision new OPENBATON service group." 
+         (python3 servicegroup.py OPENBATON OPENBATON l3mlx)
+         if [ $? -eq 0 ]; then
+            logger "bootstrap_instantiate" INFO: Service Group OPENBATON provisioned!"
+         elif [ $? -eq 4 ]; then
+            logger "bootstrap_instantiate" INFO: Service Group OPENBATON already provisioned (assumed correct)."
+         else
+            logger "bootstrap_instantiate" ERROR: Error occured in attempt to provision Service Group."
+            popd
+            exit 1
+         fi
+         if [ -f deflectpool.py ]; then
+            if [ ! -x deflectpool.py ]; then
+               chmod +x deflectpool.py
+            fi
+            logger "bootstrap_instantiate" INFO: Provisioning Deflect Pool OPENBATON and adding to Service Group OPENBATON."
+            (python3 deflectpool.py OPENBATON OPENBATON 1 1 1 0 1 5 no)
+            if [ $? -eq 0 ]; then
+               logger "bootstrap_instantiate" INFO: Deflect Pool OPENBATON properly provisioned!"
+            elif [ $? -eq 4 ]; then
+               logger "bootstrap_instantiate" INFO: Deflect Pool already provisioned (assumed correct)."
+            popd
+         else
+            logger "bootstrap_instantiate" ERROR: Error occured in attempt to provision Service Group."
+            popd
+            exit 1
+         fi
+      else
+         logger "bootstrapdsx_instantiate: ERROR: No servicegroup.py script." 
+         popd
+         exit 1
+      fi
+   else
+      logger "bootstrapdsx_instantiate: ERROR: No rest client directory ${RESTCLTDIR} on DSX" 
+      popd
+      exit 1
+   fi
+   logger "bootstrapdsx_instantiate: ERROR: Python 3 not installed on DSX" 
+   popd
+   exit 1
 fi
 
 exit 0
