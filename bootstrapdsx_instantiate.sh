@@ -307,6 +307,15 @@ if [ $? -eq 0 ]; then
             chmod +x servicegroup.py
          fi
          pushd
+         if [ -f .dvnrestenv ]; then
+            echo "export DVNREST_URL=https:\/\/${dsxnet}\:3001" >> .dvnrestenv
+            source .dvnrestenv
+         else
+            logger "bootstrapdsx_instantiate: ERROR: No environment file for rest API." 
+            popd
+            exit 1
+         fi
+
          logger "bootstrapdsx_instantiate: INFO: Attempting to provision new OPENBATON service group." 
          (python3 servicegroup.py OPENBATON OPENBATON l3mlx)
          if [ $? -eq 0 ]; then
@@ -318,6 +327,7 @@ if [ $? -eq 0 ]; then
             popd
             exit 1
          fi
+
          if [ -f deflectpool.py ]; then
             if [ ! -x deflectpool.py ]; then
                chmod +x deflectpool.py
