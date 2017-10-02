@@ -309,8 +309,19 @@ if [ $? -eq 0 ]; then
          fi
          pushd
          if [ -f .dvnrestenv ]; then
-            echo "export DVNREST_URL=https:\/\/${dsxnet}\:3001" >> .dvnrestenv
-            source .dvnrestenv
+            logger "bootstrapdsx_instantiate: INFO: Attempting to set REST API URL..." 
+           ( sed -i 's+https\:\/\/\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\)+https\:\/\/MARKER+' ${FILENAME} ; sed -i 's+MARKER+'"${dsxnet}"'+' ${FILENAME} )
+            if [ $? -eq 0 ]; then
+               if [ ! -x .dvnrestenv ]; then
+                  chmod +x .dvnrestenv
+               fi
+               logger "bootstrapdsx_instantiate: INFO: Sourcing rest environment..." 
+               source .dvnrestenv
+            else
+               logger "bootstrapdsx_instantiate: ERROR: Error setting REST API URL." 
+               popd
+               exit 1
+            fi
          else
             logger "bootstrapdsx_instantiate: ERROR: No environment file for rest API." 
             popd
