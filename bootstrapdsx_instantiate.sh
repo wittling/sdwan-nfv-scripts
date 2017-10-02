@@ -327,7 +327,7 @@ if [ $? -eq 0 ]; then
          fi
 
          logger "bootstrapdsx_instantiate: INFO: Attempting to provision new OPENBATON service group." 
-         (python3 servicegroup.py OPENBATON OPENBATON l3mlx)
+         (python3 servicegroup.py OPENBATON OPENBATON l3mlx 1>servicegroup.py.log 2>&1)
          if [ $? -eq 0 ]; then
             logger "bootstrap_instantiate:INFO: Service Group OPENBATON provisioned!"
          elif [ $? -eq 4 ]; then
@@ -343,7 +343,7 @@ if [ $? -eq 0 ]; then
                chmod +x deflectpool.py
             fi
             logger "bootstrap_instantiate:INFO: Provisioning Deflect Pool OPENBATON and adding to Service Group OPENBATON."
-            (python3 deflectpool.py OPENBATON OPENBATON 1 1 1 0 1 5 no)
+            (python3 deflectpool.py OPENBATON OPENBATON 1 1 1 0 1 5 no 1>deflectpool.py.log 2>&1)
             if [ $? -eq 0 ]; then
                logger "bootstrap_instantiate:INFO: Deflect Pool OPENBATON properly provisioned!"
             elif [ $? -eq 4 ]; then
