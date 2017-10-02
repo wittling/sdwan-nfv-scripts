@@ -83,7 +83,7 @@ SCRIPT
 import json
 with open("${FILENAME}",'r+') as f:
     data=json.load(f)
-    data["vtc_config"]["domains"][1][dps_list][1][ip] = "${NEWPARM}"
+    data["vtc_config"]["domains"][0]["dps_list"][0][ip] = "${NEWPARM}"
     f.seek(0)
     json.dump(data, f, indent=4)
 SCRIPT
