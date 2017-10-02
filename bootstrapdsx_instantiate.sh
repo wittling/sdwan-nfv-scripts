@@ -230,36 +230,7 @@ done
 #   exit 1
 #fi
 
-# Now restart the DPS Services
-
-logger "Script: bootstrapdsx_instantiate.bash:INFO: Restarting dps.service after Percona Bootstrap startup."
-systemctl start dps.service
-sleep 3
-OUTPUT=`systemctl is-active dps.service`
-if [ $? -eq 0 ]; then
-   logger "Script: bootstrapdsx_instantiate.bash:INFO: dps.service restarted."
-else
-   logger "Script: bootstrapdsx_instantiate.bash:INFO: dps.service did NOT restart. Manual intervention required."
-fi
-
-systemctl start dart3.service
-sleep 3
-OUTPUT=`systemctl is-active dart3.service`
-if [ $? -eq 0 ]; then
-   logger "Script: bootstrapdsx_instantiate.bash:INFO: dart3.service (node) restarted."
-else
-   logger "Script: bootstrapdsx_instantiate.bash:INFO: dart3.service (node) did NOT restart. Manual intervention required."
-fi
-
-systemctl start dart-rest.service
-OUTPUT=`systemctl is-active dart-rest.service`
-if [ $? -eq 0 ]; then
-   logger "Script: bootstrapdsx_instantiate.bash:INFO: dart-rest.service (node) restarted."
-else
-   logger "Script: bootstrapdsx_instantiate.bash:INFO: dart-rest.service (node) did NOT restart. Manual intervention required."
-fi
-
-logger "bootstrapdsx_instantiate: INSTANTIATION of the Bootstrap DSX"
+logger "bootstrapdsx_instantiate: Checking Service Orchestration Parameters."
 
 logger "bootstrapdsx_instantiate: Hostname: ${hostname}"
 logger "bootstrapdsx_instantiate: IP Address: ${dsxnet}" 
@@ -298,6 +269,42 @@ else
    exit 1 
 fi
 
+
+
+# Now restart the DPS Services
+
+logger "Script: bootstrapdsx_instantiate.bash:INFO: Restarting dps.service after Percona Bootstrap startup."
+systemctl start dps.service
+sleep 3
+OUTPUT=`systemctl is-active dps.service`
+if [ $? -eq 0 ]; then
+   logger "Script: bootstrapdsx_instantiate.bash:INFO: dps.service restarted."
+else
+   logger "Script: bootstrapdsx_instantiate.bash:ERROR: dps.service did NOT restart. Manual intervention required."
+   exit 1 
+fi
+
+systemctl start dart3.service
+sleep 3
+OUTPUT=`systemctl is-active dart3.service`
+if [ $? -eq 0 ]; then
+   logger "Script: bootstrapdsx_instantiate.bash:INFO: dart3.service (node) restarted."
+else
+   logger "Script: bootstrapdsx_instantiate.bash:ERROR: dart3.service (node) did NOT restart. Manual intervention required."
+   exit 1 
+fi
+
+systemctl start dart-rest.service
+OUTPUT=`systemctl is-active dart-rest.service`
+if [ $? -eq 0 ]; then
+   logger "Script: bootstrapdsx_instantiate.bash:INFO: dart-rest.service (node) restarted."
+else
+   logger "Script: bootstrapdsx_instantiate.bash:ERROR: dart-rest.service (node) did NOT restart. Manual intervention required."
+   exit 1 
+fi
+
+
+
 logger "bootstrapdsx_instantiate: Attempting to provision service group via REST interface" 
 python3 -V
 if [ $? -eq 0 ]; then
@@ -327,7 +334,7 @@ if [ $? -eq 0 ]; then
          fi
 
          logger "bootstrapdsx_instantiate: INFO: Attempting to provision new OPENBATON service group." 
-         (python3 servicegroup.py OPENBATON OPENBATON l3mlx 1>servicegroup.py.log 2>&1)
+         (python3 servicegroup.py ${svcgroup} ${svcgroup} l3mlx 1>servicegroup.py.log 2>&1)
          if [ $? -eq 0 ]; then
             logger "bootstrap_instantiate:INFO: Service Group OPENBATON provisioned!"
          elif [ $? -eq 4 ]; then
@@ -343,7 +350,7 @@ if [ $? -eq 0 ]; then
                chmod +x deflectpool.py
             fi
             logger "bootstrap_instantiate:INFO: Provisioning Deflect Pool OPENBATON and adding to Service Group OPENBATON."
-            (python3 deflectpool.py OPENBATON OPENBATON 1 1 1 0 1 5 no 1>deflectpool.py.log 2>&1)
+            (python3 deflectpool.py ${svcgroup} ${svcgroup} 1 1 1 0 1 5 no 1>deflectpool.py.log 2>&1)
             if [ $? -eq 0 ]; then
                logger "bootstrap_instantiate:INFO: Deflect Pool OPENBATON properly provisioned!"
             elif [ $? -eq 4 ]; then
