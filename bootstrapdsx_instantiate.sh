@@ -303,20 +303,21 @@ python3 -V
 if [ $? -eq 0 ]; then
    RESTCLTDIR="/usr/local/dart-rest-client/local-client-projects"
    if [ -d ${RESTCLTDIR} ]; then
+      pushd ${RESTCLTDIR}
       if [ -f servicegroup.py ]; then
          if [ ! -x servicegroup.py ]; then
             chmod +x servicegroup.py
          fi
-         pushd
-         if [ -f .dvnrestenv ]; then
+         DVNRESTENV=".dvnrestenv"
+         if [ -f ${DVNRESTENV} ]; then
             logger "bootstrapdsx_instantiate: INFO: Attempting to set REST API URL..." 
-           ( sed -i 's+https\:\/\/\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\)+https\:\/\/MARKER+' ${FILENAME} ; sed -i 's+MARKER+'"${dsxnet}"'+' ${FILENAME} )
+           ( sed -i 's+https\:\/\/\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\)+https\:\/\/MARKER+' ${DVNRESTENV} ; sed -i 's+MARKER+'"${dsxnet}"'+' ${DVNRESTENV} )
             if [ $? -eq 0 ]; then
-               if [ ! -x .dvnrestenv ]; then
-                  chmod +x .dvnrestenv
+               if [ ! -x ${DVNRESTENV} ]; then
+                  chmod +x ${DVNRESTENV} 
                fi
                logger "bootstrapdsx_instantiate: INFO: Sourcing rest environment..." 
-               source .dvnrestenv
+               source ${DVNRESTENV} 
             else
                logger "bootstrapdsx_instantiate: ERROR: Error setting REST API URL." 
                popd
