@@ -9,13 +9,13 @@
 function jsonParmSwap
 {
    # Check for Python and see if it is installed (no sense wasting gas)
-   logger "bootstrapdsx_instantiate: jsonParmSwap: INFO: Checking Python Version"
+   logger "bootstrapdsx_instantiate: jsonParmSwap:INFO: Checking Python Version"
    pyver=$(python -V 2>&1 | grep -Po '(?<=Python )(.+)')
    if [[ -z "$pyver" ]]; then
-      logger "bootstrapdsx_instantiate: jsonParmSwap: ERROR: No Python Version!"
+      logger "bootstrapdsx_instantiate: jsonParmSwap:ERROR: No Python Version!"
       return 1
    else
-      logger "bootstrapdsx_instantiate: jsonParmSwap: INFO: Python Version: ${pyver}"
+      logger "bootstrapdsx_instantiate: jsonParmSwap:INFO: Python Version: ${pyver}"
    fi
       
    FILENAME=""
@@ -89,7 +89,7 @@ with open("${FILENAME}",'r+') as f:
 SCRIPT
 
       else
-         logger "bootstrapdsx_instantiate: jsonParmSwap: ERROR: Invalid File Code."
+         logger "bootstrapdsx_instantiate: jsonParmSwap:ERROR: Invalid File Code."
          rm $parse_json_script
          popd
          return 1
@@ -97,16 +97,16 @@ SCRIPT
          
       python $parse_json_script && rm $parse_json_script
       if [ $? -eq 0 ]; then
-         logger "bootstrapdsx_instantiate: jsonParmSwap: INFO: Parm Replaced"
+         logger "bootstrapdsx_instantiate: jsonParmSwap:INFO: Parm Replaced"
       else
-         logger "bootstrapdsx_instantiate: jsonParmSwap: ERROR: Parm NOT Replaced"
+         logger "bootstrapdsx_instantiate: jsonParmSwap:ERROR: Parm NOT Replaced"
          popd
          return 1
       fi   
    fi
 }
 
-logger "bootstrapdsx_instantiate: INSTANTIATION of the Bootstrap DSX"
+logger "bootstrapdsx_instantiate:INFO:Instantiation of the Bootstrap DSX"
 
 # The first node up in a percona cluster needs to be cranked as a bootstrap service.
 # This script will attempt to do that.
@@ -122,25 +122,25 @@ logger "Script: bootstrapdsx_instantiate.bash: Stopping DPS Services so we can s
 systemctl stop dps.service
 OUTPUT=`systemctl is-active dps.service`
 if [ $? -eq 0 ]; then
-   logger "Script: bootstrapdsx_instantiate.bash: WARNING: dps.service did not stop. non-fatal. We will continue."
+   logger "Script: bootstrapdsx_instantiate.bash:WARNING: dps.service did not stop. non-fatal. We will continue."
 else
-   logger "Script: bootstrapdsx_instantiate.bash: INFO: dps.service stopped."
+   logger "Script: bootstrapdsx_instantiate.bash:INFO: dps.service stopped."
 fi
 
 systemctl stop dart-rest.service
 OUTPUT=`systemctl is-active dart-rest.service`
 if [ $? -eq 0 ]; then
-   logger "Script: bootstrapdsx_instantiate.bash: WARNING: dart-rest.service did not stop. non-fatal. We will continue."
+   logger "Script: bootstrapdsx_instantiate.bash:WARNING: dart-rest.service did not stop. non-fatal. We will continue."
 else
-   logger "Script: bootstrapdsx_instantiate.bash: INFO: dart-rest.service stopped."
+   logger "Script: bootstrapdsx_instantiate.bash:INFO: dart-rest.service stopped."
 fi
 
 systemctl stop dart3.service
 OUTPUT=`systemctl is-active dart3.service`
 if [ $? -eq 0 ]; then
-   logger "Script: bootstrapdsx_instantiate.bash: WARNING: dart3.service did not stop. non-fatal. We will continue."
+   logger "Script: bootstrapdsx_instantiate.bash:WARNING: dart3.service did not stop. non-fatal. We will continue."
 else
-   logger "Script: bootstrapdsx_instantiate.bash: INFO: dart3.service stopped."
+   logger "Script: bootstrapdsx_instantiate.bash:INFO: dart3.service stopped."
 fi
 
 # Since we are not completely sure whether the DB is running in primary clustered mode or not, we will need to 
@@ -150,20 +150,20 @@ systemctl stop ${UNITNAME}
 sleep 3
 OUTPUT=`systemctl is-active ${UNITNAME}`
 if [ $? -eq 0 ]; then
-   logger "Script: bootstrapdsx_instantiate.bash: ERROR: ${UNITNAME}.service did not stop. non-fatal. We will continue."
+   logger "Script: bootstrapdsx_instantiate.bash:ERROR: ${UNITNAME}.service did not stop. non-fatal. We will continue."
    exit 1
 else
-   logger "Script: bootstrapdsx_instantiate.bash: INFO: ${UNITNAME}.service stopped."
+   logger "Script: bootstrapdsx_instantiate.bash:INFO: ${UNITNAME}.service stopped."
 fi
 
 systemctl stop ${SVCNAME}
 sleep 3
 OUTPUT=`systemctl is-active ${SVCNAME}`
 if [ $? -eq 0 ]; then
-   logger "Script: bootstrapdsx_instantiate.bash: ERROR: ${SVCNAME}.service did not stop. non-fatal. We will continue."
+   logger "Script: bootstrapdsx_instantiate.bash:ERROR: ${SVCNAME}.service did not stop. non-fatal. We will continue."
    exit 1
 else
-   logger "Script: bootstrapdsx_instantiate.bash: INFO: ${SVCNAME}.service stopped."
+   logger "Script: bootstrapdsx_instantiate.bash:INFO: ${SVCNAME}.service stopped."
 fi
 
 # Check and make sure mysql is not running. If it is, shut it down.
@@ -190,26 +190,26 @@ fi
 logger "Script: bootstrapdsx_instantiate.bash: Attempting to start Percona as bootstrap..."
 systemctl start ${SVCNAME}
 
-logger "Script: bootstrapdsx_instantiate.bash: INFO: Percona takes a while to initialize..."
-logger "Script: bootstrapdsx_instantiate.bash: INFO: Waiting ${DBINITIALIZE}..."
+logger "Script: bootstrapdsx_instantiate.bash:INFO: Percona takes a while to initialize..."
+logger "Script: bootstrapdsx_instantiate.bash:INFO: Waiting ${DBINITIALIZE}..."
 sleep ${DBINITIALIZE} 
 
 for i in 1 2 3; do
 OUTPUT=`systemctl is-active ${SVCNAME}`
-logger "Script: bootstrapdsx_instantiate.bash: DEBUG: Return code from is-active on ${SVCNAME}: ${OUTPUT}"
+logger "Script: bootstrapdsx_instantiate.bash:DEBUG: Return code from is-active on ${SVCNAME}: ${OUTPUT}"
 RC=$?
 if [ ${RC} -eq 0 ]; then
-   logger "Script: bootstrapdsx_instantiate.bash: INFO: Service ${SVCNAME} reported as active..."
+   logger "Script: bootstrapdsx_instantiate.bash:INFO: Service ${SVCNAME} reported as active..."
    break
 elif [ ${RC} -eq 1 ]; then
-   logger "Script: bootstrapdsx_instantiate.bash: INFO: Service ${SVCNAME} trying to activate..."
+   logger "Script: bootstrapdsx_instantiate.bash:INFO: Service ${SVCNAME} trying to activate..."
    sleep 2
 else
    echo "ERROR: Service ${SVCNAME} NOT reported as active." 
-   logger "Script: bootstrapdsx_instantiate.bash: ERROR: Service ${SVCNAME} NOT reported as active..."
+   logger "Script: bootstrapdsx_instantiate.bash:ERROR: Service ${SVCNAME} NOT reported as active..."
    if [ $i -eq 3 ]; then
-      logger "Script: bootstrapdsx_instantiate.bash: ERROR: Manual intervention required to start ${SVCNAME} properly!"
-      logger "Script: bootstrapdsx_instantiate.bash: ERROR: Giving up on required service ${SVCNAME}. Exiting."
+      logger "Script: bootstrapdsx_instantiate.bash:ERROR: Manual intervention required to start ${SVCNAME} properly!"
+      logger "Script: bootstrapdsx_instantiate.bash:ERROR: Giving up on required service ${SVCNAME}. Exiting."
       exit 1
    fi
 fi
@@ -232,31 +232,31 @@ done
 
 # Now restart the DPS Services
 
-logger "Script: bootstrapdsx_instantiate.bash: INFO: Restarting dps.service after Percona Bootstrap startup."
+logger "Script: bootstrapdsx_instantiate.bash:INFO: Restarting dps.service after Percona Bootstrap startup."
 systemctl start dps.service
 sleep 3
 OUTPUT=`systemctl is-active dps.service`
 if [ $? -eq 0 ]; then
-   logger "Script: bootstrapdsx_instantiate.bash: INFO: dps.service restarted."
+   logger "Script: bootstrapdsx_instantiate.bash:INFO: dps.service restarted."
 else
-   logger "Script: bootstrapdsx_instantiate.bash: INFO: dps.service did NOT restart. Manual intervention required."
+   logger "Script: bootstrapdsx_instantiate.bash:INFO: dps.service did NOT restart. Manual intervention required."
 fi
 
 systemctl start dart3.service
 sleep 3
 OUTPUT=`systemctl is-active dart3.service`
 if [ $? -eq 0 ]; then
-   logger "Script: bootstrapdsx_instantiate.bash: INFO: dart3.service (node) restarted."
+   logger "Script: bootstrapdsx_instantiate.bash:INFO: dart3.service (node) restarted."
 else
-   logger "Script: bootstrapdsx_instantiate.bash: INFO: dart3.service (node) did NOT restart. Manual intervention required."
+   logger "Script: bootstrapdsx_instantiate.bash:INFO: dart3.service (node) did NOT restart. Manual intervention required."
 fi
 
 systemctl start dart-rest.service
 OUTPUT=`systemctl is-active dart-rest.service`
 if [ $? -eq 0 ]; then
-   logger "Script: bootstrapdsx_instantiate.bash: INFO: dart-rest.service (node) restarted."
+   logger "Script: bootstrapdsx_instantiate.bash:INFO: dart-rest.service (node) restarted."
 else
-   logger "Script: bootstrapdsx_instantiate.bash: INFO: dart-rest.service (node) did NOT restart. Manual intervention required."
+   logger "Script: bootstrapdsx_instantiate.bash:INFO: dart-rest.service (node) did NOT restart. Manual intervention required."
 fi
 
 logger "bootstrapdsx_instantiate: INSTANTIATION of the Bootstrap DSX"
@@ -272,29 +272,29 @@ logger "bootstrapdsx_instantiate: Service Group: ${svcgroup}"
 logger "bootstrapdsx_instantiate: Changing IP Address in CFGTMPL: ${dsxnet}" 
 jsonParmSwap CFGTMPL ${dsxnet}
 if [ $? -eq 0 ]; then
-   logger "bootstrapdsx_instantiate: INFO: IP $dsxnet Replaced for file code: CFGTMPL."
+   logger "bootstrapdsx_instantiate:INFO: IP $dsxnet Replaced for file code: CFGTMPL."
    systemctl restart dps
 else
-   logger "bootstrapdsx_instantiate: ERROR: IP $dsxnet NOT Replaced for file code CFGTMPL." 
+   logger "bootstrapdsx_instantiate:ERROR: IP $dsxnet NOT Replaced for file code CFGTMPL." 
    exit 1 
 fi
 
 logger "bootstrapdsx_instantiate: Changing IP Address in REST: ${dsxnet}" 
 jsonParmSwap RESTIP ${dsxnet}
 if [ $? -eq 0 ]; then
-   logger "bootstrapdsx_instantiate: INFO: IP $dsxnet Replaced for file code: REST ." 
+   logger "bootstrapdsx_instantiate:INFO: IP $dsxnet Replaced for file code: REST ." 
 else
-   logger "bootstrapdsx_instantiate: ERROR: IP $dsxnet NOT Replaced for file code: REST." 
+   logger "bootstrapdsx_instantiate:ERROR: IP $dsxnet NOT Replaced for file code: REST." 
    exit 1 
 fi
 
 logger "bootstrapdsx_instantiate: Changing Port in REST: ${portrestapi}" 
 jsonParmSwap RESTPORT ${portra}
 if [ $? -eq 0 ]; then
-   logger "bootstrapdsx_instantiate: INFO: Port $portadmin Replaced for file code: REST ." 
+   logger "bootstrapdsx_instantiate:INFO: Port $portadmin Replaced for file code: REST ." 
    systemctl restart dart-rest
 else
-   logger "bootstrapdsx_instantiate: ERROR: Port $portadmin NOT Replaced for file code: REST." 
+   logger "bootstrapdsx_instantiate:ERROR: Port $portadmin NOT Replaced for file code: REST." 
    exit 1 
 fi
 
@@ -313,18 +313,15 @@ if [ $? -eq 0 ]; then
             logger "bootstrapdsx_instantiate: INFO: Attempting to set REST API URL..." 
            ( sed -i 's+https\:\/\/\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\)+https\:\/\/MARKER+' ${DVNRESTENV} ; sed -i 's+MARKER+'"${dsxnet}"'+' ${DVNRESTENV} )
             if [ $? -eq 0 ]; then
-               if [ ! -x ${DVNRESTENV} ]; then
-                  chmod +x ${DVNRESTENV} 
-               fi
-               logger "bootstrapdsx_instantiate: INFO: Sourcing rest environment..." 
-               source ${DVNRESTENV} 
+               logger "bootstrapdsx_instantiate:INFO: Sourcing rest environment..." 
+               source "${DVNRESTENV}" 
             else
-               logger "bootstrapdsx_instantiate: ERROR: Error setting REST API URL." 
+               logger "bootstrapdsx_instantiate:ERROR: Error setting REST API URL." 
                popd
                exit 1
             fi
          else
-            logger "bootstrapdsx_instantiate: ERROR: No environment file for rest API." 
+            logger "bootstrapdsx_instantiate:ERROR: No environment file for rest API." 
             popd
             exit 1
          fi
@@ -332,11 +329,11 @@ if [ $? -eq 0 ]; then
          logger "bootstrapdsx_instantiate: INFO: Attempting to provision new OPENBATON service group." 
          (python3 servicegroup.py OPENBATON OPENBATON l3mlx)
          if [ $? -eq 0 ]; then
-            logger "bootstrap_instantiate" INFO: Service Group OPENBATON provisioned!"
+            logger "bootstrap_instantiate:INFO: Service Group OPENBATON provisioned!"
          elif [ $? -eq 4 ]; then
-            logger "bootstrap_instantiate" INFO: Service Group OPENBATON already provisioned (assumed correct)."
+            logger "bootstrap_instantiate:INFO: Service Group OPENBATON already provisioned (assumed correct)."
          else
-            logger "bootstrap_instantiate" ERROR: Error occured in attempt to provision Service Group."
+            logger "bootstrap_instantiate:ERROR: Error occured in attempt to provision Service Group."
             popd
             exit 1
          fi
@@ -345,29 +342,29 @@ if [ $? -eq 0 ]; then
             if [ ! -x deflectpool.py ]; then
                chmod +x deflectpool.py
             fi
-            logger "bootstrap_instantiate" INFO: Provisioning Deflect Pool OPENBATON and adding to Service Group OPENBATON."
+            logger "bootstrap_instantiate:INFO: Provisioning Deflect Pool OPENBATON and adding to Service Group OPENBATON."
             (python3 deflectpool.py OPENBATON OPENBATON 1 1 1 0 1 5 no)
             if [ $? -eq 0 ]; then
-               logger "bootstrap_instantiate" INFO: Deflect Pool OPENBATON properly provisioned!"
+               logger "bootstrap_instantiate:INFO: Deflect Pool OPENBATON properly provisioned!"
             elif [ $? -eq 4 ]; then
-               logger "bootstrap_instantiate" INFO: Deflect Pool already provisioned (assumed correct)."
+               logger "bootstrap_instantiate:INFO: Deflect Pool already provisioned (assumed correct)."
             popd
          else
-            logger "bootstrap_instantiate" ERROR: Error occured in attempt to provision Service Group."
+            logger "bootstrap_instantiate:ERROR: Error occured in attempt to provision Service Group."
             popd
             exit 1
          fi
       else
-         logger "bootstrapdsx_instantiate: ERROR: No servicegroup.py script." 
+         logger "bootstrapdsx_instantiate:ERROR: No servicegroup.py script." 
          popd
          exit 1
       fi
    else
-      logger "bootstrapdsx_instantiate: ERROR: No rest client directory ${RESTCLTDIR} on DSX" 
+      logger "bootstrapdsx_instantiate:ERROR: No rest client directory ${RESTCLTDIR} on DSX" 
       popd
       exit 1
    fi
-   logger "bootstrapdsx_instantiate: ERROR: Python 3 not installed on DSX" 
+   logger "bootstrapdsx_instantiate:ERROR: Python 3 not installed on DSX" 
    popd
    exit 1
 fi
