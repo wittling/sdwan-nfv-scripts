@@ -334,14 +334,14 @@ if [ $? -eq 0 ]; then
             exit 1
          fi
 
-         logger "bootstrapdsx_instantiate: INFO: Attempting to provision new OPENBATON service group." 
+         logger "bootstrapdsx_instantiate: INFO: Attempting to provision new ${svcgroup} service group." 
          (python3 servicegroup.py ${svcgroup} ${svcgroup} ${svcgrptyp} 1>servicegroup.py.log 2>&1)
          if [ $? -eq 0 ]; then
-            logger "bootstrap_instantiate:INFO: Service Group OPENBATON provisioned!"
+            logger "bootstrap_instantiate:INFO: Service Group ${svcgroup} provisioned!"
          elif [ $? -eq 4 ]; then
-            logger "bootstrap_instantiate:INFO: Service Group OPENBATON already provisioned (assumed correct)."
+            logger "bootstrap_instantiate:INFO: Service Group ${svcgroup} already provisioned (assumed correct)."
          else
-            logger "bootstrap_instantiate:ERROR: Error occured in attempt to provision Service Group."
+            logger "bootstrap_instantiate:ERROR: Error occured in attempt to provision Service Group ${svcgroup}."
             popd
             exit 1
          fi
@@ -350,14 +350,16 @@ if [ $? -eq 0 ]; then
             if [ ! -x deflectpool.py ]; then
                chmod +x deflectpool.py
             fi
-            logger "bootstrap_instantiate:INFO: Provisioning Deflect Pool OPENBATON and adding to Service Group OPENBATON."
+            # NOTE: The fact that we have svcgroup down below in var is not an error. We use the same name for group and pool.
+            logger "bootstrap_instantiate:INFO: Provisioning Deflect Pool ${svcgroup} and adding to Service Group ${svcgroup}."
             (python3 deflectpool.py ${svcgroup} ${svcgroup} 1 1 1 0 1 5 no 1>deflectpool.py.log 2>&1)
             if [ $? -eq 0 ]; then
-               logger "bootstrap_instantiate:INFO: Deflect Pool OPENBATON properly provisioned!"
+               logger "bootstrap_instantiate:INFO: Deflect Pool ${svcgroup} properly provisioned!"
             elif [ $? -eq 4 ]; then
                logger "bootstrap_instantiate:INFO: Deflect Pool already provisioned (assumed correct)."
             else
-               logger "bootstrap_instantiate:ERROR: Error occured in attempt to provision Service Group."
+               # The fact that we have svcgroup down below in var is not an error. We use the same name for group and pool.
+               logger "bootstrap_instantiate:ERROR: Error occured in attempt to provision Deflect Pool ${svcgroup}."
                popd
                exit 1
             fi
@@ -376,9 +378,10 @@ if [ $? -eq 0 ]; then
       popd
       exit 1
    fi
+else
    logger "bootstrapdsx_instantiate:ERROR: Python 3 not installed on DSX" 
    popd
    exit 1
 fi
-
+logger "bootstrapdsx_instantiate:INFO: End of Script: Return Code 0" 
 exit 0
