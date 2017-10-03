@@ -115,7 +115,7 @@ UNITNAME=mysql
 # Process happens to be same in this case.
 PROCESS=${UNITNAME}
 SVCNAME="${UNITNAME}@bootstrap.service"
-DBINITIALIZE=12
+DBINITIALIZE=8
 
 # Go ahead and shut down the DPS Services so that we can start everything in proper sequence.
 logger "Script: bootstrapdsx_instantiate.bash: Stopping DPS Services so we can start Percona bootstrap"
@@ -216,7 +216,8 @@ fi
 done
 
 # Check and make sure the status is actually primary.
-# -- COMMENTED OUT 
+# -- COMMENTED OUT DUE TO PASSWD ON COMMAND LINE WARNING
+# -- MAYBE I will put a binary together that checks on status
 #KEY=wsrep_cluster_status
 #STATUS=Primary
 #mysql --silent --host=localhost --user=root --password=$1 <<EOS | grep -i ${KEY} | awk '{print $2}' | grep -i ${STATUS}
@@ -304,9 +305,11 @@ else
    exit 1 
 fi
 
+logger "bootstrapdsx_instantiate:INFO: Delay 8 seconds to give DPS time for DBMgr to connect." 
+logger "bootstrapdsx_instantiate:INFO: If we call REST before DBMgr up, it will fail." 
+sleep 8
 
-
-logger "bootstrapdsx_instantiate: Attempting to provision service group via REST interface" 
+logger "bootstrapdsx_instantiate:INFO: Attempting to provision service group via REST interface" 
 python3 -V
 if [ $? -eq 0 ]; then
    RESTCLTDIR="/usr/local/dart-rest-client/local-client-projects"
@@ -341,7 +344,7 @@ if [ $? -eq 0 ]; then
          elif [ $? -eq 4 ]; then
             logger "bootstrap_instantiate:INFO: Service Group ${svcgroup} already provisioned (assumed correct)."
          else
-            logger "bootstrap_instantiate:ERROR: Error occured in attempt to provision Service Group ${svcgroup}."
+            logger "bootstrap_instantiate:ERROR: Error occured in attempt to provision Service Group ${svcgroup}. Shell Code: $?"
             popd
             exit 1
          fi
@@ -359,7 +362,7 @@ if [ $? -eq 0 ]; then
                logger "bootstrap_instantiate:INFO: Deflect Pool already provisioned (assumed correct)."
             else
                # The fact that we have svcgroup down below in var is not an error. We use the same name for group and pool.
-               logger "bootstrap_instantiate:ERROR: Error occured in attempt to provision Deflect Pool ${svcgroup}."
+               logger "bootstrap_instantiate:ERROR: Error occured in attempt to provision Deflect Pool ${svcgroup}. Shell Code: $?"
                popd
                exit 1
             fi
