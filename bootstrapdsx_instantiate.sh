@@ -240,7 +240,17 @@ logger "bootstrapdsx_instantiate: Registration Port: ${portreg}"
 logger "bootstrapdsx_instantiate: REST RA Port: ${portra}" 
 logger "bootstrapdsx_instantiate: REST RW Port: ${portrw}" 
 logger "bootstrapdsx_instantiate: Service Group: ${svcgroup}" 
-logger "bootstrapdsx_instantiate: Service Group: ${svcgrptyp}" 
+logger "bootstrapdsx_instantiate: Service Group Type: ${svcgrptyp}" 
+
+# Export these variables so that they can be passed to downstream dependencies out of this script.
+export hostname
+export dsxnet
+export ifacectlplane
+export portreg
+export portra
+export portrw
+export svcgroup
+export svcgrptyp
 
 logger "bootstrapdsx_instantiate: Changing IP Address in CFGTMPL: ${dsxnet}" 
 jsonParmSwap CFGTMPL ${dsxnet}
