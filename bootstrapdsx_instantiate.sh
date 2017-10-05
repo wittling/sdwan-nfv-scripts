@@ -347,6 +347,7 @@ if [ $? -eq 0 ]; then
             exit 1
          fi
 
+         # TODO: PUT THIS IN A WHILE LOOP SO WE CAN RETRY MORE CLEANLY (eg 3 times waiting longer periods)
          logger "bootstrapdsx_instantiate: INFO: Attempting to provision new ${svcgroup} service group." 
          (python3 servicegroup.py ${svcgroup} ${svcgroup} ${svcgrptyp} 1>servicegroup.py.log 2>&1)
          if [ $? -eq 0 ]; then
@@ -356,7 +357,7 @@ if [ $? -eq 0 ]; then
          else
             logger "bootstrap_instantiate:ERROR: Error occured in attempt to provision Service Group ${svcgroup}. Shell Code: $?"
             logger "bootstrap_instantiate:INFO: Sleep 5 seconds and retry..."
-            sleep 5
+            sleep 10
             (python3 servicegroup.py ${svcgroup} ${svcgroup} ${svcgrptyp} 1>servicegroup.py.log 2>&1)
             if [ $? -eq 0 ]; then
                logger "bootstrap_instantiate:INFO: Service Group ${svcgroup} provisioned!"
