@@ -355,8 +355,18 @@ if [ $? -eq 0 ]; then
             logger "bootstrap_instantiate:INFO: Service Group ${svcgroup} already provisioned (assumed correct)."
          else
             logger "bootstrap_instantiate:ERROR: Error occured in attempt to provision Service Group ${svcgroup}. Shell Code: $?"
-            popd
-            exit 1
+            logger "bootstrap_instantiate:INFO: Sleep 5 seconds and retry..."
+            sleep 5
+            (python3 servicegroup.py ${svcgroup} ${svcgroup} ${svcgrptyp} 1>servicegroup.py.log 2>&1)
+            if [ $? -eq 0 ]; then
+               logger "bootstrap_instantiate:INFO: Service Group ${svcgroup} provisioned!"
+            elif [ $? -eq 4 ]; then
+               logger "bootstrap_instantiate:INFO: Service Group ${svcgroup} already provisioned."
+            else
+               logger "bootstrap_instantiate:ERROR: Unable to provision Service Group ${svcgroup}. Shell Code: $?"
+               popd
+               exit 1
+            fi
          fi
 
          if [ -f deflectpool.py ]; then
