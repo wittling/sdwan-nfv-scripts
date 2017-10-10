@@ -6,6 +6,115 @@
 
 #env
 #set -x
+
+
+# Originally we wanted to just swap an IP address and used sed as the way to do this. It did not
+# take long before we had more parameters and quickly figured out that sed was NOT the way to edit
+# parms in json files. So we ditched the sed and instead used this python script, which of course
+# now means that this will not work if python is not installed on the target. The good news is that
+# this script should work with python 2 or python 3. But we check first to make sure python is
+# installed before proceeding.
+function jsonParmSwap
+{
+   # Check for Python and see if it is installed (no sense wasting gas)
+   logger "bootstrapdsx_configure: jsonParmSwap:INFO: Checking Python Version"
+   pyver=$(python -V 2>&1 | grep -Po '(?<=Python )(.+)')
+   if [[ -z "$pyver" ]]; then
+      logger "bootstrapdsx_configure: jsonParmSwap:ERROR: No Python Version!"
+      return 1
+   else
+      logger "bootstrapdsx_configure: jsonParmSwap:INFO: Python Version: ${pyver}"
+   fi
+      
+   FILENAME=""
+   FILECODE=""
+
+   if [ -z $1 -o -z $2 ]; then
+      echo "Invalid Function Call replaceJsonParm: Required: FILECODE NEWIP"
+      return 1
+   fi
+
+   case $1 in
+      "CFGIP") 
+           FILENAME=/usr/local/dvn/vtc_config.json
+           NEWPARM=$2
+           FILECODE=$1;;
+      "CFGNIC") 
+           FILENAME=/usr/local/dvn/vtc_config.json
+           NEWPARM=$2
+           FILECODE=$1;;
+      "CFGMAC") 
+           FILENAME=/usr/local/dvn/cfg/vtc_config.json
+           NEWPARM=$2
+           FILECODE=$1;;
+      *) return 1;;
+   esac
+
+   DIRNAME=`dirname ${FILENAME}`
+   if [ ! -d ${DIRNAME} ]; then
+      logger "bootstrapdsx_configure: jsonParmSwap: ERROR: Dir not found: ${DIRNAME}"
+      return 1
+   fi
+
+   if [ -f ${FILENAME} ]; then
+      # Cleaner to drop into the directory when you are doing sed stuff
+      pushd ${DIRNAME}
+
+      # LOCALFILE=`basename ${FILENAME}`
+      parse_json_script=$(mktemp parse_json.XXXX.py)
+
+      if [ ${FILECODE} == "CFGNIC" ]; then
+         cat > "$parse_json_script" <<SCRIPT
+#!/usr/bin/env python
+import json
+with open("${FILENAME}",'r+') as f:
+    data=json.load(f)
+    data["vtc_config"]["nic"] = "${NEWPARM}"
+    f.seek(0)
+    json.dump(data, f, indent=4)
+SCRIPT
+      elif [ ${FILECODE} == "CFGMAC" ]; then
+
+         cat > "$parse_json_script" <<SCRIPT
+#!/usr/bin/env python
+import json
+with open("${FILENAME}",'r+') as f:
+    data=json.load(f)
+    data["vtc_config"]["mac"] = "${NEWPARM}"
+    f.seek(0)
+    json.dump(data, f, indent=4)
+SCRIPT
+      elif [ ${FILECODE} == "CFGIP" ]; then
+
+         cat > "$parse_json_script" <<SCRIPT
+#!/usr/bin/env python
+import json
+with open("${FILENAME}",'r+') as f:
+    data=json.load(f)
+    data["vtc_config"]["domains"][0]["dps_list"][0]["ip"] = "${NEWPARM}"
+    f.seek(0)
+    json.dump(data, f, indent=4)
+SCRIPT
+
+      else
+         logger "bootstrapdsx_configure: jsonParmSwap:ERROR: Invalid File Code."
+         rm $parse_json_script
+         popd
+         return 1
+      fi
+         
+      python $parse_json_script && rm $parse_json_script
+      if [ $? -eq 0 ]; then
+         logger "bootstrapdsx_configure: jsonParmSwap:INFO: Parm Replaced"
+      else
+         logger "bootstrapdsx_configure: jsonParmSwap:ERROR: Parm NOT Replaced"
+         popd
+         return 1
+      fi   
+   fi
+}
+
+
 logger "bootstrapdsx_configure.bash: Greetings Deflect! I am Bootstrap DSX."
 logger "bootstrapdsx_configure.bash: I see your Deflect Hostname has been assigned as: ${hostname}"
 logger "bootstrapdsx_configure.bash: My Bootstrap DSX IP Address is: ${bootstrapdsx_dsxnet}."
@@ -16,9 +125,64 @@ logger "bootstrapdsx_configure.bash: My REST API Port is: ${bootstrapdsx_portres
 
 # export the variables
 export hostname
+export bootstrapdsx_dsxnet
 export bootstrapdsx_portreg
 export bootstrapdsx_portrest
+export ifacetraffic
 
 logger "bootstrap_configure:INFO: Successful implementation of bootstrapdsx_configure script. Exiting 0."
 exit 0
 #set +x
+
+logger "bootstrapdsx_configure: Changing IP Address in CFG: ${bootstrapdsx_dsxnet}" 
+jsonParmSwap CFGIP ${bootstrapdsx_dsxnet}
+if [ $? -eq 0 ]; then
+   logger "bootstrapdsx_configure:INFO: IP ${bootstrapdsx_dsxnet} Replaced for file code: CFGIP."
+   systemctl restart dps
+else
+   logger "bootstrapdsx_configure:ERROR: IP ${bootstrapdsx_dsxnet} NOT Replaced for file code CFGIP." 
+   exit 1 
+fi
+
+# Variable says we will be using an interface but that does not mean its true.
+# TODO: Verify the interface!
+logger "bootstrapdsx_configure: Changing nic in CFG: ${ifacetraffic}" 
+jsonParmSwap CFGNIC ${ifacetraffic}
+if [ $? -eq 0 ]; then
+   logger "bootstrapdsx_configure:INFO: NIC ${ifacetraffic} Replaced for file code: CFGNIC ." 
+else
+   logger "bootstrapdsx_configure:ERROR: NIC ${ifacetraffic} NOT Replaced for file code: CFGNIC." 
+   exit 1 
+fi
+
+MAC=`cat /sys/class/net/${ifacetraffic}/address`
+logger "bootstrapdsx_configure: Changing mac in CFG: ${MAC}" 
+jsonParmSwap CFGMAC ${MAC}
+if [ $? -eq 0 ]; then
+   logger "bootstrapdsx_configure:INFO: MAC Replaced for file code: CFGMAC ." 
+   systemctl restart dart-rest
+else
+   logger "bootstrapdsx_configure:ERROR: MAC NOT Replaced for file code: CFGMAC." 
+   exit 1 
+fi
+
+
+# Now restart the DVN 
+
+logger "Script: bootstrapdsx_configure.bash:INFO: Stopping dvnvtc.service after setting parameters."
+systemctl stop dvnvtc.service
+# TODO: We should check here and make sure it is stopped.
+
+sleep 3
+logger "Script: bootstrapdsx_configure.bash:INFO: Restarting dvnvtc.service after setting parameters."
+systemctl start dvnvtc.service
+OUTPUT=`systemctl is-active dvnvtc.service`
+if [ $? -eq 0 ]; then
+   logger "Script: bootstrapdsx_configure.bash:INFO: dvnvtc.service restarted."
+else
+   logger "Script: bootstrapdsx_configure.bash:ERROR: dvnvtc.service did NOT restart. Manual intervention required."
+   exit 1 
+fi
+
+#set +x
+exit 0
