@@ -50,28 +50,51 @@ if [ $? -eq 0 ]; then
          logger "bootstrapdsx_configure: INFO: Attempting to provision new vtc ${hostname}."
          (python3 ${CLASSFILE}.py ${VTCNAME} ${VTCNAME} "no" 1>${CLASSFILE}.py.log 2>&1)
          if [ $? -eq 0 ]; then
-            logger "bootstrap_configure:INFO: VTC ${VTCNAME} provisioned!"
+            logger "deflect_configure:INFO: VTC ${VTCNAME} provisioned!"
+            logger "deflect_configure:INFO: Provisioning ${VTCNAME} as Deflect."
+            CLASSFILE=deflect
+            if [ -f ${CLASSFILE}.py ]; then
+               if [ ! -x ${CLASSFILE}.py ]; then
+                  chmod +x ${CLASSFILE}.py
+               fi
+               # CALLPNAME=CP${NODENUM}
+               # logger "bootstrapdsx_configure: INFO: Attempting to provision new callp deflect ${DFLNAME}."
+               # (python3 ${CLASSFILE}.py ${CALLPNAME} ${VTCNAME}  ${deflect_portcallp} "udp" "Static" 1>${CLASSFILE}.py.log 2>&1)
+
+               DFLNAME=DFL${NODENUM}
+               logger "bootstrapdsx_configure: INFO: Attempting to provision new data deflect ${DFLNAME}."
+               (python3 ${CLASSFILE}.py ${DFLNAME} ${DFLNAME} ${VTCNAME} ${deflect_portdata} "udp" 1>${CLASSFILE}.py.log 2>&1)
+               if [ $? -eq 0 ]; then
+                  logger "deflect_configure:INFO: Data Deflect ${DFLNAME} provisioned successfully."
+               elif [ $? -eq 4 ]; then
+                  logger "deflect_configure:INFO: Data Deflect ${DFLNAME} already provisioned (assumed correct)."
+               fi
+            else
+               logger "deflect_configure:ERROR: FileNotExists: ${CLASSFILE}"
+               popd
+               exit 1
+            fi
          elif [ $? -eq 4 ]; then
-            logger "bootstrap_configure:INFO: VTC ${VTCNAME} already provisioned (assumed correct)."
+            logger "deflect_configure:INFO: VTC ${VTCNAME} already provisioned (assumed correct)."
          else
-            logger "bootstrap_configure:ERROR: Error in attempt to provision VTC ${VTCNAME}. Shell Code: $?"
+            logger "deflect_configure:ERROR: Error in attempt to provision VTC ${VTCNAME}. Shell Code: $?"
             popd
             exit 1
          fi
       else
-         logger "bootstrap_configure:ERROR: FileNotExists: ${CLASSFILE}"
+         logger "deflect_configure:ERROR: FileNotExists: ${CLASSFILE}"
          popd
          exit 1
       fi
    else
-      logger "bootstrap_configure:ERROR: DirNotExists: ${RSTCLTDIR}"
+      logger "deflect_configure:ERROR: DirNotExists: ${RSTCLTDIR}"
       exit 1
    fi
 else
-   logger "bootstrap_configure:ERROR: FileNotExists: Python3 Not Installed"
+   logger "deflect_configure:ERROR: FileNotExists: Python3 Not Installed"
    exit 1
 fi
 
-logger "bootstrap_configure:INFO: Successful implementation of bootstrapdsx_configure script. Exiting 0."
+logger "deflect_configure:INFO: Successful implementation of bootstrapdsx_configure script. Exiting 0."
 exit 0
 #set +x
