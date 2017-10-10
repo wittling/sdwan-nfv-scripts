@@ -363,17 +363,17 @@ if [ $? -eq 0 ]; then
             if [ $? -eq 0 ]; then
                logger "bootstrap_instantiate:INFO: Service Group ${svcgroup} provisioned!"
                PROVSUCCESS=true
-               continue
+               break
             elif [ $? -eq 4 ]; then
                logger "bootstrap_instantiate:INFO: Service Group ${svcgroup} already pre-provisioned (assumed correct)."
                PROVSUCCESS=true
-               continue
+               break
             else
                logger "bootstrap_instantiate:INFO: Unable to provision Service Group ${svcgroup}. Attempt: $i: Shell Code: $?"
                logger "bootstrap_instantiate:INFO: System may not be ready. Attempting to sleep ${SLEEPTIME} secs and retry."
                sleep ${SLEEPTIME}
             fi
-         fi
+         done
 
          if [ ! ${PROVSUCCESS} ]; then
             logger "bootstrap_instantiate:INFO: Unable to provision Service Group ${svcgroup}. Please check logs."
