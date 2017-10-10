@@ -68,6 +68,8 @@ if [ $? -eq 0 ]; then
                   logger "deflect_configure:INFO: Data Deflect ${DFLNAME} provisioned successfully."
                elif [ $? -eq 4 ]; then
                   logger "deflect_configure:INFO: Data Deflect ${DFLNAME} already provisioned (assumed correct)."
+               else
+                  logger "deflect_configure:ERROR: Unable to provision Data Deflect ${DFLNAME}. Code $?."
                fi
             else
                logger "deflect_configure:ERROR: FileNotExists: ${CLASSFILE}"
