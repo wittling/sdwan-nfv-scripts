@@ -13,12 +13,14 @@ logger "deflect_configure: I see your hostname is: ${hostname}"
 logger "deflect_configure: It appears you will be using the ctl plane interface: ${ifacectlplane}" 
 logger "deflect_configure: I will be sending data on port: ${deflect_portdata}" 
 logger "deflect_configure: I will be sending callp on port: ${deflect_portcallp}" 
+logger "deflect_configure: I will be using svc group and deflect pool: ${svcgroup}" 
 
 # export the variables
 export hostname
 export deflect_dflnet
 export deflect_portdata
 export deflect_portcallp
+export svcgroup
 
 # OpenBaton likes to name the hosts with an appended hyphen and generated uid of some sort
 # Not sure if rest likes hyphens so we will grab the suffix id and use that for provisioning. 
@@ -51,14 +53,30 @@ if [ $? -eq 0 ]; then
          if [ $? -eq 0 ]; then
             logger "deflect_configure:INFO: VTC ${VTCNAME} provisioned!"
             logger "deflect_configure:INFO: Provisioning ${VTCNAME} as Deflect."
-            CLASSFILE=deflect
+            CLASSFILE=callp
             if [ -f ${CLASSFILE}.py ]; then
                if [ ! -x ${CLASSFILE}.py ]; then
                   chmod +x ${CLASSFILE}.py
                fi
-               # CALLPNAME=CP${NODENUM}
-               # logger "deflect_configure: INFO: Attempting to provision new callp deflect ${DFLNAME}."
-               # (python3 ${CLASSFILE}.py ${CALLPNAME} ${VTCNAME}  ${deflect_portcallp} "udp" "Static" 1>${CLASSFILE}.py.log 2>&1)
+
+               # Currently every node instantiated by the orchestrator is getting a CALLP and a Deflect.
+               # We need a way to dynamically cap the CallP so that as the element is instantiated, if the
+               # number of CallPs (max) has been hit, it holds off. The best way to do this is probably to 
+               # make a REST call and not provision the CallP if the max number has been reached.
+               # This is a TODO.
+               CALLPNAME=CP${NODENUM}
+               logger "deflect_configure: INFO: Attempting to provision new callp deflect ${CALLPNAME}."
+
+               (python3 ${CLASSFILE}.py ${CALLPNAME} ${VTCNAME} ${deflect_dflnet} ${deflect_portcallp} "udp" "Static" 1>${CLASSFILE}.py.log 2>&1)
+               if [ $? -eq 0 ]; then
+                  logger "deflect_configure:INFO: CallP ${CALLPNAME} provisioned successfully."
+               elif [ $? -eq 4 ]; then
+                  logger "deflect_configure:INFO: CallP ${CALLPNAME} already provisioned (assumed correct)."
+               else
+                  logger "deflect_configure:ERROR: Unable to provision CallP ${CALLPNAME}. Code $?."
+                  popd
+                  exit 1
+               fi
 
                DFLNAME=DFL${NODENUM}
                logger "deflect_configure: INFO: Attempting to provision new data deflect ${DFLNAME}."
@@ -69,6 +87,8 @@ if [ $? -eq 0 ]; then
                   logger "deflect_configure:INFO: Data Deflect ${DFLNAME} already provisioned (assumed correct)."
                else
                   logger "deflect_configure:ERROR: Unable to provision Data Deflect ${DFLNAME}. Code $?."
+                  popd
+                  exit 1
                fi
             else
                logger "deflect_configure:ERROR: FileNotExists: ${CLASSFILE}"
