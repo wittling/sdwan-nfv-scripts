@@ -26,7 +26,7 @@ export deflect_portcallp
 NODENUM="echo ${deflect_dflnet} | cut -f 4 -d '.'"
 export VTCNAME=OPNBTN${NODENUM}
 
-logger "bootstrapdsx_configure:INFO: Attempting to provision VTC via REST interface"
+logger "deflect_configure:INFO: Attempting to provision VTC via REST interface"
 python3 -V
 if [ $? -eq 0 ]; then
    RESTCLTDIR="/usr/local/dart-rest-client/local-client-projects"
@@ -39,15 +39,15 @@ if [ $? -eq 0 ]; then
          fi
          DVNRESTENV=".dvnrestenv"
          if [ -f ${DVNRESTENV} ]; then
-            logger "bootstrapdsx_configure:INFO: Sourcing rest environment..."
+            logger "deflect_configure:INFO: Sourcing rest environment..."
             source "${DVNRESTENV}"
          else
-            logger "bootstrapdsx_configure:INFO: Sourcing rest environment..."
+            logger "deflect_configure:INFO: Sourcing rest environment..."
             popd
             exit 1
          fi
 
-         logger "bootstrapdsx_configure: INFO: Attempting to provision new vtc ${hostname}."
+         logger "deflect_configure: INFO: Attempting to provision new vtc ${hostname}."
          (python3 ${CLASSFILE}.py ${VTCNAME} ${VTCNAME} "no" 1>${CLASSFILE}.py.log 2>&1)
          if [ $? -eq 0 ]; then
             logger "deflect_configure:INFO: VTC ${VTCNAME} provisioned!"
@@ -58,7 +58,7 @@ if [ $? -eq 0 ]; then
                   chmod +x ${CLASSFILE}.py
                fi
                # CALLPNAME=CP${NODENUM}
-               # logger "bootstrapdsx_configure: INFO: Attempting to provision new callp deflect ${DFLNAME}."
+               # logger "deflect_configure: INFO: Attempting to provision new callp deflect ${DFLNAME}."
                # (python3 ${CLASSFILE}.py ${CALLPNAME} ${VTCNAME}  ${deflect_portcallp} "udp" "Static" 1>${CLASSFILE}.py.log 2>&1)
 
                DFLNAME=DFL${NODENUM}
