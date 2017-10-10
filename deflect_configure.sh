@@ -13,7 +13,6 @@ logger "deflect_configure: I see your hostname is: ${hostname}"
 logger "deflect_configure: It appears you will be using the ctl plane interface: ${ifacectlplane}" 
 logger "deflect_configure: I will be sending data on port: ${deflect_portdata}" 
 logger "deflect_configure: I will be sending callp on port: ${deflect_portcallp}" 
-logger "Goodbye! Tchuss!"
 
 # export the variables
 export hostname
@@ -23,7 +22,7 @@ export deflect_portcallp
 
 # OpenBaton likes to name the hosts with an appended hyphen and generated uid of some sort
 # Not sure if rest likes hyphens so we will grab the suffix id and use that for provisioning. 
-NODENUM="echo ${deflect_dflnet} | cut -f 4 -d '.'"
+NODENUM=`echo ${deflect_dflnet} | cut -f 4 -d "."`
 export VTCNAME=OPNBTN${NODENUM}
 
 logger "deflect_configure:INFO: Attempting to provision VTC via REST interface"
@@ -62,7 +61,7 @@ if [ $? -eq 0 ]; then
                # (python3 ${CLASSFILE}.py ${CALLPNAME} ${VTCNAME}  ${deflect_portcallp} "udp" "Static" 1>${CLASSFILE}.py.log 2>&1)
 
                DFLNAME=DFL${NODENUM}
-               logger "bootstrapdsx_configure: INFO: Attempting to provision new data deflect ${DFLNAME}."
+               logger "deflect_configure: INFO: Attempting to provision new data deflect ${DFLNAME}."
                (python3 ${CLASSFILE}.py ${DFLNAME} ${DFLNAME} ${VTCNAME} ${deflect_portdata} "udp" 1>${CLASSFILE}.py.log 2>&1)
                if [ $? -eq 0 ]; then
                   logger "deflect_configure:INFO: Data Deflect ${DFLNAME} provisioned successfully."
@@ -97,6 +96,6 @@ else
    exit 1
 fi
 
-logger "deflect_configure:INFO: Successful implementation of bootstrapdsx_configure script. Exiting 0."
+logger "deflect_configure:INFO: Successful implementation of deflect_configure script. Exiting 0."
 exit 0
 #set +x
