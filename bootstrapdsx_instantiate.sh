@@ -315,10 +315,6 @@ else
    exit 1 
 fi
 
-logger "bootstrapdsx_instantiate:INFO: Delay 8 seconds to give DPS time for DBMgr to connect." 
-logger "bootstrapdsx_instantiate:INFO: If we call REST before DBMgr up, it will fail." 
-sleep 8
-
 logger "bootstrapdsx_instantiate:INFO: Attempting to provision service group via REST interface" 
 python3 -V
 if [ $? -eq 0 ]; then
@@ -347,50 +343,66 @@ if [ $? -eq 0 ]; then
             exit 1
          fi
 
-         # TODO: PUT THIS IN A WHILE LOOP SO WE CAN RETRY MORE CLEANLY (eg 3 times waiting longer periods)
-         logger "bootstrapdsx_instantiate: INFO: Attempting to provision new ${svcgroup} service group." 
-         (python3 servicegroup.py ${svcgroup} ${svcgroup} ${svcgrptyp} 1>servicegroup.py.log 2>&1)
-         if [ $? -eq 0 ]; then
-            logger "bootstrap_instantiate:INFO: Service Group ${svcgroup} provisioned!"
-         elif [ $? -eq 4 ]; then
-            logger "bootstrap_instantiate:INFO: Service Group ${svcgroup} already provisioned (assumed correct)."
-         else
-            logger "bootstrap_instantiate:ERROR: Error occured in attempt to provision Service Group ${svcgroup}. Shell Code: $?"
-            logger "bootstrap_instantiate:INFO: Sleep 5 seconds and retry..."
-            sleep 10
+
+         SLEEPTIME=5
+         PROVSUCCESS=false
+         for i in 1 2 3; do
+            logger "bootstrapdsx_instantiate:INFO: Delay 8 seconds to give DPS time for DBMgr to connect." 
+            logger "bootstrapdsx_instantiate:INFO: If we call REST before DBMgr up, it will fail." 
+            case "$i" in 
+              1) ;;
+              2) SLEEPTIME=$[SLEEPTIME+5] ;;
+              3) SLEEPTIME=$[SLEEPTIME+10] ;;
+              *) ;;
+            esac
+
+            sleep ${SLEEPTIME}
+
+            logger "bootstrapdsx_instantiate: INFO: Attempting to provision new ${svcgroup} service group." 
             (python3 servicegroup.py ${svcgroup} ${svcgroup} ${svcgrptyp} 1>servicegroup.py.log 2>&1)
             if [ $? -eq 0 ]; then
                logger "bootstrap_instantiate:INFO: Service Group ${svcgroup} provisioned!"
+               PROVSUCCESS=true
+               continue
             elif [ $? -eq 4 ]; then
-               logger "bootstrap_instantiate:INFO: Service Group ${svcgroup} already provisioned."
+               logger "bootstrap_instantiate:INFO: Service Group ${svcgroup} already pre-provisioned (assumed correct)."
+               PROVSUCCESS=true
+               continue
             else
-               logger "bootstrap_instantiate:ERROR: Unable to provision Service Group ${svcgroup}. Shell Code: $?"
-               popd
-               exit 1
+               logger "bootstrap_instantiate:INFO: Unable to provision Service Group ${svcgroup}. Attempt: $i: Shell Code: $?"
+               logger "bootstrap_instantiate:INFO: System may not be ready. Attempting to sleep ${SLEEPTIME} secs and retry."
+               sleep ${SLEEPTIME}
             fi
          fi
 
-         if [ -f deflectpool.py ]; then
-            if [ ! -x deflectpool.py ]; then
-               chmod +x deflectpool.py
-            fi
-            # NOTE: The fact that we have svcgroup down below in var is not an error. We use the same name for group and pool.
-            logger "bootstrap_instantiate:INFO: Provisioning Deflect Pool ${svcgroup} and adding to Service Group ${svcgroup}."
-            (python3 deflectpool.py ${svcgroup} ${svcgroup} 1 1 1 0 1 5 no 1>deflectpool.py.log 2>&1)
-            if [ $? -eq 0 ]; then
-               logger "bootstrap_instantiate:INFO: Deflect Pool ${svcgroup} properly provisioned!"
-            elif [ $? -eq 4 ]; then
-               logger "bootstrap_instantiate:INFO: Deflect Pool already provisioned (assumed correct)."
+         if [ ! ${PROVSUCCESS} ]; then
+            logger "bootstrap_instantiate:INFO: Unable to provision Service Group ${svcgroup}. Please check logs."
+            popd
+            exit 1
+         else
+            # We do not need to do retries here because if we can provision service group we assume everything up and running.
+            if [ -f deflectpool.py ]; then
+               if [ ! -x deflectpool.py ]; then
+                  chmod +x deflectpool.py
+               fi
+               # NOTE: The fact that we have svcgroup down below in var is not an error. We use the same name for group and pool.
+               logger "bootstrap_instantiate:INFO: Provisioning Deflect Pool ${svcgroup} and adding to Service Group ${svcgroup}."
+               (python3 deflectpool.py ${svcgroup} ${svcgroup} 1 1 1 0 1 5 no 1>deflectpool.py.log 2>&1)
+               if [ $? -eq 0 ]; then
+                  logger "bootstrap_instantiate:INFO: Deflect Pool ${svcgroup} properly provisioned!"
+               elif [ $? -eq 4 ]; then
+                  logger "bootstrap_instantiate:INFO: Deflect Pool already provisioned (assumed correct)."
+               else
+                  # The fact that we have svcgroup down below in var is not an error. We use the same name for group and pool.
+                  logger "bootstrap_instantiate:ERROR: Error occured in attempt to provision Deflect Pool ${svcgroup}. Shell Code: $?"
+                  popd
+                  exit 1
+               fi
             else
-               # The fact that we have svcgroup down below in var is not an error. We use the same name for group and pool.
-               logger "bootstrap_instantiate:ERROR: Error occured in attempt to provision Deflect Pool ${svcgroup}. Shell Code: $?"
+               logger "bootstrap_instantiate:ERROR: Error occured in attempt to provision Deflect Pool."
                popd
                exit 1
             fi
-         else
-            logger "bootstrap_instantiate:ERROR: Error occured in attempt to provision Service Group."
-            popd
-            exit 1
          fi
       else
          logger "bootstrapdsx_instantiate:ERROR: No servicegroup.py script." 
