@@ -81,6 +81,7 @@ if [ $? -eq 0 ]; then
                CLASSFILE=deflect
                DFLNAME=DFL${NODENUM}
                logger "deflect_configure: INFO: Attempting to provision new data deflect ${DFLNAME}."
+               # This will not only provision the deflect but it will add it to the deflect pool, so no separate call needed.
                (python3 ${CLASSFILE}.py ${DFLNAME} ${DFLNAME} ${VTCNAME} ${deflect_portdata} "udp" 1>${CLASSFILE}.py.log 2>&1)
                if [ $? -eq 0 ]; then
                   logger "deflect_configure:INFO: Data Deflect ${DFLNAME} provisioned successfully."
@@ -91,6 +92,11 @@ if [ $? -eq 0 ]; then
                   popd
                   exit 1
                fi
+
+               # We could make a call and update pool size every time a deflect is successfully provisioned.
+               # But it will be more efficient if we wait and do a single adjustment to the pool settings
+               # at the next life cycle stage where we can count the deflects and adjust pool parameters 
+               # accordingly.
             else
                logger "deflect_configure:ERROR: FileNotExists: ${CLASSFILE}"
                popd
