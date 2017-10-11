@@ -21,7 +21,7 @@ function jsonParmSwap
    FILENAME=""
    FILECODE=""
 
-   if [ -z $1 -o -z $2 ]; then
+   if [ -z "$1" -o -z "$2" ]; then
       echo "Invalid Function Call replaceJsonParm: Required: FILECODE NEWIP"
       return 1
    fi
