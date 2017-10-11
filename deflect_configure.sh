@@ -78,6 +78,7 @@ if [ $? -eq 0 ]; then
                   exit 1
                fi
 
+               CLASSFILE=deflect
                DFLNAME=DFL${NODENUM}
                logger "deflect_configure: INFO: Attempting to provision new data deflect ${DFLNAME}."
                (python3 ${CLASSFILE}.py ${DFLNAME} ${DFLNAME} ${VTCNAME} ${deflect_portdata} "udp" 1>${CLASSFILE}.py.log 2>&1)
