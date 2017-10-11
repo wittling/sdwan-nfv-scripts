@@ -349,8 +349,8 @@ if [ $? -eq 0 ]; then
          for i in 1 2 3; do
             case "$i" in 
               1) ;;
-              2) SLEEPTIME=$[SLEEPTIME+16] ;;
-              3) SLEEPTIME=$[SLEEPTIME+24] ;;
+              2) SLEEPTIME=$[SLEEPTIME+8] ;;
+              3) SLEEPTIME=$[SLEEPTIME+16] ;;
               *) ;;
             esac
 
