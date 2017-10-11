@@ -141,7 +141,7 @@ else
 fi
 
 # Just because a variable says we should be using interface ethx does not mean it is so. Check it.
-if [ ! -f /sys/class/net/${ifacetraffic} ]; 
+if [ ! -f /sys/class/net/${ifacetraffic} ]; then
    logger "bootstrapdsx_configure:ERROR:NIC ${ifacetraffic} not enabled on this instance!" 
    exit 1
 else
