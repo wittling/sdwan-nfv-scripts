@@ -47,7 +47,11 @@ function jsonParmSwap
            FILENAME=/usr/local/dvn/cfg/vtc_config.json
            NEWPARM=$2
            FILECODE=$1;;
-      "CFGVTC") 
+      "CFGVTCNM") 
+           FILENAME=/usr/local/dvn/cfg/vtc_config.json
+           NEWPARM=$2
+           FILECODE=$1;;
+      "CFGVTCID") 
            FILENAME=/usr/local/dvn/cfg/vtc_config.json
            NEWPARM=$2
            FILECODE=$1;;
