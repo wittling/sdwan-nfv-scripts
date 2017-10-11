@@ -344,18 +344,18 @@ if [ $? -eq 0 ]; then
          fi
 
 
-         SLEEPTIME=5
+         SLEEPTIME=8
          PROVSUCCESS=false
          for i in 1 2 3; do
-            logger "bootstrapdsx_instantiate:INFO: Delay 8 seconds to give DPS time for DBMgr to connect." 
-            logger "bootstrapdsx_instantiate:INFO: If we call REST before DBMgr up, it will fail." 
             case "$i" in 
               1) ;;
-              2) SLEEPTIME=$[SLEEPTIME+5] ;;
-              3) SLEEPTIME=$[SLEEPTIME+10] ;;
+              2) SLEEPTIME=$[SLEEPTIME+16] ;;
+              3) SLEEPTIME=$[SLEEPTIME+24] ;;
               *) ;;
             esac
 
+            logger "bootstrapdsx_instantiate:INFO: Unfortunately there is no way to know if DBMgr is up and connected." 
+            logger "bootstrapdsx_instantiate:INFO: We must sleep and retry. Sleep time: ${SLEEPTIME}." 
             sleep ${SLEEPTIME}
 
             logger "bootstrapdsx_instantiate: INFO: Attempting to provision new ${svcgroup} service group." 
