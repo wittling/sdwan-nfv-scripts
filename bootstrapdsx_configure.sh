@@ -114,7 +114,6 @@ SCRIPT
    fi
 }
 
-
 logger "bootstrapdsx_configure.bash: Greetings Deflect! I am Bootstrap DSX."
 logger "bootstrapdsx_configure.bash: I see your Deflect Hostname has been assigned as: ${hostname}"
 logger "bootstrapdsx_configure.bash: My Bootstrap DSX IP Address is: ${bootstrapdsx_dsxnet}."
@@ -130,25 +129,30 @@ export bootstrapdsx_portreg
 export bootstrapdsx_portrest
 export ifacetraffic
 
+systemctl stop dvn.service
+
 logger "bootstrapdsx_configure: Changing IP Address in CFG: ${bootstrapdsx_dsxnet}" 
 jsonParmSwap CFGIP ${bootstrapdsx_dsxnet}
 if [ $? -eq 0 ]; then
    logger "bootstrapdsx_configure:INFO: IP ${bootstrapdsx_dsxnet} Replaced for file code: CFGIP."
-   systemctl restart dps
 else
    logger "bootstrapdsx_configure:ERROR: IP ${bootstrapdsx_dsxnet} NOT Replaced for file code CFGIP." 
    exit 1 
 fi
 
-# Variable says we will be using an interface but that does not mean its true.
-# TODO: Verify the interface!
-logger "bootstrapdsx_configure: Changing nic in CFG: ${ifacetraffic}" 
-jsonParmSwap CFGNIC ${ifacetraffic}
-if [ $? -eq 0 ]; then
-   logger "bootstrapdsx_configure:INFO: NIC ${ifacetraffic} Replaced for file code: CFGNIC ." 
+# Just because a variable says we should be using interface ethx does not mean it is so. Check it.
+if [ ! -f /sys/class/net/${ifacetraffic} ]; 
+   logger "bootstrapdsx_configure:ERROR:NIC ${ifacetraffic} not enabled on this instance!" 
+   exit 1
 else
-   logger "bootstrapdsx_configure:ERROR: NIC ${ifacetraffic} NOT Replaced for file code: CFGNIC." 
-   exit 1 
+   logger "bootstrapdsx_configure: Changing nic in CFG: ${ifacetraffic}" 
+   jsonParmSwap CFGNIC ${ifacetraffic}
+   if [ $? -eq 0 ]; then
+      logger "bootstrapdsx_configure:INFO: NIC ${ifacetraffic} Replaced for file code: CFGNIC ." 
+   else
+      logger "bootstrapdsx_configure:ERROR: NIC ${ifacetraffic} NOT Replaced for file code: CFGNIC." 
+      exit 1 
+   fi
 fi
 
 MAC=`cat /sys/class/net/${ifacetraffic}/address`
@@ -156,7 +160,6 @@ logger "bootstrapdsx_configure: Changing mac in CFG: ${MAC}"
 jsonParmSwap CFGMAC ${MAC}
 if [ $? -eq 0 ]; then
    logger "bootstrapdsx_configure:INFO: MAC Replaced for file code: CFGMAC ." 
-   systemctl restart dart-rest
 else
    logger "bootstrapdsx_configure:ERROR: MAC NOT Replaced for file code: CFGMAC." 
    exit 1 
@@ -165,18 +168,24 @@ fi
 
 # Now restart the DVN 
 
-logger "Script: bootstrapdsx_configure.bash:INFO: Stopping dvnvtc.service after setting parameters."
-systemctl stop dvnvtc.service
-# TODO: We should check here and make sure it is stopped.
+logger "Script: bootstrapdsx_configure.bash:INFO: Stopping dvn.service after setting parameters."
+systemctl stop dvn.service
+OUTPUT=`systemctl is-active dvn.service`
+if [ $? -eq 0 ]; then
+   logger "Script: bootstrapdsx_configure.sh:WARNING: dvn.service did not stop. non-fatal. We will continue."
+else
+   logger "Script: bootstrapdsx_configure.sh:INFO: dvn.service stopped."
+fi
 
 sleep 3
-logger "Script: bootstrapdsx_configure.bash:INFO: Restarting dvnvtc.service after setting parameters."
-systemctl start dvnvtc.service
-OUTPUT=`systemctl is-active dvnvtc.service`
+
+logger "Script: bootstrapdsx_configure.bash:INFO: Restarting dvn.service after setting parameters."
+systemctl restart dvn.service
+OUTPUT=`systemctl is-active dvn.service`
 if [ $? -eq 0 ]; then
-   logger "Script: bootstrapdsx_configure.bash:INFO: dvnvtc.service restarted."
+   logger "Script: bootstrapdsx_configure.bash:INFO: dvn.service restarted."
 else
-   logger "Script: bootstrapdsx_configure.bash:ERROR: dvnvtc.service did NOT restart. Manual intervention required."
+   logger "Script: bootstrapdsx_configure.bash:ERROR: dvn.service did NOT restart. Manual intervention required."
    exit 1 
 fi
 
