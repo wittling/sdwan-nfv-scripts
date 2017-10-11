@@ -36,14 +36,18 @@ function jsonParmSwap
 
    case $1 in
       "CFGIP") 
-           FILENAME=/usr/local/dvn/vtc_config.json
+           FILENAME=/usr/local/dvn/cfg/vtc_config.json
            NEWPARM=$2
            FILECODE=$1;;
       "CFGNIC") 
-           FILENAME=/usr/local/dvn/vtc_config.json
+           FILENAME=/usr/local/dvn/cfg/vtc_config.json
            NEWPARM=$2
            FILECODE=$1;;
       "CFGMAC") 
+           FILENAME=/usr/local/dvn/cfg/vtc_config.json
+           NEWPARM=$2
+           FILECODE=$1;;
+      "CFGVTC") 
            FILENAME=/usr/local/dvn/cfg/vtc_config.json
            NEWPARM=$2
            FILECODE=$1;;
@@ -56,6 +60,7 @@ function jsonParmSwap
       return 1
    fi
 
+   # TODO: If it is the same file name we can probably replace all of these parameters in one shot.
    if [ -f ${FILENAME} ]; then
       # Cleaner to drop into the directory when you are doing sed stuff
       pushd ${DIRNAME}
@@ -95,7 +100,28 @@ with open("${FILENAME}",'r+') as f:
     f.seek(0)
     json.dump(data, f, indent=4)
 SCRIPT
+      elif [ ${FILECODE} == "CFGVTCNM" ]; then
 
+         cat > "$parse_json_script" <<SCRIPT
+#!/usr/bin/env python
+import json
+with open("${FILENAME}",'r+') as f:
+    data=json.load(f)
+    data["vtc_config"]["vtc_name"] = "${NEWPARM}"
+    f.seek(0)
+    json.dump(data, f, indent=4)
+SCRIPT
+      elif [ ${FILECODE} == "CFGVTCID" ]; then
+
+         cat > "$parse_json_script" <<SCRIPT
+#!/usr/bin/env python
+import json
+with open("${FILENAME}",'r+') as f:
+    data=json.load(f)
+    data["vtc_config"]["vtc_id"] = "${NEWPARM}"
+    f.seek(0)
+    json.dump(data, f, indent=4)
+SCRIPT
       else
          logger "bootstrapdsx_configure: jsonParmSwap:ERROR: Invalid File Code."
          rm $parse_json_script
@@ -111,11 +137,15 @@ SCRIPT
          popd
          return 1
       fi   
+   else
+      logger "bootstrapdsx_configure: jsonParmSwap:ERROR:File Not Found:${FILENAME}"
+      return 1
    fi
 }
 
 logger "bootstrapdsx_configure.bash: Greetings Deflect! I am Bootstrap DSX."
 logger "bootstrapdsx_configure.bash: I see your Deflect Hostname has been assigned as: ${hostname}"
+logger "bootstrapdsx_configure.bash: I see your Deflect IP has been assigned as: ${dflnet}"
 logger "bootstrapdsx_configure.bash: My Bootstrap DSX IP Address is: ${bootstrapdsx_dsxnet}."
 logger "bootstrapdsx_configure.bash: It appears you will using the traffic interface: ${ifacetraffic}"
 logger "bootstrapdsx_configure.bash: My Bootstrap DSX Control Plane Interface is: ${bootstrapdsx_ifacectlplane}"
@@ -124,6 +154,7 @@ logger "bootstrapdsx_configure.bash: My REST API Port is: ${bootstrapdsx_portres
 
 # export the variables
 export hostname
+export dflnet
 export bootstrapdsx_dsxnet
 export bootstrapdsx_portreg
 export bootstrapdsx_portrest
@@ -162,6 +193,28 @@ if [ $? -eq 0 ]; then
    logger "bootstrapdsx_configure:INFO: MAC Replaced for file code: CFGMAC ." 
 else
    logger "bootstrapdsx_configure:ERROR: MAC NOT Replaced for file code: CFGMAC." 
+   exit 1 
+fi
+
+#NODENUM=`echo ${dflnet} | cut -f 4 -d "."`
+NODENUM=`hostname -I | cut -f 4 -d "."`
+export VTCNAME=OPNBTN${NODENUM}
+
+logger "bootstrapdsx_configure: Changing vtcname in CFG: ${VTCNAME}" 
+jsonParmSwap CFGVTCNM ${VTCNAME}
+if [ $? -eq 0 ]; then
+   logger "bootstrapdsx_configure:INFO: vtcname Replaced for file code: CFGVTCNM ." 
+else
+   logger "bootstrapdsx_configure:ERROR: vtcname NOT Replaced for file code: CFGVTCNM." 
+   exit 1 
+fi
+
+logger "bootstrapdsx_configure: Changing vtcid in CFG: ${VTCNAME}" 
+jsonParmSwap CFGVTCID ${VTCNAME}
+if [ $? -eq 0 ]; then
+   logger "bootstrapdsx_configure:INFO: vtcid Replaced for file code: CFGVTCID ." 
+else
+   logger "bootstrapdsx_configure:ERROR: vtcid NOT Replaced for file code: CFGVTCID." 
    exit 1 
 fi
 
