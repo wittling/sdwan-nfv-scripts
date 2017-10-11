@@ -82,7 +82,7 @@ if [ $? -eq 0 ]; then
                DFLNAME=DFL${NODENUM}
                logger "deflect_configure: INFO: Attempting to provision new data deflect ${DFLNAME}."
                # This will not only provision the deflect but it will add it to the deflect pool, so no separate call needed.
-               (python3 ${CLASSFILE}.py ${DFLNAME} ${DFLNAME} ${VTCNAME} ${deflect_portdata} "udp" 1>${CLASSFILE}.py.log 2>&1)
+               (python3 ${CLASSFILE}.py ${DFLNAME} ${DFLNAME} ${VTCNAME} ${deflect_portdata} "udp" ${svcgroup} 1>${CLASSFILE}.py.log 2>&1)
                if [ $? -eq 0 ]; then
                   logger "deflect_configure:INFO: Data Deflect ${DFLNAME} provisioned successfully."
                elif [ $? -eq 4 ]; then
