@@ -130,10 +130,6 @@ export bootstrapdsx_portreg
 export bootstrapdsx_portrest
 export ifacetraffic
 
-logger "bootstrap_configure:INFO: Successful implementation of bootstrapdsx_configure script. Exiting 0."
-exit 0
-#set +x
-
 logger "bootstrapdsx_configure: Changing IP Address in CFG: ${bootstrapdsx_dsxnet}" 
 jsonParmSwap CFGIP ${bootstrapdsx_dsxnet}
 if [ $? -eq 0 ]; then
