@@ -1,6 +1,6 @@
 #!/bin/bash
 
-trap 'echo "Killing all dd processes"; killall dd; exit' INT
+trap 'echo "Killing all dd processes"; pkill -f "dd if"; exit' INT
 
 # Cores should always come in 1-4.
 fullload()
@@ -33,4 +33,5 @@ fi
 fullload $CORES
 sleep 60
 read
-killall dd
+pkill -f "if dd"
+exit
