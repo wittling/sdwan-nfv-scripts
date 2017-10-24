@@ -1,12 +1,14 @@
 #!/bin/bash
 
+SCRIPTNAME="deflect_start.sh"
+SCRIPTDIR="/opt/openbaton/scripts"
 #env
 #set -x
 
-logger "deflect_start.bash:INFO:Start LifeCycle Event Triggered!"
+logger "${SCRIPTNAME}:INFO:Start LifeCycle Event Triggered!"
 
-ENVFILE="/opt/openbaton/scripts/deflect_start.env"
-logger "deflect_start.bash:INFO:Dumping environment to ${ENVFILE}!"
+ENVFILE="${SCRIPTDIR}/deflect_start.env"
+logger "${SCRIPTNAME}:INFO:Dumping environment to ${ENVFILE}!"
 env > ${ENVFILE}
 
 #set +x

@@ -1,12 +1,14 @@
 #!/bin/bash
 
+SCRIPTNAME="bootstrapdsx_heal.sh"
+SCRIPTDIR="/opt/openbaton/scripts"
 #env
 #set -x
 
-logger "bootstrapdsx_heal.bash:INFO:HEAL LifeCycle Event Triggered!"
+logger "${SCRIPTNAME}:INFO:HEAL LifeCycle Event Triggered!"
 
-ENVFILE="/opt/openbaton/scripts/bootstrapdsx_heal.env"
-logger "bootstrapdsx_heal.bash:INFO:Dumping environment to ${ENVFILE}!"
+ENVFILE="${SCRIPTDIR}/bootstrapdsx_heal.env"
+logger "${SCRIPTNAME}:INFO:Dumping environment to ${ENVFILE}!"
 env > ${ENVFILE}
 
 #set +x

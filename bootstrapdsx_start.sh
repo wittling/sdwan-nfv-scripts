@@ -1,12 +1,14 @@
 #!/bin/bash
 
+SCRIPTNAME="bootstrapdsx_start.sh"
+SCRIPTDIR="/opt/openbaton/scripts"
 #env
 #set -x
 
-logger "bootstrapdsx_start.bash:INFO:Start LifeCycle Event Triggered!"
+logger "${SCRIPTNAME}:INFO:Start LifeCycle Event Triggered!"
 
-ENVFILE="/opt/openbaton/scripts/bootstrapdsx_start.env"
-logger "bootstrapdsx_start.bash:INFO:Dumping environment to ${ENVFILE}!"
+ENVFILE="${SCRIPTDIR}/bootstrapdsx_start.env"
+logger "${SCRIPTNAME}:INFO:Dumping environment to ${ENVFILE}!"
 env > ${ENVFILE}
 
 #set +x
