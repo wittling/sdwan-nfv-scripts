@@ -25,14 +25,14 @@ fi
 # So - we need to uninstall Zabbix 2.x first and then install the proper version of the Zabbix Agent.
 # You cannot have version 2.2 of Zabbix and 3.x of the agent because of conflicts.
 
-rpm -qa | grep i zabbix
+rpm -qa | grep -i zabbix
 if [ $? -eq 0 ]; then
    logger "${SCRIPTNAME}:INFO:Removing legacy zabbix packages"
    yum -y remove zabbix*
 fi
 
 # We could check return code above but lets make double sure
-rpm -qa | grep i zabbix
+rpm -qa | grep -i zabbix
 if [ $? -eq 0 ]; then
    logger "${SCRIPTNAME}:ERR:Failed to remove zabbix packages"
    exit 1
