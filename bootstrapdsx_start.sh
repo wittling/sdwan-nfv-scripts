@@ -28,7 +28,7 @@ fi
 rpm -qa | grep i zabbix
 if [ $? -eq 0 ]; then
    logger "${SCRIPTNAME}:INFO:Removing legacy zabbix packages"
-   yum -y remove zabbix
+   yum -y remove zabbix*
 fi
 
 # We could check return code above but lets make double sure
