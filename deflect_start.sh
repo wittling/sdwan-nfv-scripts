@@ -18,11 +18,11 @@ if [ -f ${SCRIPTDIR}/loadcpu.bash ]; then
 fi
 
 # No sense wasting cycles
-if [ -z $zabbixsvr ]; then
+if [ -z ${svrzabbix} ]; then
    logger "${SCRIPTNAME}:ERROR:No Zabbix IP Passed to VM"
    exit 1
 else
-   logger "${SCRIPTNAME}:INFO:Zabbix Server: $zabbixsvr"
+   logger "${SCRIPTNAME}:INFO:Zabbix Server: $svrzabbix"
 fi
 
 # It turns out that the OpenBaton orchestrator installs the wrong version of Zabbix (2.2)
@@ -75,7 +75,7 @@ if [ -x /usr/bin/yum ]; then
 
   # A brand spanking new deployment always has the Zabbix Server directive uncommented and set to local host.
   # We will need to set that to the appropriate server.
-  (sed -i 's+^Server=127\.0\.0\.1+#&\nServer='"${zabbixsvr}"'+' ${ZABX_AGNT_CONF})
+  (sed -i 's+^Server=127\.0\.0\.1+#&\nServer='"${svrzabbix}"'+' ${ZABX_AGNT_CONF})
   if [ $? -ne 0 ]; then
      logger "${SCRIPTNAME}:ERR:Error configuring zabbix server parm in zabbix agent"
      ZABBIXCLEAN=false
@@ -86,7 +86,7 @@ if [ -x /usr/bin/yum ]; then
   #
   # Based on testing a new deployment uncomments and sets this parameter - assumes active by default.
   # We will assume that the VM needs to be an active agent and not a passive agent.
-  #(sed -i 's+ServerActive=127\.0\.0\.1+#&\nServerActive='"${zabbixsvr}"'+' ${ZABX_AGNT_CONF})
+  #(sed -i 's+ServerActive=127\.0\.0\.1+#&\nServerActive='"${svrzabbix}"'+' ${ZABX_AGNT_CONF})
   #
   # Just comment it out.
   (sed -i 's+ServerActive=127\.0\.0\.1+#&+' ${ZABX_AGNT_CONF})
@@ -121,9 +121,9 @@ if [ -x /usr/bin/yum ]; then
   fi
 
   # If we cannot ping but got the variable we will assume maybe server is down and stay legitimate w a warning.
-  ping -c 10 -q ${zabbixsvr}
+  ping -c 10 -q ${svrzabbix}
   if [ $? -ne 0 ]; then
-     logger "${SCRIPTNAME}:WARN:Could not ping zabbix server at ${zabbixsvr}!"
+     logger "${SCRIPTNAME}:WARN:Could not ping zabbix server at ${svrzabbix}!"
   fi
 
   if [ ${ZABBIXCLEAN} ]; then
