@@ -81,13 +81,16 @@ if [ -x /usr/bin/yum ]; then
      ZABBIXCLEAN=false
   fi
 
+  # Disabling active agent mode because it seems that hosts will not show up as monitored hosts unless
+  # they are passive agents.
+  #
   # Based on testing a new deployment uncomments and sets this parameter - assumes active by default.
   # We will assume that the VM needs to be an active agent and not a passive agent.
-  (sed -i 's+ServerActive=127\.0\.0\.1+#&\nServerActive='"${zabbixsvr}"'+' ${ZABX_AGNT_CONF})
-  if [ $? -ne 0 ]; then
-     logger "${SCRIPTNAME}:ERR:Error configuring zabbix server active parm in zabbix agent"
-     ZABBIXCLEAN=false
-  fi
+  #(sed -i 's+ServerActive=127\.0\.0\.1+#&\nServerActive='"${zabbixsvr}"'+' ${ZABX_AGNT_CONF})
+  #if [ $? -ne 0 ]; then
+  #   logger "${SCRIPTNAME}:ERR:Error configuring zabbix server active parm in zabbix agent"
+  #   ZABBIXCLEAN=false
+  #fi
 
   # Next we need to change the ListenIP
   # It does not appear the dflnet is passed in by orchestrator in this stage of lifecycle so we must get the IP.
