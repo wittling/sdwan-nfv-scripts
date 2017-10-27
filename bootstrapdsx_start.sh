@@ -43,7 +43,7 @@ if [ -x /usr/bin/yum ]; then
   # Good practice to update but too time costly and frankly, risky.
   # yum -y update
   logger "${SCRIPTNAME}:INFO:Installing zabbix repo"
-  rpm -ivh http://repo.zabbix.com/zabbix/2.4/rhel/6/x86_64/zabbix-release-2.4-1.el6.noarch.rpm
+  rpm -ivh http://repo.zabbix.com/zabbix/3.2/rhel/7/x86_64/zabbix-release-3.2-1.el7.noarch.rpm
   logger "${SCRIPTNAME}:INFO:Installing zabbix-agent"
   yum -y install zabbix-agent
 
@@ -63,22 +63,37 @@ if [ -x /usr/bin/yum ]; then
      exit 1
   fi
 
-  ZABBIXCLEAN=true
   logger "${SCRIPTNAME}:INFO:Configuring Zabbix Agent"
-  #sed -i 's/Server=127.0.0.1/Server=${zabbixsvr}/' /etc/zabbix/zabbix_agentd.conf
+
+  ZABBIXCLEAN=true
+  # A brand spanking new deployment always has the Zabbix Server directive uncommented and set to local host.
+  # We will need to set that to the appropriate server.
+  (sed -i 's+^Server=127\.0\.0\.1+#&\nServer='"${zabbixsvr}"'+' ${ZABX_AGNT_CONF})
   if [ $? -ne 0 ]; then
-     logger "${SCRIPTNAME}:ERR:Error configuring zabbix server"
+     logger "${SCRIPTNAME}:ERR:Error configuring zabbix server parm in zabbix agent"
      ZABBIXCLEAN=false
   fi
 
-  #sed -i "s/ServerActive=127.0.0.1/ServerActive=${zabbixsvr}/" /etc/zabbix/zabbix_agentd.conf
+  # We will assume that the VM needs to be an active agent and not a passive agent.
+  (sed -i 's+ServerActive=127\.0\.0\.1+#&\nServerActive='"${zabbixsvr}"'+' ${ZABX_AGNT_CONF})
   if [ $? -ne 0 ]; then
-     logger "${SCRIPTNAME}:ERR:Error configuring zabbix active agent"
+     logger "${SCRIPTNAME}:ERR:Error configuring zabbix server active parm in zabbix agent"
+     ZABBIXCLEAN=false
+  fi
+
+  # Next we need to change the ListenIP
+  # It does not appear the dsxnet is passed in by orchestrator in this stage of lifecycle.
+  LISTENIP=`hostname -I`
+  (sed -i 's+^#*.ListenIP=0\.0\.0\.0*.$+&\nListenIP='"${LISTENIP}"'+' ${ZABX_AGNT_CONF})
+  if [ $? -ne 0 ]; then
+     logger "${SCRIPTNAME}:ERR:Error configuring listenip parm in zabbix agent"
      ZABBIXCLEAN=false
   fi
 
   # Hostname is an env var but at this stage it should be set and we can use the command.
-  #HOSTNAME=`hostname` && sed -i "s/Hostname=Zabbix\ server/Hostname=$HOSTNAME/" /etc/zabbix/zabbix_agentd.conf
+  (HOSTNAME=`hostname` && sed -i 's+^Hostname=Zabbix [s|S]erver+Hostname='$HOSTNAME'+' ${ZABX_AGNT_CONF})
+  # We could also just pound it out and let it use system hostname. That is an option also.
+  # (sed -i 's+^Hostname+# &+' $ZABX_AGNT_CONF})
   if [ $? -ne 0 ]; then
      logger "${SCRIPTNAME}:ERR:Error configuring zabbix hostname"
      ZABBIXCLEAN=false
@@ -86,7 +101,7 @@ if [ -x /usr/bin/yum ]; then
 
   # If we cannot ping but got the variable we will assume maybe server is down and stay legitimate w a warning.
   ping -c 10 -q ${zabbixsvr}
-  if [ $? -eq 0 ]; then
+  if [ $? -ne 0 ]; then
      logger "${SCRIPTNAME}:WARN:Could not ping zabbix server at ${zabbixsvr}!"
   fi
 
