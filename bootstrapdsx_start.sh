@@ -50,22 +50,35 @@ if [ -x /usr/bin/yum ]; then
   # Precautionary in case it is cranked upon install.
   systemctl stop zabbix-agent
 
+  # Back up the config file
+  ZABX_AGNT_CONF=/etc/zabbix/zabbix_agentd.conf
+  if [ -f ${ZABX_AGNT_CONF} ]; then
+     DIRNM=`dirname ${ZABX_AGNT_CONF}`    
+     FLNM=`basename ${ZABX_AGNT_CONF}`
+     pushd ${DIRNM}    
+     cp ${FLNM} ${FLNM}.bak
+     popd
+  else
+     logger "${SCRIPTNAME}:ERR:FileNotExists:Zabbix Config File ${ZABX_AGNT_CONF}"
+     exit 1
+  fi
+
   ZABBIXCLEAN=true
   logger "${SCRIPTNAME}:INFO:Configuring Zabbix Agent"
-  sed -i 's/Server=127.0.0.1/Server=${zabbixsvr}/' /etc/zabbix/zabbix_agentd.conf
+  #sed -i 's/Server=127.0.0.1/Server=${zabbixsvr}/' /etc/zabbix/zabbix_agentd.conf
   if [ $? -ne 0 ]; then
      logger "${SCRIPTNAME}:ERR:Error configuring zabbix server"
      ZABBIXCLEAN=false
   fi
 
-  sed -i 's/ServerActive=127.0.0.1/ServerActive=${zabbixsvr}/' /etc/zabbix/zabbix_agentd.conf
+  #sed -i "s/ServerActive=127.0.0.1/ServerActive=${zabbixsvr}/" /etc/zabbix/zabbix_agentd.conf
   if [ $? -ne 0 ]; then
      logger "${SCRIPTNAME}:ERR:Error configuring zabbix active agent"
      ZABBIXCLEAN=false
   fi
 
   # Hostname is an env var but at this stage it should be set and we can use the command.
-  HOSTNAME=`hostname` && sed -i "s/Hostname=Zabbix\ server/Hostname=$HOSTNAME/" /etc/zabbix/zabbix_agentd.conf
+  #HOSTNAME=`hostname` && sed -i "s/Hostname=Zabbix\ server/Hostname=$HOSTNAME/" /etc/zabbix/zabbix_agentd.conf
   if [ $? -ne 0 ]; then
      logger "${SCRIPTNAME}:ERR:Error configuring zabbix hostname"
      ZABBIXCLEAN=false
@@ -78,8 +91,9 @@ if [ -x /usr/bin/yum ]; then
   fi
 
   if [ ${ZABBIXCLEAN} ]; then
-     systemctl enable zabbix-agent
-     systemctl start zabbix-agent
+     logger "${SCRIPTNAME}:INFO:Zabbix looks clean. Starting agent."
+     #systemctl enable zabbix-agent
+     #systemctl start zabbix-agent
   else
      logger "${SCRIPTNAME}:WARN:Not starting Zabbix Agent due to configuration errors."
      exit 1
