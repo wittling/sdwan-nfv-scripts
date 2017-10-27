@@ -66,6 +66,7 @@ if [ -x /usr/bin/yum ]; then
   logger "${SCRIPTNAME}:INFO:Configuring Zabbix Agent"
 
   ZABBIXCLEAN=true
+
   # A brand spanking new deployment always has the Zabbix Server directive uncommented and set to local host.
   # We will need to set that to the appropriate server.
   (sed -i 's+^Server=127\.0\.0\.1+#&\nServer='"${zabbixsvr}"'+' ${ZABX_AGNT_CONF})
@@ -74,6 +75,7 @@ if [ -x /usr/bin/yum ]; then
      ZABBIXCLEAN=false
   fi
 
+  # Based on testing a new deployment uncomments and sets this parameter - assumes active by default.
   # We will assume that the VM needs to be an active agent and not a passive agent.
   (sed -i 's+ServerActive=127\.0\.0\.1+#&\nServerActive='"${zabbixsvr}"'+' ${ZABX_AGNT_CONF})
   if [ $? -ne 0 ]; then
@@ -82,11 +84,18 @@ if [ -x /usr/bin/yum ]; then
   fi
 
   # Next we need to change the ListenIP
-  # It does not appear the dsxnet is passed in by orchestrator in this stage of lifecycle.
+  # It does not appear the dsxnet is passed in by orchestrator in this stage of lifecycle so we must get the IP.
   LISTENIP=`hostname -I`
   (sed -i 's+^#*.ListenIP=0\.0\.0\.0*.$+&\nListenIP='"${LISTENIP}"'+' ${ZABX_AGNT_CONF})
   if [ $? -ne 0 ]; then
      logger "${SCRIPTNAME}:ERR:Error configuring listenip parm in zabbix agent"
+     ZABBIXCLEAN=false
+  fi
+
+  # SourceIP is a non-mandatory parm but it is probably a good idea to set it to the specific IP assigned to the VM.
+  (sed -i 's+^#*.SourceIP=*.$+&\nSourceIP='"${LISTENIP}"'+' ${ZABX_AGNT_CONF})
+  if [ $? -ne 0 ]; then
+     logger "${SCRIPTNAME}:ERR:Error configuring source ip parm in zabbix agent"
      ZABBIXCLEAN=false
   fi
 
@@ -107,8 +116,8 @@ if [ -x /usr/bin/yum ]; then
 
   if [ ${ZABBIXCLEAN} ]; then
      logger "${SCRIPTNAME}:INFO:Zabbix looks clean. Starting agent."
-     #systemctl enable zabbix-agent
-     #systemctl start zabbix-agent
+     systemctl enable zabbix-agent
+     systemctl start zabbix-agent
   else
      logger "${SCRIPTNAME}:WARN:Not starting Zabbix Agent due to configuration errors."
      exit 1
