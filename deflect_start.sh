@@ -126,12 +126,20 @@ if [ -x /usr/bin/yum ]; then
      logger "${SCRIPTNAME}:WARN:Could not ping zabbix server at ${svrzabbix}!"
   fi
 
+
   if [ ${ZABBIXCLEAN} ]; then
      logger "${SCRIPTNAME}:INFO:Zabbix looks clean. Starting agent."
+     # SELinux will block this from starting unless this is done.
+     # This requires the policycoreutils-python package.
+     semanage permissive -a zabbix_agent_t
+     if [ $? -ne 0 ]; then
+        logger "${SCRIPTNAME}:WARN:Zabbix Agent may not start because SELinux may prevent it!"
+     fi
      systemctl enable zabbix-agent
      systemctl start zabbix-agent
   else
      logger "${SCRIPTNAME}:WARN:Not starting Zabbix Agent due to configuration errors."
+     exit 1
   fi
 fi
 
