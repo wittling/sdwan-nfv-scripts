@@ -27,8 +27,16 @@ function jsonParmSwap
    fi
 
    case $1 in
+      "DARTIP") 
+           FILENAME=/usr/local/dart/package.json
+           NEWPARM=$2
+           FILECODE=$1;;
       "RESTIP") 
            FILENAME=/usr/local/dart-rest/package.json
+           NEWPARM=$2
+           FILECODE=$1;;
+      "DARTPORT") 
+           FILENAME=/usr/local/dart/package.json
            NEWPARM=$2
            FILECODE=$1;;
       "RESTPORT") 
@@ -55,7 +63,7 @@ function jsonParmSwap
       # LOCALFILE=`basename ${FILENAME}`
       parse_json_script=$(mktemp parse_json.XXXX.py)
 
-      if [ ${FILECODE} == "RESTIP" ]; then
+      if [ ${FILECODE} == "RESTIP" -o ${FILECODE} == "DARTIP" ]; then
          cat > "$parse_json_script" <<SCRIPT
 #!/usr/bin/env python
 import json
@@ -65,7 +73,7 @@ with open("${FILENAME}",'r+') as f:
     f.seek(0)
     json.dump(data, f, indent=4)
 SCRIPT
-      elif [ ${FILECODE} == "RESTPORT" ]; then
+      elif [ ${FILECODE} == "RESTPORT" -o ${FILECODE} == "DARTPORT" ]; then
 
          cat > "$parse_json_script" <<SCRIPT
 #!/usr/bin/env python
@@ -135,12 +143,12 @@ else
    logger "Script: bootstrapdsx_instantiate.sh:INFO: dart-rest.service stopped."
 fi
 
-systemctl stop dart3.service
-OUTPUT=`systemctl is-active dart3.service`
+systemctl stop dart.service
+OUTPUT=`systemctl is-active dart.service`
 if [ $? -eq 0 ]; then
-   logger "Script: bootstrapdsx_instantiate.sh:WARNING: dart3.service did not stop. non-fatal. We will continue."
+   logger "Script: bootstrapdsx_instantiate.sh:WARNING: dart.service did not stop. non-fatal. We will continue."
 else
-   logger "Script: bootstrapdsx_instantiate.sh:INFO: dart3.service stopped."
+   logger "Script: bootstrapdsx_instantiate.sh:INFO: dart.service stopped."
 fi
 
 # Since we are not completely sure whether the DB is running in primary clustered mode or not, we will need to 
@@ -281,7 +289,24 @@ else
    exit 1 
 fi
 
+logger "bootstrapdsx_instantiate: Changing IP Address in DART: ${dsxnet}" 
+jsonParmSwap DARTIP ${dsxnet}
+if [ $? -eq 0 ]; then
+   logger "bootstrapdsx_instantiate:INFO: IP $dsxnet Replaced for file code: DART ." 
+else
+   logger "bootstrapdsx_instantiate:ERROR: IP $dsxnet NOT Replaced for file code: DART." 
+   exit 1 
+fi
 
+logger "bootstrapdsx_instantiate: Changing Port in DART: ${portrestapi}" 
+jsonParmSwap DARTPORT ${portra}
+if [ $? -eq 0 ]; then
+   logger "bootstrapdsx_instantiate:INFO: Port $portadmin Replaced for file code: DART ." 
+   systemctl restart dart-rest
+else
+   logger "bootstrapdsx_instantiate:ERROR: Port $portadmin NOT Replaced for file code: DART." 
+   exit 1 
+fi
 
 # Now restart the DPS Services
 
@@ -296,13 +321,13 @@ else
    exit 1 
 fi
 
-systemctl start dart3.service
+systemctl start dart.service
 sleep 3
-OUTPUT=`systemctl is-active dart3.service`
+OUTPUT=`systemctl is-active dart.service`
 if [ $? -eq 0 ]; then
-   logger "Script: bootstrapdsx_instantiate.sh:INFO: dart3.service (node) restarted."
+   logger "Script: bootstrapdsx_instantiate.sh:INFO: dart.service (node) restarted."
 else
-   logger "Script: bootstrapdsx_instantiate.sh:ERROR: dart3.service (node) did NOT restart. Manual intervention required."
+   logger "Script: bootstrapdsx_instantiate.sh:ERROR: dart.service (node) did NOT restart. Manual intervention required."
    exit 1 
 fi
 
