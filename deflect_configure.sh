@@ -98,7 +98,7 @@ if [ $? -eq 0 ]; then
                # at the next life cycle stage where we can count the deflects and adjust pool parameters 
                # accordingly.
                CLASSFILE=deflectpool
-               if [ -f ${CLASSFILE} ]; then
+               if [ -f ${CLASSFILE}.py ]; then
                   # The provisioning up above has logic to put the deflect in the OPENBATON deflect pool. We will use a var.
                   DFLPOOL=OPENBATON
 
