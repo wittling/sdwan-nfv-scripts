@@ -97,6 +97,24 @@ if [ $? -eq 0 ]; then
                # But it will be more efficient if we wait and do a single adjustment to the pool settings
                # at the next life cycle stage where we can count the deflects and adjust pool parameters 
                # accordingly.
+               CLASSFILE=deflectpool
+               if [ -f ${CLASSFILE} ]; then
+                  # The provisioning up above has logic to put the deflect in the OPENBATON deflect pool. We will use a var.
+                  DFLPOOL=OPENBATON
+
+                  logger "deflect_configure: INFO: Attempting to adjust deflect pool size."
+                  # This will not only provision the deflect but it will add it to the deflect pool, so no separate call needed.
+                  (python3 ${CLASSFILE}.py ${DFLPOOL} 1>${CLASSFILE}.py.log 2>&1)
+                  if [ $? -eq 0 ]; then
+                     logger "deflect_configure:INFO: Deflect Pool ${DFLPOOL} successfully adjusted with new vtc count."
+                  else
+                     logger "deflect_configure:WARN: Unable to adjust deflect pool size for pool ${DFLPOOL}. Code $?."
+                  fi
+               else
+                  logger "deflect_configure:ERROR: FileNotExists: ${CLASSFILE}"
+                  popd
+                  exit 1
+               fi
             else
                logger "deflect_configure:ERROR: FileNotExists: ${CLASSFILE}"
                popd
