@@ -1,0 +1,10 @@
+# As we have release specific branches in git for these scripts, I have pointed the master to the latest branch.
+# Therefore, when you try to check in code, it will fail with a bunch of yada errata about the fact that I changed
+# the pointer of master.
+#
+# To properly push the code up so that it not only hits latest branch but also resets the master pointer, use the following.
+# git push --force origin release-3.6.8:master
+
+# This way a git clone will always pull code off the latest branch.
+#
+# CAVEAT EMPTOR: I am not a guru with git but I tested this so far and believe these instructions to be correct.
