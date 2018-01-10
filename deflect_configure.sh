@@ -93,10 +93,16 @@ if [ $? -eq 0 ]; then
                   exit 1
                fi
 
-               # We could make a call and update pool size every time a deflect is successfully provisioned.
-               # But it will be more efficient if we wait and do a single adjustment to the pool settings
-               # at the next life cycle stage where we can count the deflects and adjust pool parameters 
-               # accordingly.
+               # It would be more efficient to make one call and adjust the pool size after deflects 
+               # come up. But because of the various engines like scaling, we probably need to adjust
+               # the pool every time a scaling event happens. Last time I tried to put a scale event
+               # script in the descriptor, it did not fire. So for now at least, we will adjust the 
+               # pool size here because we know this script gets triggered every time a deflect comes up.
+               #
+               # TODO: This could cause an issue on downward retraction of elasticity because our target
+               # min max band may be higher than the actual deflects that are currently in use.
+               #
+               # We eventually need to make sure we can adjust the pool size based on scaling events.
                CLASSFILE=deflectpool
                if [ -f ${CLASSFILE}.py ]; then
                   # The provisioning up above has logic to put the deflect in the OPENBATON deflect pool. We will use a var.
