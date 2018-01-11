@@ -9,7 +9,7 @@
 RESTCLTDIR="/usr/local/dart-rest-client/local-client-projects"
 
 # Let us see what environment variables the orchestrator passes into this script...
-env > ${RESTCLTDIR}/deflect_scalein.env
+env > /opt/openbaton/scripts/deflect_scalein.env
 
 logger "deflect_scalein: Greetings Bootstrap DSX! I am a Deflect."
 logger "deflect_scalein: My Deflect IP Address is: ${deflect_dflnet}" 

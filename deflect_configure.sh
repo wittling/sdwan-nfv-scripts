@@ -1,6 +1,13 @@
 #!/bin/bash
-#env
 #set -x
+
+# Print env out so we can see what is getting passed into us from orchestrator.
+ENVOUT="/opt/openbaton/scripts/deflect_configure.env"
+echo "====================================================" >> ${ENVOUT}
+echo "Environment relevant to deflect_configure.sh script: " >> ${ENVOUT}
+env >> ${ENVOUT}
+echo "" >> ${ENVOUT}
+echo "====================================================" >> ${ENVOUT}
 
 # It appears that this script gets cranked for every deflect that comes up.
 # If this is in fact how the orchestrator is doing this, we can take advantage of this
