@@ -31,7 +31,7 @@ export svcgroup
 
 # OpenBaton likes to name the hosts with an appended hyphen and generated uid of some sort
 # Not sure if rest likes hyphens so we will grab the suffix id and use that for provisioning. 
-NODENUM=`echo ${deflect_dflnet} | cut -f 4 -d "."`
+NODENUM=`echo ${deflect_dflnet} | cut -f3-4 -d "." | sed 's+\.+DT+'`
 export VTCNAME=OPNBTN${NODENUM}
 
 logger "deflect_configure:INFO: Attempting to provision VTC via REST interface"
