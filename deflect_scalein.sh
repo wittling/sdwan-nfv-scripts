@@ -14,7 +14,7 @@ env > ${RESTCLTDIR}/deflect_scalein.env
 logger "deflect_scalein: Greetings Bootstrap DSX! I am a Deflect."
 logger "deflect_scalein: My Deflect IP Address is: ${deflect_dflnet}" 
 logger "deflect_scalein: I see your IP Address is: ${dsxnet}"
-logger "deflect_scalein: I see your hostname is: ${hostname}"
+logger "deflect_scalein: Hostname being scaled in is: ${remove_hostname}"
 logger "deflect_scalein: It appears you will be using the ctl plane interface: ${ifacectlplane}" 
 logger "deflect_scalein: I will be sending data on port: ${deflect_portdata}" 
 logger "deflect_scalein: I will be sending callp on port: ${deflect_portcallp}" 
@@ -26,11 +26,6 @@ export deflect_dflnet
 export deflect_portdata
 export deflect_portcallp
 export svcgroup
-
-# OpenBaton likes to name the hosts with an appended hyphen and generated uid of some sort
-# Not sure if rest likes hyphens so we will grab the suffix id and use that for provisioning. 
-NODENUM=`echo ${deflect_dflnet} | cut -f 4 -d "."`
-export VTCNAME=OPNBTN${NODENUM}
 
 logger "deflect_scalein:INFO: Attempting to provision VTC via REST interface"
 python3 -V
@@ -47,30 +42,19 @@ if [ $? -eq 0 ]; then
             logger "deflect_scalein:INFO: Sourcing rest environment..."
             source "${DVNRESTENV}"
          else
-            logger "deflect_scalein:INFO: Sourcing rest environment..."
+            logger "deflect_scalein:ERROR: Error Sourcing rest environment. File Not Found: ${DVNRESTENV}."
             popd
             exit 1
          fi
 
+         # Consider using svcgroup here. Check env to make sure it is being passed in.
          logger "deflect_scalein: INFO: Attempting to scale in the deflect pool target min and max."
-         # We could use service pool but not sure if orchestrator passes this in on a scale event.
-         # So we will set a variable here just to be safe for testing.
          export DFLPOOL=OPENBATON
          (python3 ${CLASSFILE}.py ${DFLPOOL} 1>${CLASSFILE}.py.log 2>&1)
          if [ $? -eq 0 ]; then
-            logger "deflect_scalein:INFO: VTC ${VTCNAME} provisioned!"
-            CLASSFILE=callp
-            if [ -f ${CLASSFILE}.py ]; then
-               if [ ! -x ${CLASSFILE}.py ]; then
-                  chmod +x ${CLASSFILE}.py
-               fi
-            else
-               logger "deflect_scalein:ERROR: FileNotExists: ${CLASSFILE}"
-               popd
-               exit 1
-            fi
+            logger "deflect_scalein:INFO: Deflect Pool Size Adjusted to reflect removal of: ${remove_hostname}."
          else
-            logger "deflect_scalein:ERROR: Error in attempt to set target min max on deflect pool."
+            logger "deflect_scalein:ERROR: Error in attempt to adjust deflect pool size."
             popd
             exit 1
          fi
