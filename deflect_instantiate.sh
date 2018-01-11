@@ -16,7 +16,7 @@ logger "deflect_instantiate: INFO: This will alleviate an alarm that complains a
 PARMPATH='/proc/sys/net/core/rmem_max'
 echo 'net.core.rmem_max=2048000' >> /etc/sysctl.conf
 sysctl -p 
-if [ $? -eq 0]; then
+if [ $? -eq 0 ]; then
    logger "deflect_instantiate: INFO: Call to sysctl appears to be successful."
    logger "deflect_instantiate: INFO: Verifying Socket Buffer Receive Parameter."
    echo "Socket Buffer Receive Parm rmem_max is now: `cat ${PARMPATH}`" | logger
