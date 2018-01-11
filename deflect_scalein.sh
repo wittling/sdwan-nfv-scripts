@@ -49,10 +49,9 @@ if [ $? -eq 0 ]; then
 
          # Consider using svcgroup here. Check env to make sure it is being passed in.
          logger "deflect_scalein: INFO: Attempting to scale in the deflect pool target min and max."
-         export DFLPOOL=OPENBATON
-         (python3 ${CLASSFILE}.py ${DFLPOOL} 1>${CLASSFILE}.py.log 2>&1)
+         (python3 ${CLASSFILE}.py ${svcgroup} 1>${CLASSFILE}.py.log 2>&1)
          if [ $? -eq 0 ]; then
-            logger "deflect_scalein:INFO: Deflect Pool Size Adjusted to reflect removal of: ${remove_hostname}."
+            logger "deflect_scalein:INFO: Deflect Pool Size Adjusted to reflect removal of: ${removing_hostname}."
          else
             logger "deflect_scalein:ERROR: Error in attempt to adjust deflect pool size."
             popd
