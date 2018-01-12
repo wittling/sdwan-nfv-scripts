@@ -43,10 +43,10 @@ function jsonParmSwap
    fi
 
    case $1 in
-      "CFGIP") 
-      "CFGNIC") 
-      "CFGMAC") 
-      "CFGVTCNM") 
+      "CFGIP") ;&
+      "CFGNIC") ;&
+      "CFGMAC") ;&
+      "CFGVTCNM") ;&
       "CFGVTCID") 
            FILENAME=/usr/local/dvn/cfg/vtc_config.json
            NEWPARM=$2
