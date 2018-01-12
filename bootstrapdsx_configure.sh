@@ -4,7 +4,7 @@
 # If this is in fact how the orchestrator is doing this, we can take advantage of this
 # by making RESTful API calls to provision each one at their time of instantiation.
 
-SCRIPTNAME="${SCRIPTNAME}"
+SCRIPTNAME="bootstrapdsx_configure"
 SCRIPTDIR="/opt/openbaton/scripts"
 #env
 #set -x
