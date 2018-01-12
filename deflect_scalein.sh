@@ -19,9 +19,6 @@ env > ${ENVFILE}
 
 RESTCLTDIR="/usr/local/dart-rest-client/local-client-projects"
 
-# Let us see what environment variables the orchestrator passes into this script...
-env > /opt/openbaton/scripts/deflect_scalein.env
-
 logger "deflect_scalein: Greetings Bootstrap DSX! I am a Deflect."
 logger "deflect_scalein: My Deflect IP Address is: ${deflect_dflnet}" 
 logger "deflect_scalein: I see your IP Address is: ${dsxnet}"
@@ -121,20 +118,24 @@ if [ $? -eq 0 ]; then
          exit 1
       fi
 
-      # We tend to name all of these after the service group at least for purposes of initial prototyping.
-    
-      ELEMENTNAME=
-      deprovElement callp $svcgroup
+      # We know the IP of the element being scaled in. But we do not know its name. Actually we DO
+      # know its name. Now. But we did not know it at spin up event so we had to use a convention to
+      # name it. So we have to reverse into that convention to deprovision it.
+      NODENUM=`echo ${removing_dflnet} | cut -f3-4 -d "." | sed 's+\.+DT+'`
+      export NODENAME=CP${NODENUM}
+      deprovElement callp ${NODENAME}
       if [ $? -eq 1 ]; then
          popd
          exit 1
       fi
-      deprovElement deflect $svcgroup
+      export NODENAME=DFL${NODENUM}
+      deprovElement deflect ${NODENAME}
       if [ $? -eq 1 ]; then
          popd
          exit 1
       fi
-      deprovElement rxtxnode $svcgroup
+      export NODENAME=OPNBTN${NODENUM}
+      deprovElement rxtxnode ${NODENAME}
       if [ $? -eq 1 ]; then
          popd
          exit 1
