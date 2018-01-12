@@ -4,8 +4,16 @@
 # If this is in fact how the orchestrator is doing this, we can take advantage of this
 # by making RESTful API calls to provision each one at their time of instantiation.
 
+SCRIPTNAME="${SCRIPTNAME}"
+SCRIPTDIR="/opt/openbaton/scripts"
 #env
 #set -x
+
+logger "${SCRIPTNAME}:INFO:Start LifeCycle Event Triggered!"
+
+ENVFILE="${SCRIPTDIR}/${SCRIPTNAME}.env"
+logger "${SCRIPTNAME}:INFO:Dumping environment to ${ENVFILE}!"
+env > ${ENVFILE}
 
 
 # Originally we wanted to just swap an IP address and used sed as the way to do this. It did not
@@ -17,13 +25,13 @@
 function jsonParmSwap
 {
    # Check for Python and see if it is installed (no sense wasting gas)
-   logger "bootstrapdsx_configure: jsonParmSwap:INFO: Checking Python Version"
+   logger "${SCRIPTNAME}: jsonParmSwap:INFO: Checking Python Version"
    pyver=$(python -V 2>&1 | grep -Po '(?<=Python )(.+)')
    if [[ -z "$pyver" ]]; then
-      logger "bootstrapdsx_configure: jsonParmSwap:ERROR: No Python Version!"
+      logger "${SCRIPTNAME}: jsonParmSwap:ERROR: No Python Version!"
       return 1
    else
-      logger "bootstrapdsx_configure: jsonParmSwap:INFO: Python Version: ${pyver}"
+      logger "${SCRIPTNAME}: jsonParmSwap:INFO: Python Version: ${pyver}"
    fi
       
    FILENAME=""
@@ -36,21 +44,9 @@ function jsonParmSwap
 
    case $1 in
       "CFGIP") 
-           FILENAME=/usr/local/dvn/cfg/vtc_config.json
-           NEWPARM=$2
-           FILECODE=$1;;
       "CFGNIC") 
-           FILENAME=/usr/local/dvn/cfg/vtc_config.json
-           NEWPARM=$2
-           FILECODE=$1;;
       "CFGMAC") 
-           FILENAME=/usr/local/dvn/cfg/vtc_config.json
-           NEWPARM=$2
-           FILECODE=$1;;
       "CFGVTCNM") 
-           FILENAME=/usr/local/dvn/cfg/vtc_config.json
-           NEWPARM=$2
-           FILECODE=$1;;
       "CFGVTCID") 
            FILENAME=/usr/local/dvn/cfg/vtc_config.json
            NEWPARM=$2
@@ -60,7 +56,7 @@ function jsonParmSwap
 
    DIRNAME=`dirname ${FILENAME}`
    if [ ! -d ${DIRNAME} ]; then
-      logger "bootstrapdsx_configure: jsonParmSwap: ERROR: Dir not found: ${DIRNAME}"
+      logger "${SCRIPTNAME}: jsonParmSwap: ERROR: Dir not found: ${DIRNAME}"
       return 1
    fi
 
@@ -127,7 +123,7 @@ with open("${FILENAME}",'r+') as f:
     json.dump(data, f, indent=4)
 SCRIPT
       else
-         logger "bootstrapdsx_configure: jsonParmSwap:ERROR: Invalid File Code."
+         logger "${SCRIPTNAME}: jsonParmSwap:ERROR: Invalid File Code."
          rm $parse_json_script
          popd
          return 1
@@ -135,26 +131,26 @@ SCRIPT
          
       python $parse_json_script && rm $parse_json_script
       if [ $? -eq 0 ]; then
-         logger "bootstrapdsx_configure: jsonParmSwap:INFO: Parm Replaced"
+         logger "${SCRIPTNAME}: jsonParmSwap:INFO: Parm Replaced"
       else
-         logger "bootstrapdsx_configure: jsonParmSwap:ERROR: Parm NOT Replaced"
+         logger "${SCRIPTNAME}: jsonParmSwap:ERROR: Parm NOT Replaced"
          popd
          return 1
       fi   
    else
-      logger "bootstrapdsx_configure: jsonParmSwap:ERROR:File Not Found:${FILENAME}"
+      logger "${SCRIPTNAME}: jsonParmSwap:ERROR:File Not Found:${FILENAME}"
       return 1
    fi
 }
 
-logger "bootstrapdsx_configure.bash: Greetings Deflect! I am Bootstrap DSX."
-logger "bootstrapdsx_configure.bash: I see your Deflect Hostname has been assigned as: ${hostname}"
-logger "bootstrapdsx_configure.bash: I see your Deflect IP has been assigned as: ${dflnet}"
-logger "bootstrapdsx_configure.bash: My Bootstrap DSX IP Address is: ${bootstrapdsx_dsxnet}."
-logger "bootstrapdsx_configure.bash: It appears you will using the traffic interface: ${ifacetraffic}"
-logger "bootstrapdsx_configure.bash: My Bootstrap DSX Control Plane Interface is: ${bootstrapdsx_ifacectlplane}"
-logger "bootstrapdsx_configure.bash: My Bootstrap DSX Registration Port is: ${bootstrapdsx_portreg}"
-logger "bootstrapdsx_configure.bash: My REST API Port is: ${bootstrapdsx_portrest}"
+logger "${SCRIPTNAME}.sh: Greetings Deflect! I am Bootstrap DSX."
+logger "${SCRIPTNAME}.sh: I see your Deflect Hostname has been assigned as: ${hostname}"
+logger "${SCRIPTNAME}.sh: I see your Deflect IP has been assigned as: ${dflnet}"
+logger "${SCRIPTNAME}.sh: My Bootstrap DSX IP Address is: ${bootstrapdsx_dsxnet}."
+logger "${SCRIPTNAME}.sh: It appears you will using the traffic interface: ${ifacetraffic}"
+logger "${SCRIPTNAME}.sh: My Bootstrap DSX Control Plane Interface is: ${bootstrapdsx_ifacectlplane}"
+logger "${SCRIPTNAME}.sh: My Bootstrap DSX Registration Port is: ${bootstrapdsx_portreg}"
+logger "${SCRIPTNAME}.sh: My REST API Port is: ${bootstrapdsx_portrest}"
 
 # export the variables
 export hostname
@@ -166,83 +162,82 @@ export ifacetraffic
 
 systemctl stop dvn.service
 
-logger "bootstrapdsx_configure: Changing IP Address in CFG: ${bootstrapdsx_dsxnet}" 
+logger "${SCRIPTNAME}: Changing IP Address in CFG: ${bootstrapdsx_dsxnet}" 
 jsonParmSwap CFGIP ${bootstrapdsx_dsxnet}
 if [ $? -eq 0 ]; then
-   logger "bootstrapdsx_configure:INFO: IP ${bootstrapdsx_dsxnet} Replaced for file code: CFGIP."
+   logger "${SCRIPTNAME}:INFO: IP ${bootstrapdsx_dsxnet} Replaced for file code: CFGIP."
 else
-   logger "bootstrapdsx_configure:ERROR: IP ${bootstrapdsx_dsxnet} NOT Replaced for file code CFGIP." 
+   logger "${SCRIPTNAME}:ERROR: IP ${bootstrapdsx_dsxnet} NOT Replaced for file code CFGIP." 
    exit 1 
 fi
 
 # Just because a variable says we should be using interface ethx does not mean it is so. Check it.
 if [ ! -d "/sys/class/net/${ifacetraffic}" ]; then
-   logger "bootstrapdsx_configure:ERROR:NIC ${ifacetraffic} not enabled on this instance!" 
+   logger "${SCRIPTNAME}:ERROR:NIC ${ifacetraffic} not enabled on this instance!" 
    exit 1
 else
-   logger "bootstrapdsx_configure: Changing nic in CFG: ${ifacetraffic}" 
+   logger "${SCRIPTNAME}: Changing nic in CFG: ${ifacetraffic}" 
    jsonParmSwap CFGNIC ${ifacetraffic}
    if [ $? -eq 0 ]; then
-      logger "bootstrapdsx_configure:INFO: NIC ${ifacetraffic} Replaced for file code: CFGNIC ." 
+      logger "${SCRIPTNAME}:INFO: NIC ${ifacetraffic} Replaced for file code: CFGNIC ." 
    else
-      logger "bootstrapdsx_configure:ERROR: NIC ${ifacetraffic} NOT Replaced for file code: CFGNIC." 
+      logger "${SCRIPTNAME}:ERROR: NIC ${ifacetraffic} NOT Replaced for file code: CFGNIC." 
       exit 1 
    fi
 fi
 
 MAC=`cat /sys/class/net/${ifacetraffic}/address`
-logger "bootstrapdsx_configure: Changing mac in CFG: ${MAC}" 
+logger "${SCRIPTNAME}: Changing mac in CFG: ${MAC}" 
 jsonParmSwap CFGMAC ${MAC}
 if [ $? -eq 0 ]; then
-   logger "bootstrapdsx_configure:INFO: MAC Replaced for file code: CFGMAC ." 
+   logger "${SCRIPTNAME}:INFO: MAC Replaced for file code: CFGMAC ." 
 else
-   logger "bootstrapdsx_configure:ERROR: MAC NOT Replaced for file code: CFGMAC." 
+   logger "${SCRIPTNAME}:ERROR: MAC NOT Replaced for file code: CFGMAC." 
    exit 1 
 fi
 
-#NODENUM=`echo ${dflnet} | cut -f 4 -d "."`
-NODENUM=`hostname -I | cut -f 4 -d "."`
+NODENUM=`echo ${deflect_dflnet} | cut -f3-4 -d "." | sed 's+\.+DT+'`
 export VTCNAME=OPNBTN${NODENUM}
 
-logger "bootstrapdsx_configure: Changing vtcname in CFG: ${VTCNAME}" 
+logger "${SCRIPTNAME}: Changing vtcname in CFG: ${VTCNAME}" 
 jsonParmSwap CFGVTCNM ${VTCNAME}
 if [ $? -eq 0 ]; then
-   logger "bootstrapdsx_configure:INFO: vtcname Replaced for file code: CFGVTCNM ." 
+   logger "${SCRIPTNAME}:INFO: vtcname Replaced for file code: CFGVTCNM ." 
 else
-   logger "bootstrapdsx_configure:ERROR: vtcname NOT Replaced for file code: CFGVTCNM." 
+   logger "${SCRIPTNAME}:ERROR: vtcname NOT Replaced for file code: CFGVTCNM." 
    exit 1 
 fi
 
-logger "bootstrapdsx_configure: Changing vtcid in CFG: ${VTCNAME}" 
+logger "${SCRIPTNAME}: Changing vtcid in CFG: ${VTCNAME}" 
 jsonParmSwap CFGVTCID ${VTCNAME}
 if [ $? -eq 0 ]; then
-   logger "bootstrapdsx_configure:INFO: vtcid Replaced for file code: CFGVTCID ." 
+   logger "${SCRIPTNAME}:INFO: vtcid Replaced for file code: CFGVTCID ." 
 else
-   logger "bootstrapdsx_configure:ERROR: vtcid NOT Replaced for file code: CFGVTCID." 
+   logger "${SCRIPTNAME}:ERROR: vtcid NOT Replaced for file code: CFGVTCID." 
    exit 1 
 fi
 
 
 # Now restart the DVN 
 
-logger "Script: bootstrapdsx_configure.bash:INFO: Stopping dvn.service after setting parameters."
+logger "Script: ${SCRIPTNAME}.sh:INFO: Stopping dvn.service after setting parameters."
 systemctl stop dvn.service
 OUTPUT=`systemctl is-active dvn.service`
 if [ $? -eq 0 ]; then
-   logger "Script: bootstrapdsx_configure.sh:WARNING: dvn.service did not stop. non-fatal. We will continue."
+   logger "Script: ${SCRIPTNAME}.sh:WARNING: dvn.service did not stop. non-fatal. We will continue."
 else
-   logger "Script: bootstrapdsx_configure.sh:INFO: dvn.service stopped."
+   logger "Script: ${SCRIPTNAME}.sh:INFO: dvn.service stopped."
 fi
 
 sleep 3
 
-logger "Script: bootstrapdsx_configure.bash:INFO: Restarting dvn.service after setting parameters."
+logger "Script: ${SCRIPTNAME}.sh:INFO: Restarting dvn.service after setting parameters."
 systemctl restart dvn.service
 OUTPUT=`systemctl is-active dvn.service`
 if [ $? -eq 0 ]; then
-   logger "Script: bootstrapdsx_configure.bash:INFO: dvn.service restarted."
+   logger "Script: ${SCRIPTNAME}.sh:INFO: dvn.service restarted."
 else
-   logger "Script: bootstrapdsx_configure.bash:ERROR: dvn.service did NOT restart. Manual intervention required."
+   logger "Script: ${SCRIPTNAME}.sh:ERROR: dvn.service did NOT restart. Manual intervention required."
    exit 1 
 fi
 
