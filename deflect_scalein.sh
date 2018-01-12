@@ -6,6 +6,17 @@
 # If this is in fact how the orchestrator is doing this, we can take advantage of this
 # by making RESTful API calls to provision each one at their time of instantiation.
 
+SCRIPTNAME="deflect_scalein"
+SCRIPTDIR="/opt/openbaton/scripts"
+#env
+#set -x
+
+logger "${SCRIPTNAME}:INFO:SCALE_IN LifeCycle Event Triggered!"
+
+ENVFILE="${SCRIPTDIR}/${SCRIPTNAME}.env"
+logger "${SCRIPTNAME}:INFO:Dumping environment to ${ENVFILE}!"
+env > ${ENVFILE}
+
 RESTCLTDIR="/usr/local/dart-rest-client/local-client-projects"
 
 # Let us see what environment variables the orchestrator passes into this script...
@@ -19,7 +30,7 @@ logger "deflect_scalein: I will be sending data on port: ${deflect_portdata}"
 logger "deflect_scalein: I will be sending callp on port: ${deflect_portcallp}" 
 logger "deflect_scalein: I will be using svc group and deflect pool: ${svcgroup}" 
 logger "deflect_scalein: Hostname being scaled in is: ${removing_hostname}"
-logger "deflect_scalein: Hostname being scaled in is: ${removing_dflnet}"
+logger "deflect_scalein: IP being scaled in is: ${removing_dflnet}"
 
 # export the variables
 export hostname
@@ -111,6 +122,8 @@ if [ $? -eq 0 ]; then
       fi
 
       # We tend to name all of these after the service group at least for purposes of initial prototyping.
+    
+      ELEMENTNAME=
       deprovElement callp $svcgroup
       if [ $? -eq 1 ]; then
          popd
