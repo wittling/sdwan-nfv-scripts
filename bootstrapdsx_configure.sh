@@ -196,7 +196,7 @@ else
    exit 1 
 fi
 
-NODENUM=`echo ${deflect_dflnet} | cut -f3-4 -d "." | sed 's+\.+DT+'`
+NODENUM=`echo ${dflnet} | cut -f3-4 -d "." | sed 's+\.+DT+'`
 export VTCNAME=OPNBTN${NODENUM}
 
 logger "${SCRIPTNAME}: Changing vtcname in CFG: ${VTCNAME}" 
