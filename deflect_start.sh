@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SCRIPTNAME="deflect_start.sh"
+SCRIPTNAME="deflect_start"
 SCRIPTDIR="/opt/openbaton/scripts"
 #env
 #set -x
