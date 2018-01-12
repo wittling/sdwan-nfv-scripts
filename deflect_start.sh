@@ -7,7 +7,7 @@ SCRIPTDIR="/opt/openbaton/scripts"
 
 logger "${SCRIPTNAME}:INFO:Start LifeCycle Event Triggered!"
 
-ENVFILE="${SCRIPTDIR}/deflect_start.env"
+ENVFILE="${SCRIPTDIR}/${SCRIPTNAME}.env"
 logger "${SCRIPTNAME}:INFO:Dumping environment to ${ENVFILE}!"
 env > ${ENVFILE}
 
