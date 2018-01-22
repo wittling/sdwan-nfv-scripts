@@ -143,22 +143,35 @@ SCRIPT
    fi
 }
 
-logger "${SCRIPTNAME}.sh: Greetings Deflect! I am Bootstrap DSX."
-logger "${SCRIPTNAME}.sh: I see your Deflect Hostname has been assigned as: ${hostname}"
-logger "${SCRIPTNAME}.sh: I see your Deflect IP has been assigned as: ${dflnet}"
+logger "${SCRIPTNAME}.sh: Greetings! I am your Bootstrap DSX."
 logger "${SCRIPTNAME}.sh: My Bootstrap DSX IP Address is: ${bootstrapdsx_dsxnet}."
-logger "${SCRIPTNAME}.sh: It appears you will using the traffic interface: ${ifacetraffic}"
 logger "${SCRIPTNAME}.sh: My Bootstrap DSX Control Plane Interface is: ${bootstrapdsx_ifacectlplane}"
 logger "${SCRIPTNAME}.sh: My Bootstrap DSX Registration Port is: ${bootstrapdsx_portreg}"
 logger "${SCRIPTNAME}.sh: My REST API Port is: ${bootstrapdsx_portrest}"
-
-# export the variables
+# export these.
 export hostname
-export dflnet
 export bootstrapdsx_dsxnet
 export bootstrapdsx_portreg
 export bootstrapdsx_portrest
 export ifacetraffic
+
+logger "${SCRIPTNAME}.sh: Enough about me. Let us discuss YOU..."
+logger "${SCRIPTNAME}.sh: I see your Hostname has been assigned as: ${hostname}"
+if [ ! -z ${dflnet} ]; then
+   logger "${SCRIPTNAME}.sh: I see your IP has been assigned as: ${dflnet}"
+   export dflnet
+fi
+
+if [ ! -z ${aaacorp-site1net} ]; then
+   logger "${SCRIPTNAME}.sh: I see your IP has been assigned as: ${aaacorp-site1net}"
+fi
+
+if [ ! -z ${aaacorp-site2net} ]; then
+   logger "${SCRIPTNAME}.sh: I see your IP has been assigned as: ${aaacorp-site2net}"
+fi
+
+logger "${SCRIPTNAME}.sh: It appears you will using the traffic interface: ${ifacetraffic}"
+
 
 systemctl stop dvn.service
 
