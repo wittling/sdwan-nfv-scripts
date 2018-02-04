@@ -342,107 +342,103 @@ fi
 
 logger "bootstrapdsx_instantiate:INFO: Attempting to provision service group via REST interface" 
 python3 -V
-if [ $? -eq 0 ]; then
-   RESTCLTDIR="/usr/local/dart-rest-client/local-client-projects"
-   if [ -d ${RESTCLTDIR} ]; then
-      pushd ${RESTCLTDIR}
-      if [ -f servicegroup.py ]; then
-         if [ ! -x servicegroup.py ]; then
-            chmod +x servicegroup.py
-         fi
-         DVNRESTENV=".dvnrestenv"
-         if [ -f ${DVNRESTENV} ]; then
-            logger "bootstrapdsx_instantiate: INFO: Attempting to set REST API URL..." 
-           ( sed -i 's+https\:\/\/\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\)+https\:\/\/MARKER+' ${DVNRESTENV} ; sed -i 's+MARKER+'"${dsxnet}"'+' ${DVNRESTENV} )
-            if [ $? -eq 0 ]; then
-               logger "bootstrapdsx_instantiate:INFO: Sourcing rest environment..." 
-               source "${DVNRESTENV}" 
-            else
-               logger "bootstrapdsx_instantiate:ERROR: Error setting REST API URL." 
-               popd
-               exit 1
-            fi
-         else
-            logger "bootstrapdsx_instantiate:ERROR: No environment file for rest API." 
-            popd
-            exit 1
-         fi
-
-
-         SLEEPTIME=8
-         PROVSUCCESS=false
-         for i in 1 2 3; do
-            case "$i" in 
-              1) ;;
-              2) SLEEPTIME=$[SLEEPTIME+8] ;;
-              3) SLEEPTIME=$[SLEEPTIME+16] ;;
-              *) ;;
-            esac
-
-            logger "bootstrapdsx_instantiate:INFO: Unfortunately there is no way to know if DBMgr is up and connected." 
-            logger "bootstrapdsx_instantiate:INFO: We must sleep and retry. Sleep time: ${SLEEPTIME}." 
-            sleep ${SLEEPTIME}
-
-            logger "bootstrapdsx_instantiate: INFO: Attempting to provision new ${svcgroup} service group." 
-            (python3 servicegroup.py ${svcgroup} ${svcgroup} ${svcgrptyp} 1>servicegroup.py.log 2>&1)
-            if [ $? -eq 0 ]; then
-               logger "bootstrap_instantiate:INFO: Service Group ${svcgroup} provisioned!"
-               PROVSUCCESS=true
-               break
-            elif [ $? -eq 4 ]; then
-               logger "bootstrap_instantiate:INFO: Service Group ${svcgroup} already pre-provisioned (assumed correct)."
-               PROVSUCCESS=true
-               break
-            else
-               logger "bootstrap_instantiate:INFO: Unable to provision Service Group ${svcgroup}. Attempt: $i: Shell Code: $?"
-               logger "bootstrap_instantiate:INFO: System may not be ready. Attempting to sleep ${SLEEPTIME} secs and retry."
-               sleep ${SLEEPTIME}
-            fi
-         done
-
-         if [ ! ${PROVSUCCESS} ]; then
-            logger "bootstrap_instantiate:INFO: Unable to provision Service Group ${svcgroup}. Please check logs."
-            popd
-            exit 1
-         else
-            # We do not need to do retries here because if we can provision service group we assume everything up and running.
-            if [ -f deflectpool.py ]; then
-               if [ ! -x deflectpool.py ]; then
-                  chmod +x deflectpool.py
-               fi
-               # NOTE: The fact that we have svcgroup down below in var is not an error. We use the same name for group and pool.
-               logger "bootstrap_instantiate:INFO: Provisioning Deflect Pool ${svcgroup} and adding to Service Group ${svcgroup}."
-               (python3 deflectpool.py ${svcgroup} ${svcgroup} 1 1 1 0 1 5 no 1>deflectpool.py.log 2>&1)
-               if [ $? -eq 0 ]; then
-                  logger "bootstrap_instantiate:INFO: Deflect Pool ${svcgroup} properly provisioned!"
-               elif [ $? -eq 4 ]; then
-                  logger "bootstrap_instantiate:INFO: Deflect Pool already provisioned (assumed correct)."
-               else
-                  # The fact that we have svcgroup down below in var is not an error. We use the same name for group and pool.
-                  logger "bootstrap_instantiate:ERROR: Error occured in attempt to provision Deflect Pool ${svcgroup}. Shell Code: $?"
-                  popd
-                  exit 1
-               fi
-            else
-               logger "bootstrap_instantiate:ERROR: Error occured in attempt to provision Deflect Pool."
-               popd
-               exit 1
-            fi
-         fi
-      else
-         logger "bootstrapdsx_instantiate:ERROR: No servicegroup.py script." 
-         popd
-         exit 1
-      fi
-   else
-      logger "bootstrapdsx_instantiate:ERROR: No rest client directory ${RESTCLTDIR} on DSX" 
-      popd
-      exit 1
-   fi
-else
+if [ $? -ne 0 ]; then
    logger "bootstrapdsx_instantiate:ERROR: Python 3 not installed on DSX" 
+fi
+
+RESTCLTDIR="/usr/local/dart-rest-client/local-client-projects"
+if [ ! -d ${RESTCLTDIR} ]; then
+   logger "bootstrapdsx_instantiate:ERROR: No rest client directory ${RESTCLTDIR} on DSX" 
+   exit 1
+fi
+
+if [ ! -f ${RESTCLTDIR}/servicegroup.py ]; then
+   logger "bootstrapdsx_instantiate:ERROR: No servicegroup.py script." 
+   exit 1
+fi
+
+# We do not need to do retries here because if we can provision service group we assume everything up and running.
+if [ ! -f deflectpool.py ]; then
+   logger "bootstrap_instantiate:ERROR: Error occured in attempt to provision Deflect Pool."
+   exit 1
+fi
+
+if [ ! -x deflectpool.py ]; then
+   chmod +x deflectpool.py
+fi
+
+DVNRESTENV=".dvnrestenv"
+if [ ! -f ${DVNRESTENV} ]; then
+   logger "bootstrapdsx_instantiate:ERROR: No environment file for rest API." 
+   exit 1
+fi
+
+# NOTE that we do a pushd into the directory here. Which means we will pop from here on out at exit points.
+pushd ${RESTCLTDIR}
+if [ ! -x servicegroup.py ]; then
+   chmod +x servicegroup.py
+fi
+
+logger "bootstrapdsx_instantiate: INFO: Attempting to set REST API URL..." 
+( sed -i 's+https\:\/\/\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\)+https\:\/\/MARKER+' ${DVNRESTENV} ; sed -i 's+MARKER+'"${dsxnet}"'+' ${DVNRESTENV} )
+if [ $? -eq 0 ]; then
+   logger "bootstrapdsx_instantiate:INFO: Sourcing rest environment..." 
+   source "${DVNRESTENV}" 
+else
+   logger "bootstrapdsx_instantiate:ERROR: Error setting REST API URL." 
    popd
    exit 1
 fi
+
+
+SLEEPTIME=4
+sleep ${SLEEPTIME}
+PROVSUCCESS=false
+for i in 1 2 3; do
+   case "$i" in 
+      1) SLEEPTIME=$[SLEEPTIME+4] ;;
+      2) SLEEPTIME=$[SLEEPTIME+8] ;;
+      3) SLEEPTIME=$[SLEEPTIME+16] ;;
+      *) ;;
+   esac
+
+   logger "bootstrapdsx_instantiate: INFO: Attempting to provision new ${svcgroup} service group." 
+   (python3 servicegroup.py --operation provision --grpid ${svcgroup} --mnemonic ${svcgroup} --svcgrptyp ${svcgrptyp} 1>servicegroup.py.log 2>&1)
+   if [ $? -eq 0 ]; then
+      logger "bootstrap_instantiate:INFO: Service Group ${svcgroup} provisioned!"
+      PROVSUCCESS=true
+      break
+   elif [ $? -eq 4 ]; then
+      logger "bootstrap_instantiate:INFO: Service Group ${svcgroup} already pre-provisioned (assumed correct)."
+      PROVSUCCESS=true
+      break
+   else
+      logger "bootstrap_instantiate:INFO: Unable to provision Service Group ${svcgroup}. Attempt: $i: Shell Code: $?"
+      logger "bootstrap_instantiate:INFO: DBMgr may not be up yet. So we will sleep ${SLEEPTIME} secs and retry."
+      sleep ${SLEEPTIME}
+   fi
+done
+
+if [ ! ${PROVSUCCESS} ]; then
+   logger "bootstrap_instantiate:INFO: Unable to provision Service Group ${svcgroup}. Please check logs."
+   popd
+   exit 1
+fi
+
+logger "bootstrap_instantiate:INFO: Provisioning Deflect Pool ${svcgroup} and adding to Service Group ${svcgroup}."
+# The pool will take some defaults so no more need to pass in the defaults.
+# 1 1 1 0 1 5 no
+(python3 deflectpool.py --operation provision --poolid ${svcgroup} --mnemonic ${svcgroup} 1>deflectpool.py.log 2>&1)
+if [ $? -eq 0 ]; then
+   logger "bootstrap_instantiate:INFO: Deflect Pool ${svcgroup} properly provisioned!"
+elif [ $? -eq 4 ]; then
+   logger "bootstrap_instantiate:INFO: Deflect Pool already provisioned (assumed correct)."
+else
+   # The fact that we have svcgroup down below in var is not an error. We use the same name for group and pool.
+   logger "bootstrap_instantiate:ERROR: Error occured in attempt to provision Deflect Pool ${svcgroup}. Shell Code: $?"
+   popd
+   exit 1
+fi
+
 logger "bootstrapdsx_instantiate:INFO: End of Script: Return Code 0" 
 exit 0
