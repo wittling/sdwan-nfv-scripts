@@ -38,7 +38,7 @@ export svcgroup
 export removing_hostname
 export removing_dflnet
 
-function adjustDeflectPool
+function adjustPool
 {
    CLASSFILE=deflectpool
    if [ -f ${CLASSFILE}.py ]; then
@@ -81,7 +81,7 @@ function deprovElement
 
       # Consider using svcgroup here. Check env to make sure it is being passed in.
       logger "deflect_scalein: INFO: Attempting to call Python Script: ${CLASSFILE} with arg $2."
-      (python3 ${CLASSFILE}.py $2 1>${CLASSFILE}.py.log 2>&1)
+      (python3 --operation deprovision ${CLASSFILE}.py $2 1>${CLASSFILE}.py.log 2>&1)
       if [ $? -eq 0 ]; then
          logger "deflect_scalein:INFO: Successful return code calling Python script."
       else
@@ -97,57 +97,67 @@ function deprovElement
 
 logger "deflect_scalein:INFO: Attempting to provision VTC via REST interface"
 python3 -V
-if [ $? -eq 0 ]; then
-   if [ -d ${RESTCLTDIR} ]; then
-      pushd ${RESTCLTDIR}
-
-      DVNRESTENV=".dvnrestenv"
-      if [ -f ${DVNRESTENV} ]; then
-         logger "deflect_scalein:INFO: Sourcing rest environment..."
-         source "${DVNRESTENV}"
-      else
-         logger "deflect_scalein:ERROR: Error Sourcing rest environment. File Not Found: ${DVNRESTENV}."
-         popd
-         exit 1
-      fi
-      
-      # Call adjustDeflect
-      adjustDeflectPool
-      if [ $? -eq 1 ]; then
-         popd
-         exit 1
-      fi
-
-      # We know the IP of the element being scaled in. But we do not know its name. Actually we DO
-      # know its name. Now. But we did not know it at spin up event so we had to use a convention to
-      # name it. So we have to reverse into that convention to deprovision it.
-      NODENUM=`echo ${removing_dflnet} | cut -f3-4 -d "." | sed 's+\.+DT+'`
-      export NODENAME=CP${NODENUM}
-      deprovElement callp ${NODENAME}
-      if [ $? -eq 1 ]; then
-         popd
-         exit 1
-      fi
-      export NODENAME=DFL${NODENUM}
-      deprovElement deflect ${NODENAME}
-      if [ $? -eq 1 ]; then
-         popd
-         exit 1
-      fi
-      export NODENAME=OPNBTN${NODENUM}
-      deprovElement rxtxnode ${NODENAME}
-      if [ $? -eq 1 ]; then
-         popd
-         exit 1
-      fi
-   else
-      logger "deflect_scalein:ERROR: DirNotExists: ${RSTCLTDIR}"
-      exit 1
-   fi
-else
+if [ $? -ne 0 ]; then
    logger "deflect_scalein:ERROR: FileNotExists: Python3 Not Installed"
    exit 1
 fi
+
+if [ ! -d ${RESTCLTDIR} ]; then
+   logger "deflect_scalein:ERROR: DirNotExists: ${RSTCLTDIR}"
+   exit 1
+fi
+
+pushd ${RESTCLTDIR}
+
+DVNRESTENV=".dvnrestenv"
+if [ -f ${DVNRESTENV} ]; then
+   logger "deflect_scalein:INFO: Sourcing rest environment..."
+   source "${DVNRESTENV}"
+else
+   logger "deflect_scalein:ERROR: Error Sourcing rest environment. File Not Found: ${DVNRESTENV}."
+   popd
+   exit 1
+fi
+
+# #############################      
+# Which should we be doing first? Deprovisioning and THEN adjusting the pool? 
+# Or the other way around? We will adjust the pool first.
+# #############################      
+
+# Call adjustPool
+adjustPool
+if [ $? -eq 1 ]; then
+   popd
+   exit 1
+fi
+
+# We know the IP of the element being scaled in. But we do not know its name. Actually we DO
+# know its name. Now. But we did not know it at spin up event so we had to use a convention to
+# name it. So we have to reverse into that convention to deprovision it.
+NODENUM=`echo ${removing_dflnet} | cut -f3-4 -d "." | sed 's+\.+DT+'`
+FULLDEPROV=true
+for element in callp deflect rxtxnode
+do
+   if [ $element -eq "callp" ]; then
+      export NODENAME=CP${NODENUM}
+   elif [ $element -eq "deflect" ]; then
+      export NODENAME=DFL${NODENUM}
+   elif [ $element -eq "rxtxnode" ]; then
+      export NODENAME=OPNBTN${NODENUM}
+   fi
+
+   deprovElement $element ${NODENAME}
+   if [ $? -ne 0 ]; then
+      logger "deflect_scalein:ERROR:Error deprovisioning ${element}."
+      FULLDEPROV=false 
+   fi
+done
+
+if [ ! ${FULLDEPROV} ]; then
+   popd
+   exit 1
+fi
+
 
 logger "deflect_scalein:INFO: Successful implementation of deflect_scalein script. Exiting 0."
 exit 0
