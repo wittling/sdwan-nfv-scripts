@@ -36,123 +36,146 @@ export VTCNAME=OPNBTN${NODENUM}
 
 logger "deflect_configure:INFO: Attempting to provision VTC via REST interface"
 python3 -V
-if [ $? -eq 0 ]; then
-   RESTCLTDIR="/usr/local/dart-rest-client/local-client-projects"
-   if [ -d ${RESTCLTDIR} ]; then
-      pushd ${RESTCLTDIR}
-      CLASSFILE=rxtxnode
-      if [ -f ${CLASSFILE}.py ]; then
-         if [ ! -x ${CLASSFILE}.py ]; then
-            chmod +x ${CLASSFILE}.py
-         fi
-         DVNRESTENV=".dvnrestenv"
-         if [ -f ${DVNRESTENV} ]; then
-            logger "deflect_configure:INFO: Sourcing rest environment..."
-            source "${DVNRESTENV}"
+if [ $? -ne 0 ]; then
+   logger "deflect_configure:ERROR: FileNotExists: Python3 Not Installed"
+   exit 1
+fi
+
+# Go ahead and make sure we have what we need to do the job
+RESTCLTDIR="/usr/local/dart-rest-client/local-client-projects"
+if [ ! -d ${RESTCLTDIR} ]; then
+   logger "deflect_configure:ERROR: DirNotExists: ${RSTCLTDIR}"
+   exit 1
+else
+   pushd ${RESTCLTDIR}
+   for filename in rxtxnode callp deflect; do
+      if [ ! -f ${filename}.py ]; then
+         logger "deflect_configure:ERROR: FileNotExists: ${filename}.py"
+         popd
+         exit 1
+      else
+         # this is always an issue w scripts so just be proactive and fix it.
+         if [ ! -x ${filename} ]; then
+            chmod +x ${filename}
+         fi 
+      fi 
+   done 
+fi
+
+DVNRESTENV=".dvnrestenv"
+if [ -f ${DVNRESTENV} ]; then
+   logger "deflect_configure:INFO: Sourcing rest environment..."
+   source "${DVNRESTENV}"
+else
+   logger "deflect_configure:INFO: Sourcing rest environment..."
+   popd
+   exit 1
+fi
+
+CLASSFILE=rxtxnode
+logger "deflect_configure: INFO: Attempting to provision new vtc ${hostname}."
+(python3 ${CLASSFILE}.py --operation provision --id ${VTCNAME} --mnemonic ${VTCNAME} 1>${CLASSFILE}.py.log 2>&1)
+if [ $? -eq 0 -o $? -eq 4 ]; then
+   if [ $? -eq 0 ]; then
+      logger "deflect_configure:INFO: RxTxNode (VTC) ${VTCNAME} provisioned!"
+   else     
+       logger "deflect_configure:WARN: CallP ${CALLPNAME} already provisioned (assumed correct)."
+   fi
+
+   # Currently every node instantiated by the orchestrator is getting a CALLP and a Deflect.
+   # We need a way to dynamically cap the CallP so that as the element is instantiated, if the
+   # number of CallPs (max) has been hit, it holds off. The best way to do this is probably to 
+   # make a REST call and not provision the CallP if the max number has been reached.
+   # This is a TODO.
+   CALLPNAME=CP${NODENUM}
+   CLASSFILE=callp
+   logger "deflect_configure: INFO: Attempting to provision new callp deflect ${CALLPNAME}."
+   (python3 ${CLASSFILE}.py --operation provision --callpid ${CALLPNAME} --nodeid ${VTCNAME} --ipaddr ${deflect_dflnet} --port ${deflect_portcallp} --proto "udp" --addrtyp "Static" 1>${CLASSFILE}.py.log 2>&1)
+   if [ $? -eq 0 -o $? -eq 4 ]; then
+      if [ $? -eq 0 ]; then
+         logger "deflect_configure:INFO: CallP ${CALLPNAME} provisioned successfully."
+      else     
+       logger "deflect_configure:WARN: CallP ${CALLPNAME} already provisioned (assumed correct)."
+      fi
+
+      DFLNAME=DFL${NODENUM}
+      CLASSFILE=deflect
+      logger "deflect_configure: INFO: Attempting to provision new data deflect ${DFLNAME}."
+      # This will not only provision the deflect but it will add it to the deflect pool, so no separate call needed.
+      (python3 ${CLASSFILE}.py --operation provision --dflid ${DFLNAME} --mnemonic ${DFLNAME} --nodeid ${VTCNAME} --port
+      ${deflect_portdata} --channeltype "udp" 1>${CLASSFILE}.py.log 2>&1)
+      if [ $? -eq 0 -o $? -eq 4 ]; then
+         if [ $? -eq 0 ]; then
+            logger "deflect_configure:INFO: Data Deflect ${DFLNAME} provisioned successfully."
          else
-            logger "deflect_configure:INFO: Sourcing rest environment..."
+            logger "deflect_configure:WARN: Data Deflect ${DFLNAME} already provisioned (assumed correct)."
+         fi 
+
+         # Assign to deflect pool.
+         # We should be passing the pool id in from orchestrator. If not we can look and use service group.
+         # If neither of those are set we will use a default. 
+         POOLID="OPENBATON"
+         if [ ! -z ${poolid} ]; then
+            POOLID=${poolid}
+         elif [ ! -z ${svcgrp} ]; then
+            POOLID=${poolid}
+         fi
+         (python3 ${CLASSFILE}.py --operation poolassign --dflid ${DFLNAME} --poolid ${POOLID} 1>${CLASSFILE.py.log}
+         2>&1)
+         else
+            logger "deflect_configure:ERROR: Unable to assign Data Deflect ${DFLNAME} to ${POOLID}. Code $?."
             popd
             exit 1
          fi
+      else
+         logger "deflect_configure:ERROR: Unable to provision CallP ${CALLPNAME}. Code $?."
+         # TODO: We could implement a transactional rollback attempt. Look into.
+         popd
+         exit 1
+      fi
+   else
+      logger "deflect_configure:ERROR: Unable to provision CallP ${CALLPNAME}. Code $?."
+      # TODO: We could implement a transactional rollback attempt. Look into.
+      popd
+      exit 1
+   fi
 
-         logger "deflect_configure: INFO: Attempting to provision new vtc ${hostname}."
-         (python3 ${CLASSFILE}.py --operation provision --id ${VTCNAME} --mnemonic ${VTCNAME} 1>${CLASSFILE}.py.log 2>&1)
-         if [ $? -eq 0 ]; then
-            logger "deflect_configure:INFO: VTC ${VTCNAME} provisioned!"
-            logger "deflect_configure:INFO: Provisioning ${VTCNAME} as Deflect."
-            CLASSFILE=callp
+
+   # It could be more efficient for the DSX to just make a single call and adjust the pool parms
+   # after all deflects have come up. The DSX would need to have a count of them, which it
+   # currently does not have. 
+   # TODO: Look into making one DSX adjustment at the START event as opposed to using the 
+   # CONFIGURE event for setting such parameters.
+            CLASSFILE=deflectpool
             if [ -f ${CLASSFILE}.py ]; then
-               if [ ! -x ${CLASSFILE}.py ]; then
-                  chmod +x ${CLASSFILE}.py
-               fi
+               # The provisioning up above has logic to put the deflect in the OPENBATON deflect pool. We will use a var.
+               DFLPOOL=OPENBATON
 
-               # Currently every node instantiated by the orchestrator is getting a CALLP and a Deflect.
-               # We need a way to dynamically cap the CallP so that as the element is instantiated, if the
-               # number of CallPs (max) has been hit, it holds off. The best way to do this is probably to 
-               # make a REST call and not provision the CallP if the max number has been reached.
-               # This is a TODO.
-               CALLPNAME=CP${NODENUM}
-               logger "deflect_configure: INFO: Attempting to provision new callp deflect ${CALLPNAME}."
-
-               (python3 ${CLASSFILE}.py --operation provision --id ${CALLPNAME} --mnemonic ${VTCNAME} --ipaddr ${deflect_dflnet} --port ${deflect_portcallp} --proto "udp" --addrtyp "Static" 1>${CLASSFILE}.py.log 2>&1)
-               if [ $? -eq 0 ]; then
-                  logger "deflect_configure:INFO: CallP ${CALLPNAME} provisioned successfully."
-               elif [ $? -eq 4 ]; then
-                  logger "deflect_configure:INFO: CallP ${CALLPNAME} already provisioned (assumed correct)."
-               else
-                  logger "deflect_configure:ERROR: Unable to provision CallP ${CALLPNAME}. Code $?."
-                  popd
-                  exit 1
-               fi
-
-               CLASSFILE=deflect
-               DFLNAME=DFL${NODENUM}
-               logger "deflect_configure: INFO: Attempting to provision new data deflect ${DFLNAME}."
+               logger "deflect_configure: INFO: Attempting to adjust deflect pool size."
                # This will not only provision the deflect but it will add it to the deflect pool, so no separate call needed.
-               (python3 ${CLASSFILE}.py --operation provision --id ${DFLNAME} --mnemonic ${DFLNAME} --port ${deflect_portdata} --proto "udp" 1>${CLASSFILE}.py.log 2>&1)
+               (python3 ${CLASSFILE}.py ${DFLPOOL} 1>${CLASSFILE}.py.log 2>&1)
                if [ $? -eq 0 ]; then
-                  logger "deflect_configure:INFO: Data Deflect ${DFLNAME} provisioned successfully."
-               elif [ $? -eq 4 ]; then
-                  logger "deflect_configure:INFO: Data Deflect ${DFLNAME} already provisioned (assumed correct)."
+                  logger "deflect_configure:INFO: Deflect Pool ${DFLPOOL} successfully adjusted with new vtc count."
                else
-                  logger "deflect_configure:ERROR: Unable to provision Data Deflect ${DFLNAME}. Code $?."
-                  popd
-                  exit 1
-               fi
-
-               # It would be more efficient to make one call and adjust the pool size after deflects 
-               # come up. But because of the various engines like scaling, we probably need to adjust
-               # the pool every time a scaling event happens. Last time I tried to put a scale event
-               # script in the descriptor, it did not fire. So for now at least, we will adjust the 
-               # pool size here because we know this script gets triggered every time a deflect comes up.
-               #
-               # TODO: This could cause an issue on downward retraction of elasticity because our target
-               # min max band may be higher than the actual deflects that are currently in use.
-               #
-               # We eventually need to make sure we can adjust the pool size based on scaling events.
-               CLASSFILE=deflectpool
-               if [ -f ${CLASSFILE}.py ]; then
-                  # The provisioning up above has logic to put the deflect in the OPENBATON deflect pool. We will use a var.
-                  DFLPOOL=OPENBATON
-
-                  logger "deflect_configure: INFO: Attempting to adjust deflect pool size."
-                  # This will not only provision the deflect but it will add it to the deflect pool, so no separate call needed.
-                  (python3 ${CLASSFILE}.py ${DFLPOOL} 1>${CLASSFILE}.py.log 2>&1)
-                  if [ $? -eq 0 ]; then
-                     logger "deflect_configure:INFO: Deflect Pool ${DFLPOOL} successfully adjusted with new vtc count."
-                  else
-                     logger "deflect_configure:WARN: Unable to adjust deflect pool size for pool ${DFLPOOL}. Code $?."
-                  fi
-               else
-                  logger "deflect_configure:ERROR: FileNotExists: ${CLASSFILE}"
-                  popd
-                  exit 1
+                  logger "deflect_configure:WARN: Unable to adjust deflect pool size for pool ${DFLPOOL}. Code $?."
                fi
             else
                logger "deflect_configure:ERROR: FileNotExists: ${CLASSFILE}"
                popd
                exit 1
             fi
-         elif [ $? -eq 4 ]; then
-            logger "deflect_configure:INFO: VTC ${VTCNAME} already provisioned (assumed correct)."
          else
-            logger "deflect_configure:ERROR: Error in attempt to provision VTC ${VTCNAME}. Shell Code: $?"
+            logger "deflect_configure:ERROR: FileNotExists: ${CLASSFILE}"
             popd
             exit 1
          fi
+      elif [ $? -eq 4 ]; then
+         logger "deflect_configure:INFO: VTC ${VTCNAME} already provisioned (assumed correct)."
       else
-         logger "deflect_configure:ERROR: FileNotExists: ${CLASSFILE}"
+         logger "deflect_configure:ERROR: Error in attempt to provision VTC ${VTCNAME}. Shell Code: $?"
          popd
          exit 1
       fi
-   else
-      logger "deflect_configure:ERROR: DirNotExists: ${RSTCLTDIR}"
-      exit 1
-   fi
-else
-   logger "deflect_configure:ERROR: FileNotExists: Python3 Not Installed"
-   exit 1
-fi
 
 logger "deflect_configure:INFO: Successful implementation of deflect_configure script. Exiting 0."
 exit 0
