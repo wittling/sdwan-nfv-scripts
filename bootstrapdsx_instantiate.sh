@@ -280,13 +280,13 @@ else
    exit 1 
 fi
 
-logger "bootstrapdsx_instantiate: Changing Port in REST: ${portrestapi}" 
+logger "bootstrapdsx_instantiate: Changing Port in REST: ${portra}" 
 jsonParmSwap RESTPORT ${portra}
 if [ $? -eq 0 ]; then
-   logger "bootstrapdsx_instantiate:INFO: Port $portadmin Replaced for file code: REST ." 
+   logger "bootstrapdsx_instantiate:INFO: Port ${portra} Replaced for file code: REST ." 
    systemctl restart dart-rest
 else
-   logger "bootstrapdsx_instantiate:ERROR: Port $portadmin NOT Replaced for file code: REST." 
+   logger "bootstrapdsx_instantiate:ERROR: Port ${portra} NOT Replaced for file code: REST." 
    exit 1 
 fi
 
@@ -299,13 +299,13 @@ else
    exit 1 
 fi
 
-logger "bootstrapdsx_instantiate: Changing Port in DART: ${portrestapi}" 
-jsonParmSwap DARTPORT ${portra}
+logger "bootstrapdsx_instantiate: Changing Port in DART: ${portrw}" 
+jsonParmSwap DARTPORT ${portrw}
 if [ $? -eq 0 ]; then
-   logger "bootstrapdsx_instantiate:INFO: Port $portadmin Replaced for file code: DART ." 
+   logger "bootstrapdsx_instantiate:INFO: Port ${portrw} Replaced for file code: DART ." 
    systemctl restart dart-rest
 else
-   logger "bootstrapdsx_instantiate:ERROR: Port $portadmin NOT Replaced for file code: DART." 
+   logger "bootstrapdsx_instantiate:ERROR: Port ${portrw} NOT Replaced for file code: DART." 
    exit 1 
 fi
 
@@ -416,7 +416,7 @@ fi
 
 logger "bootstrap_instantiate:INFO: Provisioning Deflect Pool ${svcgroup} and adding to Service Group ${svcgroup}."
 (python3 deflectpool.py --operation provision --poolid ${svcgroup} --mnemonic ${svcgroup} --targethigh 1 --targetlow 1
---minchannels 1 --directchannels 0 --selectsize 1 --rollinterval 5 1>deflectpool.py.log 2>&1)
+--minchannels 1 --directchannels 0 --selectsize 1 --rollinterval 5 --lowbandwidth "no" 1>deflectpool.py.log 2>&1)
 if [ $? -eq 0 ]; then
    logger "bootstrap_instantiate:INFO: Deflect Pool ${svcgroup} properly provisioned!"
 elif [ $? -eq 4 ]; then
