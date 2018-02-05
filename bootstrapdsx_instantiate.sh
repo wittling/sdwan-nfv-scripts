@@ -340,10 +340,10 @@ else
    exit 1 
 fi
 
-logger "bootstrapdsx_instantiate:INFO: Attempting to provision service group via REST interface" 
 python3 -V
 if [ $? -ne 0 ]; then
    logger "bootstrapdsx_instantiate:ERROR: Python 3 not installed on DSX" 
+   exit 1
 fi
 
 RESTCLTDIR="/usr/local/dart-rest-client/local-client-projects"
@@ -359,12 +359,8 @@ fi
 
 # We do not need to do retries here because if we can provision service group we assume everything up and running.
 if [ ! -f deflectpool.py ]; then
-   logger "bootstrap_instantiate:ERROR: Error occured in attempt to provision Deflect Pool."
+   logger "bootstrapdsx_instantiate:ERROR: No deflectpool.py script." 
    exit 1
-fi
-
-if [ ! -x deflectpool.py ]; then
-   chmod +x deflectpool.py
 fi
 
 DVNRESTENV=".dvnrestenv"
@@ -377,6 +373,9 @@ fi
 pushd ${RESTCLTDIR}
 if [ ! -x servicegroup.py ]; then
    chmod +x servicegroup.py
+fi
+if [ ! -x deflectpool.py ]; then
+   chmod +x deflectpool.py
 fi
 
 logger "bootstrapdsx_instantiate: INFO: Attempting to set REST API URL..." 
