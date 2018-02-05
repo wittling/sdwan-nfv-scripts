@@ -353,31 +353,21 @@ if [ ! -d ${RESTCLTDIR} ]; then
    exit 1
 fi
 
-if [ ! -f ${RESTCLTDIR}/servicegroup.py ]; then
-   logger "bootstrapdsx_instantiate:ERROR: No servicegroup.py script." 
-   exit 1
-fi
-
-# We do not need to do retries here because if we can provision service group we assume everything up and running.
-if [ ! -f deflectpool.py ]; then
-   logger "bootstrapdsx_instantiate:ERROR: No deflectpool.py script." 
-   exit 1
-fi
-
-DVNRESTENV=".dvnrestenv"
-if [ ! -f ${DVNRESTENV} ]; then
-   logger "bootstrapdsx_instantiate:ERROR: No environment file for rest API." 
-   exit 1
-fi
-
 # NOTE that we do a pushd into the directory here. Which means we will pop from here on out at exit points.
 pushd ${RESTCLTDIR}
-if [ ! -x servicegroup.py ]; then
-   chmod +x servicegroup.py
-fi
-if [ ! -x deflectpool.py ]; then
-   chmod +x deflectpool.py
-fi
+
+DVNRESTENV=".dvnrestenv"
+for file in "servicegroup.py" "deflectpool.py" ${DVNRESTENV}; do
+   if [ ! -f ${RESTCLTDIR}/${file} ]; then
+      logger "bootstrapdsx_instantiate:ERROR:File Not Found: ${file}." 
+      popd 
+      exit 1
+   else
+      if [ ! -x ${file} ]; then
+         chmod +x ${file}
+      fi
+   fi
+done
 
 logger "bootstrapdsx_instantiate: INFO: Attempting to set REST API URL..." 
 ( sed -i 's+https\:\/\/\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\.\)\([0-9]\{1,3\}\)+https\:\/\/MARKER+' ${DVNRESTENV} ; sed -i 's+MARKER+'"${dsxnet}"'+' ${DVNRESTENV} )
@@ -389,7 +379,6 @@ else
    popd
    exit 1
 fi
-
 
 SLEEPTIME=4
 sleep ${SLEEPTIME}
