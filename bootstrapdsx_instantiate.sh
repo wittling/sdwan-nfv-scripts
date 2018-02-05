@@ -249,6 +249,7 @@ logger "bootstrapdsx_instantiate: REST RA Port: ${portra}"
 logger "bootstrapdsx_instantiate: REST RW Port: ${portrw}" 
 logger "bootstrapdsx_instantiate: Service Group: ${svcgroup}" 
 logger "bootstrapdsx_instantiate: Service Group Type: ${svcgrptyp}" 
+logger "bootstrapdsx_instantiate: Deflect Pool: ${poolid}" 
 
 # Export these variables so that they can be passed to downstream dependencies out of this script.
 export hostname
