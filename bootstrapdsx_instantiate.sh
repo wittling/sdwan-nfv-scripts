@@ -19,10 +19,10 @@ function jsonParmSwap
    fi
       
    FILENAME=""
-   FILECODE=""
+   FILEPARM=""
 
    if [ -z "$1" -o -z "$2" ]; then
-      echo "Invalid Function Call replaceJsonParm: Required: FILECODE NEWIP"
+      echo "Invalid Function Call replaceJsonParm: Required: FILEPARM PARM"
       return 1
    fi
 
@@ -30,23 +30,23 @@ function jsonParmSwap
       "DARTIP") 
            FILENAME=/usr/local/dart/package.json
            NEWPARM=$2
-           FILECODE=$1;;
+           FILEPARM=$1;;
       "RESTIP") 
            FILENAME=/usr/local/dart-rest/package.json
            NEWPARM=$2
-           FILECODE=$1;;
+           FILEPARM=$1;;
       "DARTPORT") 
            FILENAME=/usr/local/dart/package.json
            NEWPARM=$2
-           FILECODE=$1;;
+           FILEPARM=$1;;
       "RESTPORT") 
            FILENAME=/usr/local/dart-rest/package.json
            NEWPARM=$2
-           FILECODE=$1;;
+           FILEPARM=$1;;
       "CFGTMPL") 
            FILENAME=/usr/local/dps/cfg/vtc_reg_templates/vtc_config_template.json
            NEWPARM=$2
-           FILECODE=$1;;
+           FILEPARM=$1;;
       *) return 1;;
    esac
 
@@ -63,7 +63,7 @@ function jsonParmSwap
       # LOCALFILE=`basename ${FILENAME}`
       parse_json_script=$(mktemp parse_json.XXXX.py)
 
-      if [ ${FILECODE} == "RESTIP" -o ${FILECODE} == "DARTIP" ]; then
+      if [ ${FILEPARM} == "RESTIP" -o ${FILEPARM} == "DARTIP" ]; then
          cat > "$parse_json_script" <<SCRIPT
 #!/usr/bin/env python
 import json
@@ -73,7 +73,7 @@ with open("${FILENAME}",'r+') as f:
     f.seek(0)
     json.dump(data, f, indent=4)
 SCRIPT
-      elif [ ${FILECODE} == "RESTPORT" -o ${FILECODE} == "DARTPORT" ]; then
+      elif [ ${FILEPARM} == "RESTPORT" -o ${FILEPARM} == "DARTPORT" ]; then
 
          cat > "$parse_json_script" <<SCRIPT
 #!/usr/bin/env python
@@ -84,7 +84,7 @@ with open("${FILENAME}",'r+') as f:
     f.seek(0)
     json.dump(data, f, indent=4)
 SCRIPT
-      elif [ ${FILECODE} == "CFGTMPL" ]; then
+      elif [ ${FILEPARM} == "CFGTMPL" ]; then
 
          cat > "$parse_json_script" <<SCRIPT
 #!/usr/bin/env python
@@ -95,7 +95,6 @@ with open("${FILENAME}",'r+') as f:
     f.seek(0)
     json.dump(data, f, indent=4)
 SCRIPT
-
       else
          logger "bootstrapdsx_instantiate: jsonParmSwap:ERROR: Invalid File Code."
          rm $parse_json_script
@@ -105,9 +104,9 @@ SCRIPT
          
       python $parse_json_script && rm $parse_json_script
       if [ $? -eq 0 ]; then
-         logger "bootstrapdsx_instantiate: jsonParmSwap:INFO: Parm Replaced"
+         logger "bootstrapdsx_instantiate: jsonParmSwap:INFO: Parm ${FILEPARM} Replaced in ${FILENAME}."
       else
-         logger "bootstrapdsx_instantiate: jsonParmSwap:ERROR: Parm NOT Replaced"
+         logger "bootstrapdsx_instantiate: jsonParmSwap:ERROR: Parm ${FILEPARM} NOT Replaced in ${FILENAME}."
          popd
          return 1
       fi   
