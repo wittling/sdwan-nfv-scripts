@@ -56,7 +56,7 @@ if [ $? -eq 0 ]; then
          fi
 
          logger "deflect_configure: INFO: Attempting to provision new vtc ${hostname}."
-         (python3 ${CLASSFILE}.py ${VTCNAME} ${VTCNAME} "no" 1>${CLASSFILE}.py.log 2>&1)
+         (python3 ${CLASSFILE}.py --operation provision --id ${VTCNAME} --mnemonic ${VTCNAME} 1>${CLASSFILE}.py.log 2>&1)
          if [ $? -eq 0 ]; then
             logger "deflect_configure:INFO: VTC ${VTCNAME} provisioned!"
             logger "deflect_configure:INFO: Provisioning ${VTCNAME} as Deflect."
@@ -74,7 +74,7 @@ if [ $? -eq 0 ]; then
                CALLPNAME=CP${NODENUM}
                logger "deflect_configure: INFO: Attempting to provision new callp deflect ${CALLPNAME}."
 
-               (python3 ${CLASSFILE}.py ${CALLPNAME} ${VTCNAME} ${deflect_dflnet} ${deflect_portcallp} "udp" "Static" 1>${CLASSFILE}.py.log 2>&1)
+               (python3 ${CLASSFILE}.py --operation provision --id ${CALLPNAME} --mnemonic ${VTCNAME} --ipaddr ${deflect_dflnet} --port ${deflect_portcallp} --proto "udp" --addrtyp "Static" 1>${CLASSFILE}.py.log 2>&1)
                if [ $? -eq 0 ]; then
                   logger "deflect_configure:INFO: CallP ${CALLPNAME} provisioned successfully."
                elif [ $? -eq 4 ]; then
@@ -89,7 +89,7 @@ if [ $? -eq 0 ]; then
                DFLNAME=DFL${NODENUM}
                logger "deflect_configure: INFO: Attempting to provision new data deflect ${DFLNAME}."
                # This will not only provision the deflect but it will add it to the deflect pool, so no separate call needed.
-               (python3 ${CLASSFILE}.py ${DFLNAME} ${DFLNAME} ${VTCNAME} ${deflect_portdata} "udp" ${svcgroup} 1>${CLASSFILE}.py.log 2>&1)
+               (python3 ${CLASSFILE}.py --operation provision --id ${DFLNAME} --mnemonic ${DFLNAME} --port ${deflect_portdata} --proto "udp" 1>${CLASSFILE}.py.log 2>&1)
                if [ $? -eq 0 ]; then
                   logger "deflect_configure:INFO: Data Deflect ${DFLNAME} provisioned successfully."
                elif [ $? -eq 4 ]; then
