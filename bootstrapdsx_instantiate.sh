@@ -102,11 +102,13 @@ SCRIPT
          return 1
       fi
          
-      python $parse_json_script && rm $parse_json_script
+      python $parse_json_script 
       if [ $? -eq 0 ]; then
          logger "bootstrapdsx_instantiate: jsonParmSwap:INFO: Parm ${FILEPARM} Replaced in ${FILENAME}."
+         rm $parse_json_script
       else
          logger "bootstrapdsx_instantiate: jsonParmSwap:ERROR: Parm ${FILEPARM} NOT Replaced in ${FILENAME}."
+         logger "bootstrapdsx_instantiate: jsonParmSwap:INFO: Script $parse_json_script preserved."
          popd
          return 1
       fi   
