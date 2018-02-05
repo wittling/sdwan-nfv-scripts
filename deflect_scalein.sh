@@ -59,12 +59,13 @@ function adjustPool
       logger "deflect_scalein:ERROR: FileNotExists: ${CLASSFILE}"
       return 1
    fi
+   return 0
 }
 
 function deprovElement
 {
    if [ -z $1 ]; then
-      logger "deflect_scalein:removeDartElement:ERROR:Invalid or NoneExistant Argument: Arg1:Classfile"
+      logger "deflect_scalein:removeDartElement:ERROR:Invalid or NoneExistant Argument: Arg1:Element"
       return 1
    fi
 
@@ -74,25 +75,36 @@ function deprovElement
    fi
 
    CLASSFILE=$1
-   POOLID=$2
-   if [ -f ${CLASSFILE}.py ]; then
-      if [ ! -x ${CLASSFILE}.py ]; then
-         chmod +x ${CLASSFILE}.py
-      fi
-
-      # Consider using svcgroup here. Check env to make sure it is being passed in.
-      logger "deflect_scalein: INFO: Attempting to call Python Script: ${CLASSFILE} with arg $2."
-      (python3 ${CLASSFILE}.py --operation deprovision --poolid ${POOLID} 1>${CLASSFILE}.py.log 2>&1)
-      if [ $? -eq 0 ]; then
-         logger "deflect_scalein:INFO: Successful return code calling Python script."
-      else
-         logger "deflect_scalein:ERROR: Error calling Python script: ${CLASSFILE} with argument: $2:Code  is: $?"
-         return 1
-      fi
-   else
+   ID=$2
+   if [ ! -f ${CLASSFILE}.py ]; then
       logger "deflect_scalein:ERROR: FileNotExists: ${CLASSFILE}"
       return 1
    fi
+
+   if [ ! -x ${CLASSFILE}.py ]; then
+      chmod +x ${CLASSFILE}.py
+   fi
+
+   # Consider using svcgroup here. Check env to make sure it is being passed in.
+   logger "deflect_scalein: INFO: Attempting to call Python Script: ${CLASSFILE} with arg $2."
+   if [ $1 == "callp" ]; then
+      (python3 ${CLASSFILE}.py --operation deprovision --callpid ${ID} 1>${CLASSFILE}.py.log 2>&1)
+   elif [ $1 == "deflect" ]; then
+      (python3 ${CLASSFILE}.py --operation deprovision --dflid ${ID} 1>${CLASSFILE}.py.log 2>&1)
+   elif [ $1 == "rxtxnode" ]; then
+      (python3 ${CLASSFILE}.py --operation deprovision --nodeid ${ID} 1>${CLASSFILE}.py.log 2>&1)
+   else
+      logger "deflect_scalein:ERROR:deprovElement:Unrecognized element."
+      return 1
+   fi
+
+   if [ $? -eq 0 ]; then
+      logger "deflect_scalein:INFO: Successful return code calling ${CLASSFILE} deprov operation:ID $2."
+   else
+      logger "deflect_scalein:ERROR: Error calling: ${CLASSFILE} deprov operation:ID $2:Code  is: $?"
+      return 1
+   fi
+   return 0
 }
 
 
