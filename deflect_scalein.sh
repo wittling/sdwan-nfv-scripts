@@ -74,6 +74,7 @@ function deprovElement
    fi
 
    CLASSFILE=$1
+   POOLID=$2
    if [ -f ${CLASSFILE}.py ]; then
       if [ ! -x ${CLASSFILE}.py ]; then
          chmod +x ${CLASSFILE}.py
@@ -81,7 +82,7 @@ function deprovElement
 
       # Consider using svcgroup here. Check env to make sure it is being passed in.
       logger "deflect_scalein: INFO: Attempting to call Python Script: ${CLASSFILE} with arg $2."
-      (python3 --operation deprovision ${CLASSFILE}.py $2 1>${CLASSFILE}.py.log 2>&1)
+      (python3 ${CLASSFILE}.py --operation deprovision --poolid ${POOLID} 1>${CLASSFILE}.py.log 2>&1)
       if [ $? -eq 0 ]; then
          logger "deflect_scalein:INFO: Successful return code calling Python script."
       else
