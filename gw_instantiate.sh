@@ -33,4 +33,9 @@ else
    logger "gw_instantiate: WARN: Call to sysctl appears to have failed."
    logger "gw_instantiate: WARN: Please set net.core.rmem_max parameter to 2048000 manually to avoid alarm."
 fi
+
+# In case dvn is autostarted we will stop it until it is
+# configured later on.
+systemctl stop dvn
+
 exit 0
