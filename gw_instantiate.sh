@@ -3,10 +3,19 @@
 logger "gw_instantiate: INSTANTIATION of the Deflect"
 
 logger "gw_instantiate: Hostname: ${hostname}"
-logger "gw_instantiate: IP Address: ${aaacorp-site1}" 
-logger "gw_instantiate: Traffic Interface: ${ifacetraffic}" 
+logger "gw_instantiate: Hostname: ${wan1iface}"
+logger "gw_instantiate: Hostname: ${wan2iface}"
+logger "gw_instantiate: Hostname: ${laniface}"
+logger "gw_instantiate: Hostname: ${laniface}"
 logger "gw_instantiate: Data Port: ${portdata}" 
 logger "gw_instantiate: CallP Port: ${portcallp}" 
+logger "gw_instantiate: CallP Port: ${svrzabbix}" 
+logger "gw_instantiate: CallP Port: ${vldinternal}" 
+logger "gw_instantiate: CallP Port: ${svctype}" 
+logger "gw_instantiate: CallP Port: ${svcid}" 
+logger "gw_instantiate: CallP Port: ${vlanid}" 
+
+logger "gw_instantiate: IP Address: ${aaacorp-site1}" 
 
 logger "gw_instantiate: INFO: Someone, OpenStack or the Orchestrator, has CloudInit resetting the sysctl.conf file." 
 logger "gw_instantiate: INFO: We will attempt to set the socket buffer receive parm here."
