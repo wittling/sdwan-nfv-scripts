@@ -102,6 +102,7 @@ SCRIPT
          return 1
       fi
          
+      cp ${FILENAME} `basename ${FILENAME}`.$$
       python $parse_json_script 
       if [ $? -eq 0 ]; then
          logger "bootstrapdsx_instantiate: jsonParmSwap:INFO: Parm ${FILEPARM} Replaced in ${FILENAME}."
@@ -301,13 +302,13 @@ else
    exit 1 
 fi
 
-logger "bootstrapdsx_instantiate: Changing Port in DART: ${portrw}" 
-jsonParmSwap DARTPORT ${portrw}
+logger "bootstrapdsx_instantiate: Changing Port in DART: ${portra}" 
+jsonParmSwap DARTPORT ${portra}
 if [ $? -eq 0 ]; then
-   logger "bootstrapdsx_instantiate:INFO: Port ${portrw} Replaced for file code: DART ." 
+   logger "bootstrapdsx_instantiate:INFO: Port ${portra} Replaced for file code: DART ." 
    systemctl restart dart-rest
 else
-   logger "bootstrapdsx_instantiate:ERROR: Port ${portrw} NOT Replaced for file code: DART." 
+   logger "bootstrapdsx_instantiate:ERROR: Port ${portra} NOT Replaced for file code: DART." 
    exit 1 
 fi
 
