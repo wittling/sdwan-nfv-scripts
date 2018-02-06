@@ -118,10 +118,9 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
          if [ ! -z ${poolid} ]; then
             POOLID=${poolid}
          elif [ ! -z ${svcgrp} ]; then
-            POOLID=${poolid}
+            POOLID=${svcgrp}
          fi
-         (python3 ${CLASSFILE}.py --operation poolassign --dflid ${DFLNAME} --poolid ${POOLID} 1>${CLASSFILE.py.log}
-         2>&1)
+         (python3 ${CLASSFILE}.py --operation poolassign --dflid ${DFLNAME} --poolid ${POOLID} 1>${CLASSFILE.py.log} 2>&1)
          else
             logger "deflect_configure:ERROR: Unable to assign Data Deflect ${DFLNAME} to ${POOLID}. Code $?."
             popd
@@ -140,41 +139,23 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
       exit 1
    fi
 
-
    # It could be more efficient for the DSX to just make a single call and adjust the pool parms
    # after all deflects have come up. The DSX would need to have a count of them, which it
    # currently does not have. 
    # TODO: Look into making one DSX adjustment at the START event as opposed to using the 
    # CONFIGURE event for setting such parameters.
-            CLASSFILE=deflectpool
-            if [ -f ${CLASSFILE}.py ]; then
-               # The provisioning up above has logic to put the deflect in the OPENBATON deflect pool. We will use a var.
-               DFLPOOL=OPENBATON
+   CLASSFILE=deflectpool
+   if [ -f ${CLASSFILE}.py ]; then
+      # The provisioning up above has logic to put the deflect in the OPENBATON deflect pool. We will use a var.
+      DFLPOOL=OPENBATON
 
-               logger "deflect_configure: INFO: Attempting to adjust deflect pool size."
-               # This will not only provision the deflect but it will add it to the deflect pool, so no separate call needed.
-               (python3 ${CLASSFILE}.py ${DFLPOOL} 1>${CLASSFILE}.py.log 2>&1)
-               if [ $? -eq 0 ]; then
-                  logger "deflect_configure:INFO: Deflect Pool ${DFLPOOL} successfully adjusted with new vtc count."
-               else
-                  logger "deflect_configure:WARN: Unable to adjust deflect pool size for pool ${DFLPOOL}. Code $?."
-               fi
-            else
-               logger "deflect_configure:ERROR: FileNotExists: ${CLASSFILE}"
-               popd
-               exit 1
-            fi
-         else
-            logger "deflect_configure:ERROR: FileNotExists: ${CLASSFILE}"
-            popd
-            exit 1
-         fi
-      elif [ $? -eq 4 ]; then
-         logger "deflect_configure:INFO: VTC ${VTCNAME} already provisioned (assumed correct)."
+      logger "deflect_configure: INFO: Attempting to adjust deflect pool size."
+      # This will not only provision the deflect but it will add it to the deflect pool, so no separate call needed.
+      (python3 ${CLASSFILE}.py --operation autoadjchan --poolid ${DFLPOOL} 1>${CLASSFILE}.py.log 2>&1)
+      if [ $? -eq 0 ]; then
+         logger "deflect_configure:INFO: Deflect Pool ${DFLPOOL} successfully adjusted with new vtc count."
       else
-         logger "deflect_configure:ERROR: Error in attempt to provision VTC ${VTCNAME}. Shell Code: $?"
-         popd
-         exit 1
+         logger "deflect_configure:WARN: Unable to adjust deflect pool size for pool ${DFLPOOL}. Code $?."
       fi
 
 logger "deflect_configure:INFO: Successful implementation of deflect_configure script. Exiting 0."
