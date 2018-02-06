@@ -418,8 +418,7 @@ if [ ! ${PROVSUCCESS} ]; then
 fi
 
 logger "bootstrap_instantiate:INFO: Provisioning Deflect Pool ${svcgroup} and adding to Service Group ${svcgroup}."
-(python3 deflectpool.py --operation provision --poolid ${svcgroup} --mnemonic ${svcgroup} --targethigh 1 --targetlow 1
---minchannels 1 --directchannels 0 --selectsize 1 --rollinterval 5 --lowbandwidth "no" 1>deflectpool.py.log 2>&1)
+(python3 deflectpool.py --operation provision --poolid ${svcgroup} --mnemonic ${svcgroup} --targethigh 1 --targetlow 1 --minchannels 1 --directchannels 0 --selectsize 1 --rollinterval 5 --lowbandwidth "no" 1>deflectpool.py.log 2>&1)
 if [ $? -eq 0 ]; then
    logger "bootstrap_instantiate:INFO: Deflect Pool ${svcgroup} properly provisioned!"
 elif [ $? -eq 4 ]; then
