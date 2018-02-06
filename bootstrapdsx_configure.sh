@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# It appears that this script gets cranked for every deflect that comes up.
+# It appears that this script gets cranked for every dependent element that comes up.
 # If this is in fact how the orchestrator is doing this, we can take advantage of this
 # by making RESTful API calls to provision each one at their time of instantiation.
 
@@ -9,7 +9,7 @@ SCRIPTDIR="/opt/openbaton/scripts"
 #env
 #set -x
 
-logger "${SCRIPTNAME}:INFO:Start LifeCycle Event Triggered!"
+logger "${SCRIPTNAME}:INFO:Configure LifeCycle Event Triggered!"
 
 ENVFILE="${SCRIPTDIR}/${SCRIPTNAME}.env"
 logger "${SCRIPTNAME}:INFO:Dumping environment to ${ENVFILE}!"
