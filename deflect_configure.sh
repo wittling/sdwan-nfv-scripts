@@ -20,7 +20,8 @@ logger "deflect_configure: I see your hostname is: ${hostname}"
 logger "deflect_configure: It appears you will be using the ctl plane interface: ${ifacectlplane}" 
 logger "deflect_configure: I will be sending data on port: ${deflect_portdata}" 
 logger "deflect_configure: I will be sending callp on port: ${deflect_portcallp}" 
-logger "deflect_configure: I will be using svc group and deflect pool: ${svcgroup}" 
+logger "deflect_configure: I will be using svc group: ${svcgroup}" 
+logger "deflect_configure: I will be using deflect pool: ${poolid}" 
 
 # export the variables
 export hostname
@@ -74,7 +75,7 @@ fi
 
 CLASSFILE=rxtxnode
 logger "deflect_configure: INFO: Attempting to provision new vtc ${hostname}."
-(python3 ${CLASSFILE}.py --operation provision --id ${VTCNAME} --mnemonic ${VTCNAME} 1>${CLASSFILE}.py.log 2>&1)
+(python3 ${CLASSFILE}.py --operation provision --nodeid ${VTCNAME} --mnemonic ${VTCNAME} 1>${CLASSFILE}.py.log 2>&1)
 if [ $? -eq 0 -o $? -eq 4 ]; then
    if [ $? -eq 0 ]; then
       logger "deflect_configure:INFO: RxTxNode (VTC) ${VTCNAME} provisioned!"
@@ -133,7 +134,7 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
          exit 1
       fi
    else
-      logger "deflect_configure:ERROR: Unable to provision CallP ${CALLPNAME}. Code $?."
+      logger "deflect_configure:ERROR: Unable to provision VTC ${VTCNAME}. Code $?."
       # TODO: We could implement a transactional rollback attempt. Look into.
       popd
       exit 1
