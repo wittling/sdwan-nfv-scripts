@@ -29,11 +29,17 @@ export deflect_dflnet
 export deflect_portdata
 export deflect_portcallp
 export svcgroup
+export poolid
 
 # OpenBaton likes to name the hosts with an appended hyphen and generated uid of some sort
 # Not sure if rest likes hyphens so we will grab the suffix id and use that for provisioning. 
-NODENUM=`echo ${deflect_dflnet} | cut -f3-4 -d "." | sed 's+\.+DT+'`
-export VTCNAME=OPNBTN${NODENUM}
+if [ -n "${deflect_dflnet}" ]; then
+   NODENUM=`echo ${deflect_dflnet} | cut -f3-4 -d "." | sed 's+\.+DT+'`
+   export VTCNAME=OPNBTN${NODENUM}
+else
+   logger "deflect_configure:ERROR: No IP Address to set VTCName."
+   exit 1
+fi
 
 logger "deflect_configure:INFO: Attempting to provision VTC via REST interface"
 python3 -V
@@ -74,7 +80,7 @@ else
 fi
 
 CLASSFILE=rxtxnode
-logger "deflect_configure: INFO: Attempting to provision new vtc ${hostname}."
+logger "deflect_configure: INFO: Attempting to provision new vtc ${VTCNAME}."
 (python3 ${CLASSFILE}.py --operation provision --nodeid ${VTCNAME} --mnemonic ${VTCNAME} 1>${CLASSFILE}.py.log 2>&1)
 if [ $? -eq 0 -o $? -eq 4 ]; then
    if [ $? -eq 0 ]; then
@@ -90,6 +96,11 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
    # This is a TODO.
    CALLPNAME=CP${NODENUM}
    CLASSFILE=callp
+   if [ -n "${deflect_portcallp}" ]; then
+      logger "deflect_configure: ERROR: No callp port."
+      popd
+      exit 1
+   fi
    logger "deflect_configure: INFO: Attempting to provision new callp deflect ${CALLPNAME}."
    (python3 ${CLASSFILE}.py --operation provision --callpid ${CALLPNAME} --nodeid ${VTCNAME} --ipaddr ${deflect_dflnet} --port ${deflect_portcallp} --proto "udp" --addrtyp "Static" 1>${CLASSFILE}.py.log 2>&1)
    if [ $? -eq 0 -o $? -eq 4 ]; then
@@ -99,12 +110,16 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
        logger "deflect_configure:WARN: CallP ${CALLPNAME} already provisioned (assumed correct)."
       fi
 
+      if [ -n "${deflect_portdata}" ]; then
+         logger "deflect_configure: ERROR: No callp port."
+         popd
+         exit 1
+      fi
       DFLNAME=DFL${NODENUM}
       CLASSFILE=deflect
       logger "deflect_configure: INFO: Attempting to provision new data deflect ${DFLNAME}."
       # This will not only provision the deflect but it will add it to the deflect pool, so no separate call needed.
-      (python3 ${CLASSFILE}.py --operation provision --dflid ${DFLNAME} --mnemonic ${DFLNAME} --nodeid ${VTCNAME} --port
-      ${deflect_portdata} --channeltype "udp" 1>${CLASSFILE}.py.log 2>&1)
+      (python3 ${CLASSFILE}.py --operation provision --dflid ${DFLNAME} --mnemonic ${DFLNAME} --nodeid ${VTCNAME} --port ${deflect_portdata} --channeltype "udp" 1>${CLASSFILE}.py.log 2>&1)
       if [ $? -eq 0 -o $? -eq 4 ]; then
          if [ $? -eq 0 ]; then
             logger "deflect_configure:INFO: Data Deflect ${DFLNAME} provisioned successfully."
@@ -115,26 +130,27 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
          # Assign to deflect pool.
          # We should be passing the pool id in from orchestrator. If not we can look and use service group.
          # If neither of those are set we will use a default. 
-         POOLID="OPENBATON"
-         if [ ! -z ${poolid} ]; then
-            POOLID=${poolid}
-         elif [ ! -z ${svcgrp} ]; then
-            POOLID=${svcgrp}
+         if [ -n "${poolid}" ]; then
+            logger "deflect_configure: ERROR: No valid poolid parameter."
+            popd
+            exit 1
          fi
-         (python3 ${CLASSFILE}.py --operation poolassign --dflid ${DFLNAME} --poolid ${POOLID} 1>${CLASSFILE.py.log} 2>&1)
+         (python3 ${CLASSFILE}.py --operation poolassign --dflid ${DFLNAME} --poolid ${poolid} 1>${CLASSFILE.py.log} 2>&1)
+         if [ $? -eq 0 ]; then 
+            logger "deflect_configure:INFO: Data Deflect ${DFLNAME} assigned to ${poolid}. Code $?."
          else
-            logger "deflect_configure:ERROR: Unable to assign Data Deflect ${DFLNAME} to ${POOLID}. Code $?."
+            logger "deflect_configure:ERROR: Unable to assign Data Deflect ${DFLNAME} to ${poolid}. Code $?."
             popd
             exit 1
          fi
       else
-         logger "deflect_configure:ERROR: Unable to provision CallP ${CALLPNAME}. Code $?."
+         logger "deflect_configure:ERROR: Unable to provision Data Deflect ${VTCNAME}. Code $?."
          # TODO: We could implement a transactional rollback attempt. Look into.
          popd
          exit 1
       fi
    else
-      logger "deflect_configure:ERROR: Unable to provision VTC ${VTCNAME}. Code $?."
+      logger "deflect_configure:ERROR: Unable to provision CallP ${CALLPNAME}. Code $?."
       # TODO: We could implement a transactional rollback attempt. Look into.
       popd
       exit 1
