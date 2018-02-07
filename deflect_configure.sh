@@ -114,7 +114,7 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
       fi
 
       if [ -n "${deflect_portdata}" ]; then
-         logger "deflect_configure: ERROR: No callp port."
+         logger "deflect_configure: ERROR: No data deflect port."
          popd
          exit 1
       fi
@@ -147,13 +147,13 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
             exit 1
          fi
       else
-         logger "deflect_configure:ERROR: Unable to provision Data Deflect ${VTCNAME}. Code $?."
+         logger "deflect_configure:ERROR: Unable to provision CallP Deflect ${CALLPNAME}. Code $?."
          # TODO: We could implement a transactional rollback attempt. Look into.
          popd
          exit 1
       fi
    else
-      logger "deflect_configure:ERROR: Unable to provision CallP ${CALLPNAME}. Code $?."
+      logger "deflect_configure:ERROR: Unable to provision RxTxNode (VTC) ${VTCNAME}. Code $?."
       # TODO: We could implement a transactional rollback attempt. Look into.
       popd
       exit 1
