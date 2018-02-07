@@ -167,13 +167,17 @@ DVNELEMENT="vtc"
 
 # Orchestrator does not pass the name into the env. But they DO use it in the hostname.
 # We will take advantage of that.
-ELEMENT=`hostname | cut -f 1 -d "-"`
+HSTNM=`hostname | cut -f 1 -d "-"`
 # In case they ever change this we need to be careful and check.
 if [ $? -eq 0 ]; then
-   if [ ${ELEMENT} == "deflect" ]; then
-      DVNELEMENT=${ELEMENT}
-   elif [ ${ELEMENT} == "gw" ]; then
-      DVNELEMENT=${ELEMENT}
+   if [[ ${HSTNM} == *"deflect"* ]]; then
+      DVNELEMENT=deflect
+   elif [[ ${HSTNM} == *"l3gw"* ]]; then
+      DVNELEMENT=l3gw
+   elif [[ ${HSTNM} == *"l3x"* ]]; then
+      DVNELEMENT=l3x
+   elif [[ ${HSTNM} == *"l2x"* ]]; then
+      DVNELEMENT=l2x
    #elif [ ${ELEMENT} == "dvnclient" ]; then
    #   DVNELEMENT=${ELEMENT}
    else
