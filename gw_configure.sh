@@ -158,13 +158,54 @@ fi
 
 CLASSFILE=rxtxnode
 logger "${SCRIPTNAME}: INFO: Attempting to provision new vtc ${hostname}."
-(python3 ${CLASSFILE}.py --operation provision --id ${VTCNAME} --mnemonic ${VTCNAME} 1>${CLASSFILE}.py.log 2>&1)
+(python3 ${CLASSFILE}.py --operation provision --nodeid ${VTCNAME} --mnemonic ${VTCNAME} 1>${CLASSFILE}.py.log 2>&1)
 if [ $? -eq 0 -o $? -eq 4 ]; then
    if [ $? -eq 0 ]; then
       logger "${SCRIPTNAME}:INFO: RxTxNode (VTC) ${VTCNAME} provisioned!"
    else     
-       logger "${SCRIPTNAME}:WARN: CallP ${CALLPNAME} already provisioned (assumed correct)."
+       logger "${SCRIPTNAME}:WARN: RxTxNode ${VTCNAME} already provisioned (assumed correct)."
    fi
+
+   # We could automagically drop a loopback service on a gateway. Not a bad idea.
+   # TODO: Consider the notion. 
+   logger "${SCRIPTNAME}: INFO: Checking for a service to provision."
+   if [ -z "${svctyp}" ]; then
+      logger "${SCRIPTNAME}: INFO: No service type passed in. Therefore no service to provision."
+   else
+      logger "${SCRIPTNAME}: INFO: Found service type: ${svctyp}. Looking for additional parms so we can provision it."
+      if [ -z "{svcid}" -o -z "${vlanid}" ]; then
+         logger "${SCRIPTNAME}: ERROR: Missing required parm: svcid ${svcid} or vlanid ${vlanid}."
+         popd
+         exit 1
+      else
+         if [ ${svctyp} == "L3C" -o \
+              ${svctyp} == "L3G" -o \
+              ${svctyp} == "L2G" -o \
+              ${svdtyp} == "L2X" ]; then
+            CLASSFILE=service
+            logger "${SCRIPTNAME}: INFO: Attempting to provision ${svctyp} service with id: ${svcid} on vtc ${VTCNAME} ."
+            (python3 ${CLASSFILE}.py --operation provision --svcid ${svcid} --mnemonic ${VTCNAME} 1>${CLASSFILE}.py.log 2>&1)
+            if [ -? -eq 0 ]; then
+               logger "${SCRIPTNAME}: INFO: Service id: ${svcid} successfully provisioned on vtc ${VTCNAME} ."
+            else
+               logger "${SCRIPTNAME}: ERROR: Error provisioning Service id: ${svcid} on vtc ${VTCNAME} ."
+               popd
+               exit 1
+            fi
+         else
+            logger "${SCRIPTNAME}: ERROR: Unknown Service Type: ${svctyp}"
+            logger "${SCRIPTNAME}: ERROR: Cannot provision Service id: ${svcid} on vtc ${VTCNAME} ."
+            popd
+            exit 1
+         fi
+      fi
+   fi
+    
+else
+   logger "${SCRIPTNAME}:ERROR: Error provisioning RxTxNode ${VTCNAME}." 
+   popd
+   exit 1
+fi
 
 logger "${SCRIPTNAME}:INFO: Successful implementation of ${SCRIPTNAME} script. Exiting 0."
 exit 0
