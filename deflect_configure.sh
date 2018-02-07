@@ -33,7 +33,7 @@ export poolid
 
 # OpenBaton likes to name the hosts with an appended hyphen and generated uid of some sort
 # Not sure if rest likes hyphens so we will grab the suffix id and use that for provisioning. 
-if [ -n ${deflect_dflnet} ]; then
+if [ -n "${deflect_dflnet}" ]; then
    NODENUM=`echo ${deflect_dflnet} | cut -f3-4 -d "." | sed 's+\.+DT+'`
    export VTCNAME=OPNBTN${NODENUM}
 else
@@ -99,10 +99,12 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
    # This is a TODO.
    CALLPNAME=CP${NODENUM}
    CLASSFILE=callp
-   if [ -z ${deflect_portcallp} ]; then
-      logger "deflect_configure: ERROR: No callp port."
-      popd
-      exit 1
+   if [ -n "${deflect_portcallp}" ]; then
+      logger "deflect_configure: INFO: CallP Port ${deflect_portcallp}."
+   else
+      # use a default port
+      deflect_portcallp=5535
+      logger "deflect_configure: WARN: No CallP Port variable supplied. Using:${deflect_portcallp}."
    fi
    logger "deflect_configure: INFO: Attempting to provision new callp deflect ${CALLPNAME}."
    (python3 ${CLASSFILE}.py --operation provision --callpid ${CALLPNAME} --nodeid ${VTCNAME} --ipaddr ${deflect_dflnet} --port ${deflect_portcallp} --proto "udp" --addrtyp "Static" 1>${CLASSFILE}.py.log.$$ 2>&1)
@@ -113,10 +115,12 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
        logger "deflect_configure:WARN: CallP ${CALLPNAME} already provisioned (assumed correct)."
       fi
 
-      if [ -z ${deflect_portdata} ]; then
-         logger "deflect_configure: ERROR: No data deflect port."
-         popd
-         exit 1
+      if [ -n "${deflect_portdata}" ]; then
+         logger "deflect_configure: INFO: Data Deflect Port ${deflect_portdata}."
+      else
+         # use a default
+         deflect_portdata=5525
+         logger "deflect_configure: WARN: No Data Deflect Port variable supplied. Using:${deflect_portdata}."
       fi
       DFLNAME=DFL${NODENUM}
       CLASSFILE=deflect
