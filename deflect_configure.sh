@@ -33,7 +33,7 @@ export poolid
 
 # OpenBaton likes to name the hosts with an appended hyphen and generated uid of some sort
 # Not sure if rest likes hyphens so we will grab the suffix id and use that for provisioning. 
-if [ -n "${deflect_dflnet}" ]; then
+if [ -n ${deflect_dflnet} ]; then
    NODENUM=`echo ${deflect_dflnet} | cut -f3-4 -d "." | sed 's+\.+DT+'`
    export VTCNAME=OPNBTN${NODENUM}
 else
@@ -99,7 +99,7 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
    # This is a TODO.
    CALLPNAME=CP${NODENUM}
    CLASSFILE=callp
-   if [ -n "${deflect_portcallp}" ]; then
+   if [ -z ${deflect_portcallp} ]; then
       logger "deflect_configure: ERROR: No callp port."
       popd
       exit 1
@@ -113,7 +113,7 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
        logger "deflect_configure:WARN: CallP ${CALLPNAME} already provisioned (assumed correct)."
       fi
 
-      if [ -n "${deflect_portdata}" ]; then
+      if [ -z ${deflect_portdata} ]; then
          logger "deflect_configure: ERROR: No data deflect port."
          popd
          exit 1
