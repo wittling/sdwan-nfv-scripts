@@ -160,7 +160,7 @@ fi
 
 CLASSFILE=rxtxnode
 logger "${SCRIPTNAME}: INFO: Attempting to provision new vtc ${hostname}."
-(python3 ${CLASSFILE}.py --operation provision --nodeid ${VTCNAME} --mnemonic ${VTCNAME} 1>${CLASSFILE}.py.log 2>&1)
+(python3 ${CLASSFILE}.py --operation provision --nodeid ${VTCNAME} --mnemonic ${VTCNAME} 1>${CLASSFILE}.py.log.$$ 2>&1)
 if [ $? -eq 0 -o $? -eq 4 ]; then
    if [ $? -eq 0 ]; then
       logger "${SCRIPTNAME}:INFO: RxTxNode (VTC) ${VTCNAME} provisioned!"
@@ -186,7 +186,7 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
               ${svdtyp} == "L2X" ]; then
             CLASSFILE=service
             logger "${SCRIPTNAME}: INFO: Attempting to provision ${svctyp} service with id: ${svcid} on vtc ${VTCNAME} ."
-            (python3 ${CLASSFILE}.py --operation provision --svcid ${svcid} --mnemonic ${VTCNAME} 1>${CLASSFILE}.py.log 2>&1)
+            (python3 ${CLASSFILE}.py --operation provision --svcid ${svcid} --mnemonic ${VTCNAME} 1>${CLASSFILE}.py.log.$$ 2>&1)
             if [ -? -eq 0 ]; then
                logger "${SCRIPTNAME}: INFO: Service id: ${svcid} successfully provisioned on vtc ${VTCNAME} ."
             else
@@ -202,7 +202,6 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
          fi
       fi
    fi
-    
 else
    logger "${SCRIPTNAME}:ERROR: Error provisioning RxTxNode ${VTCNAME}." 
    popd

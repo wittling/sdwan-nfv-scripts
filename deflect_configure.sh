@@ -177,6 +177,8 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
       else
          logger "deflect_configure:WARN: Unable to adjust deflect pool size for pool ${DFLPOOL}. Code $?."
       fi
+   fi
+fi
 
 logger "deflect_configure:INFO: Successful implementation of deflect_configure script. Exiting 0."
 exit 0
