@@ -79,7 +79,7 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
    if [ $? -eq 0 ]; then
       logger "deflect_configure:INFO: RxTxNode (VTC) ${VTCNAME} provisioned!"
    else     
-       logger "deflect_configure:WARN: CallP ${CALLPNAME} already provisioned (assumed correct)."
+       logger "deflect_configure:WARN: RxTxNode (VTC) ${VTCNAME} already provisioned (assumed correct)."
    fi
 
    # Currently every node instantiated by the orchestrator is getting a CALLP and a Deflect.
