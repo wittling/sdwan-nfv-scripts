@@ -57,7 +57,7 @@ export vlanid
 # We should be passing in a var that tells us what interface to use as our traffic interface.
 # If we do not get that, we could decide to die, or we could decide to be clever and use 
 # the interface that is currently associated with the default route.
-if [ -z ${wan1iface} ]; then
+if [ -z "${wan1iface}" ]; then
    logger "${SCRIPTNAME}:WARN:No wan1iface specified on this instance (ifacetraffic)!"
    logger "${SCRIPTNAME}:WARN:Attempting to locate an interface that can be used with defgw."
    DFLTNIC=`ip -4 r ls | grep default | grep -Po '(?<=dev )(\S+)'`
@@ -69,11 +69,12 @@ if [ -z ${wan1iface} ]; then
       traffic."
       exit 1
    fi
-else
-   if [ ${wan1iface} == "lo" ]; then
+elif [ ${wan1iface} == "lo" ]; then
       logger "${SCRIPTNAME}:ERROR:Invalid loopback interface specified in wan1iface."
       exit 1
-   fi
+else
+   logger "${SCRIPTNAME}:ERROR:No parameter wan1iface Found."
+   exit 1
 fi
 
 # 
@@ -118,7 +119,7 @@ done
 NODENUM=`echo ${wan1iface} | cut -f3-4 -d "." | sed 's+\.+DT+'`
 export VTCNAME=OPNBTN${NODENUM}
 
-logger "${SCRIPTNAME}:INFO: Attempting to provision VTC via REST interface"
+logger "${SCRIPTNAME}:INFO: Checking for Python3."
 python3 -V
 if [ $? -ne 0 ]; then
    logger "${SCRIPTNAME}:ERROR: FileNotExists: Python3 Not Installed"
@@ -132,6 +133,7 @@ if [ ! -d ${RESTCLTDIR} ]; then
    exit 1
 else
    pushd ${RESTCLTDIR}
+   logger "${SCRIPTNAME}:INFO: Checking for REST API Client files."
    for filename in rxtxnode callp deflect; do
       if [ ! -f ${filename}.py ]; then
          logger "${SCRIPTNAME}:ERROR: FileNotExists: ${filename}.py"
@@ -151,7 +153,7 @@ if [ -f ${DVNRESTENV} ]; then
    logger "${SCRIPTNAME}:INFO: Sourcing rest environment..."
    source "${DVNRESTENV}"
 else
-   logger "${SCRIPTNAME}:INFO: Sourcing rest environment..."
+   logger "${SCRIPTNAME}:ERROR: FileNotFound: ${DVNRESTENV}"
    popd
    exit 1
 fi

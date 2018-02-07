@@ -41,7 +41,7 @@ else
    exit 1
 fi
 
-logger "deflect_configure:INFO: Attempting to provision VTC via REST interface"
+logger "deflect_configure:INFO: Checking for Python3."
 python3 -V
 if [ $? -ne 0 ]; then
    logger "deflect_configure:ERROR: FileNotExists: Python3 Not Installed"
@@ -49,12 +49,14 @@ if [ $? -ne 0 ]; then
 fi
 
 # Go ahead and make sure we have what we need to do the job
+logger "deflect_configure:INFO: Checking for rest client directory: ${RESTCLTDIR}."
 RESTCLTDIR="/usr/local/dart-rest-client/local-client-projects"
 if [ ! -d ${RESTCLTDIR} ]; then
    logger "deflect_configure:ERROR: DirNotExists: ${RSTCLTDIR}"
    exit 1
 else
    pushd ${RESTCLTDIR}
+   logger "deflect_configure:INFO: Checking for REST API client classes we need."
    for filename in rxtxnode callp deflect; do
       if [ ! -f ${filename}.py ]; then
          logger "deflect_configure:ERROR: FileNotExists: ${filename}.py"
@@ -69,12 +71,13 @@ else
    done 
 fi
 
+logger "deflect_configure:INFO: Checking for environment file ${DVNRESTENV}."
 DVNRESTENV=".dvnrestenv"
 if [ -f ${DVNRESTENV} ]; then
    logger "deflect_configure:INFO: Sourcing rest environment..."
    source "${DVNRESTENV}"
 else
-   logger "deflect_configure:INFO: Sourcing rest environment..."
+   logger "deflect_configure:ERROR: File Not Found: ${DVNRESTENV}."
    popd
    exit 1
 fi
