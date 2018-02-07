@@ -84,7 +84,7 @@ fi
 
 CLASSFILE=rxtxnode
 logger "deflect_configure: INFO: Attempting to provision new vtc ${VTCNAME}."
-(python3 ${CLASSFILE}.py --operation provision --nodeid ${VTCNAME} --mnemonic ${VTCNAME} 1>${CLASSFILE}.py.log 2>&1)
+(python3 ${CLASSFILE}.py --operation provision --nodeid ${VTCNAME} --mnemonic ${VTCNAME} 1>${CLASSFILE}.py.log.$$ 2>&1)
 if [ $? -eq 0 -o $? -eq 4 ]; then
    if [ $? -eq 0 ]; then
       logger "deflect_configure:INFO: RxTxNode (VTC) ${VTCNAME} provisioned!"
@@ -105,7 +105,7 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
       exit 1
    fi
    logger "deflect_configure: INFO: Attempting to provision new callp deflect ${CALLPNAME}."
-   (python3 ${CLASSFILE}.py --operation provision --callpid ${CALLPNAME} --nodeid ${VTCNAME} --ipaddr ${deflect_dflnet} --port ${deflect_portcallp} --proto "udp" --addrtyp "Static" 1>${CLASSFILE}.py.log 2>&1)
+   (python3 ${CLASSFILE}.py --operation provision --callpid ${CALLPNAME} --nodeid ${VTCNAME} --ipaddr ${deflect_dflnet} --port ${deflect_portcallp} --proto "udp" --addrtyp "Static" 1>${CLASSFILE}.py.log.$$ 2>&1)
    if [ $? -eq 0 -o $? -eq 4 ]; then
       if [ $? -eq 0 ]; then
          logger "deflect_configure:INFO: CallP ${CALLPNAME} provisioned successfully."
@@ -122,7 +122,7 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
       CLASSFILE=deflect
       logger "deflect_configure: INFO: Attempting to provision new data deflect ${DFLNAME}."
       # This will not only provision the deflect but it will add it to the deflect pool, so no separate call needed.
-      (python3 ${CLASSFILE}.py --operation provision --dflid ${DFLNAME} --mnemonic ${DFLNAME} --nodeid ${VTCNAME} --port ${deflect_portdata} --channeltype "udp" 1>${CLASSFILE}.py.log 2>&1)
+      (python3 ${CLASSFILE}.py --operation provision --dflid ${DFLNAME} --mnemonic ${DFLNAME} --nodeid ${VTCNAME} --port ${deflect_portdata} --channeltype "udp" 1>${CLASSFILE}.py.log.$$ 2>&1)
       if [ $? -eq 0 -o $? -eq 4 ]; then
          if [ $? -eq 0 ]; then
             logger "deflect_configure:INFO: Data Deflect ${DFLNAME} provisioned successfully."
@@ -138,7 +138,7 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
             popd
             exit 1
          fi
-         (python3 ${CLASSFILE}.py --operation poolassign --dflid ${DFLNAME} --poolid ${poolid} 1>${CLASSFILE.py.log} 2>&1)
+         (python3 ${CLASSFILE}.py --operation poolassign --dflid ${DFLNAME} --poolid ${poolid} 1>${CLASSFILE}.py.log.$$ 2>&1)
          if [ $? -eq 0 ]; then 
             logger "deflect_configure:INFO: Data Deflect ${DFLNAME} assigned to ${poolid}. Code $?."
          else
