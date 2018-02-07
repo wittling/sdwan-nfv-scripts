@@ -138,6 +138,8 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
          # We should be passing the pool id in from orchestrator. If not we can look and use service group.
          # If neither of those are set we will use a default. 
          if [ -n "${poolid}" ]; then
+            logger "deflect_configure: ERROR: Attempting to assign ${DFLNAME} to ${poolid}."
+         else
             logger "deflect_configure: ERROR: No valid poolid parameter."
             popd
             exit 1
