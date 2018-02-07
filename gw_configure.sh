@@ -141,8 +141,8 @@ else
          exit 1
       else
          # this is always an issue w scripts so just be proactive and fix it.
-         if [ ! -x ${filename} ]; then
-            chmod +x ${filename}
+         if [ ! -x ${filename}.py ]; then
+            chmod +x ${filename}.py
          fi 
       fi 
    done 
