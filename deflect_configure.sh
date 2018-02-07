@@ -57,15 +57,15 @@ if [ ! -d ${RESTCLTDIR} ]; then
 else
    pushd ${RESTCLTDIR}
    logger "deflect_configure:INFO: Checking for REST API client classes we need."
-   for filename in rxtxnode callp deflect; do
-      if [ ! -f ${filename}.py ]; then
-         logger "deflect_configure:ERROR: FileNotExists: ${filename}.py"
+   for filename in "rxtxnode.py" "callp.py" "deflect.py"; do
+      if [ ! -f ${filename} ]; then
+         logger "deflect_configure:ERROR: FileNotExists: ${filename}"
          popd
          exit 1
       else
          # this is always an issue w scripts so just be proactive and fix it.
-         if [ ! -x ${filename}.py ]; then
-            chmod +x ${filename}.py
+         if [ ! -x ${filename} ]; then
+            chmod +x ${filename}
          fi 
       fi 
    done 
