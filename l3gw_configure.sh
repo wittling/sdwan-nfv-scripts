@@ -193,27 +193,26 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
          logger "${SCRIPTNAME}: ERROR: Missing required parm: svcid ${l3gw_svcid} or vlanid ${l3gw_vlanid}."
          popd
          exit 1
+      fi
+
+      if [ ${l3gw_svctyp} != "L3C" -a \
+           ${l3gw_svctyp} != "L3G" -a \
+           ${l3gw_svctyp} != "L2G" -a \
+           ${l3gw_svdtyp} != "L2X" ]; then
+         logger "${SCRIPTNAME}: ERROR: Unknown Service Type: ${l3gw_svctyp}"
+         logger "${SCRIPTNAME}: ERROR: Cannot provision Service id: ${l3gw_svcid} on vtc ${VTCNAME} ."
+         popd
+         exit 1
       else
-         if [ ${l3gw_svctyp} == "L3C" -o \
-              ${l3gw_svctyp} == "L3G" -o \
-              ${l3gw_svctyp} == "L2G" -o \
-              ${l3gw_svdtyp} == "L2X" ]; then
-            CLASSFILE=service
-            logger "${SCRIPTNAME}: INFO: Attempting to provision ${l3gw_svctyp} service with id: ${l3gw_svcid} on vtc ${VTCNAME} ."
-            (python3 ${CLASSFILE}.py --operation provision --svcid ${l3gw_svcid} --mnemonic ${VTCNAME} 1>${CLASSFILE}.py.log.$$ 2>&1)
-            if [ -? -eq 0 ]; then
-               logger "${SCRIPTNAME}: INFO: Service id: ${l3gw_svcid} successfully provisioned on vtc ${VTCNAME} ."
-            else
-               logger "${SCRIPTNAME}: ERROR: Error provisioning Service id: ${l3gw_svcid} on vtc ${VTCNAME} ."
-               popd
-               exit 1
-            fi
-         else
-            logger "${SCRIPTNAME}: ERROR: Unknown Service Type: ${l3gw_svctyp}"
-            logger "${SCRIPTNAME}: ERROR: Cannot provision Service id: ${l3gw_svcid} on vtc ${VTCNAME} ."
+         CLASSFILE=service
+         logger "${SCRIPTNAME}: INFO: Attempting to provision ${l3gw_svctyp} service with id: ${l3gw_svcid} on vtc ${VTCNAME} ."
+         (python3 ${CLASSFILE}.py --operation provision --svcid ${l3gw_svcid} --mnemonic ${VTCNAME} 1>${CLASSFILE}.py.log.$$ 2>&1)
+         if [ -? -ne 0 ]; then
+            logger "${SCRIPTNAME}: ERROR: Error provisioning Service id: ${l3gw_svcid} on vtc ${VTCNAME} ."
             popd
             exit 1
          fi
+         logger "${SCRIPTNAME}: INFO: Service id: ${l3gw_svcid} successfully provisioned on vtc ${VTCNAME} ."
       fi
    fi
 else
