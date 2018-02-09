@@ -31,13 +31,64 @@ export deflect_portcallp
 export svcgroup
 export poolid
 
-# OpenBaton likes to name the hosts with an appended hyphen and generated uid of some sort
-# Not sure if rest likes hyphens so we will grab the suffix id and use that for provisioning. 
-if [ -n "${deflect_dflnet}" ]; then
-   NODENUM=`echo ${deflect_dflnet} | cut -f3-4 -d "." | sed 's+\.+DT+'`
+# We will initialize the deflect IP to an anycast. 
+# Maybe not the smartest idea but # we will make sure we check it.
+DFL_IP="0.0.0.0"
+
+#
+# As the orchestrator orchestrates scripts between VMs one of the challenges we face
+# is that there is no smoking gun means of determining what the variable name is 
+# so that we can find that element IP Address. This is because it is a concatenation
+# of the name of the element and the network that is supplied in the descriptor.
+# 
+# We can figure it out. But it takes a little smarts and processing to do so.
+# 
+# TODO: FOLLOWUP: If a deflect were to ever have more than one network specified in the
+# descriptor we could actually have an issue with this strategy of IP determination.
+# We might consider adopting the logic I put in place for the gateways which I knew
+# going in would have multiple interfaces.
+#
+function valid_ip()
+{
+   local  IP=$1
+   local  RC=1
+
+   if [[ $IP =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+      # placehold the default IFS the system is using.
+      OIFS=$IFS
+      IFS='.'
+      IP=($IP)
+      # restore original system IFS.  
+      IFS=$OIFS
+      [[ ${IP[0]} -le 255 && ${IP[1]} -le 255 && ${IP[2]} -le 255 && ${IP[3]} -le 255 ]]
+      rc=$?
+   fi
+   return $rc
+}
+
+function findmyip()
+{
+   local rc=1
+   # grab all of the env var values related to the deflect element that orchestrator passes in.
+   for var in `env | grep -i deflect | cut -f 2 -d "="`; do
+      # one will be the IP Address. we need to figure out which. w
+      # we would not know unless we knew what network was specified in the descriptor.
+      if valid_ip ${var}; then 
+          DFL_IP=${var}
+          rc=0
+          break
+      fi
+   done
+   return $rc
+}
+
+findmyip
+if [ $? -eq 0 ]; then
+   logger "deflect_configure:INFO: IP Address discovered as: ${DFL_IP}."
+   NODENUM=`echo ${DFL_IP} | cut -f3-4 -d "." | sed 's+\.+DT+'`
    export VTCNAME=OPNBTN${NODENUM}
 else
-   logger "deflect_configure:ERROR: No IP Address to set VTCName."
+   logger "deflect_configure:ERROR: IP Address NOT discovered: Still defaulted to: ${DFL_IP}. Exiting."
    exit 1
 fi
 
