@@ -5,9 +5,14 @@
 # If this is in fact how the orchestrator is doing this, we can take advantage of this
 # by making RESTful API calls to provision each one at their time of instantiation.
 
-SCRIPTNAME="gw_configure"
-SCRIPTDIR="/opt/openbaton/scripts"
+if [ -n ${SCRIPTNAME} ]; then
+   echo "SCRIPTNAME is: ${SCRIPTNAME}"
+else
+   SCRIPTNAME="gw_configure"
+   echo "No scriptname set. Using default scriptname: ${SCRIPTNAME}"
+fi
 
+SCRIPTDIR="/opt/openbaton/scripts"
 logger "${SCRIPTNAME}:INFO:Configure LifeCycle Event Triggered!"
 
 ENVFILE="${SCRIPTDIR}/${SCRIPTNAME}.env"
