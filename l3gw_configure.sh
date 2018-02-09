@@ -28,6 +28,8 @@ logger "${SCRIPTNAME}: Greetings Bootstrap DSX! I am a Gateway."
 logger "${SCRIPTNAME}: I see your IP Address is: ${dsxnet}"
 logger "${SCRIPTNAME}: I see your hostname is: ${hostname}"
 logger "${SCRIPTNAME}: It appears you will be using the ctl plane interface: ${ifacectlplane}" 
+
+logger "${SCRIPTNAME}: Enough about you. Lets talk about ME!" 
 logger "${SCRIPTNAME}: I will be sending data on port: ${l3gw_portdata}" 
 logger "${SCRIPTNAME}: I will be sending callp on port: ${l3gw_portcallp}" 
 logger "${SCRIPTNAME}: I will be using svc group: ${l3gw_svcgroup}" 
@@ -84,9 +86,9 @@ else
    logger "${SCRIPTNAME}:INFO: Checking to see if ${l3gw_wan1iface} exists."
    WAN1IFACEDETAIL=`ip a show ${l3gw_wan1iface}`
    if [ $? -eq 0 ]; then
-      logger "${SCRIPTNAME}:INFO:${l3gw_wan1iface} is a legitimate interface."
+      logger "${SCRIPTNAME}:INFO: ${l3gw_wan1iface} is a legitimate interface."
    else
-      logger "${SCRIPTNAME}:ERROR:${l3gw_wan1iface} is NOT a legitimate interface. Exiting."
+      logger "${SCRIPTNAME}:ERROR: ${l3gw_wan1iface} is NOT a legitimate interface. Exiting."
       exit 1
    fi
 fi
@@ -115,7 +117,7 @@ for IP in `ip -4 a show ${l3gw_wan1iface} | grep -oP '(?<=inet\s)\d+(\.\d+){3}'`
          MYIP=${IP}
          NTWK=`echo ${SRCH} | cut -f 1 -d "="`
          if [ $? -eq 0 ]; then
-            logger "${SCRIPTNAME}.sh:DEBUG: Interface ${l3gw_wan1iface} assigned to ${NTWK}."
+            logger "${SCRIPTNAME}.sh:DEBUG: Interface ${l3gw_wan1iface} assigned to ${NTWK} with IP: ${MYIP}."
          else
             logger "${SCRIPTNAME}.sh:WARN: Cannot figure out network ${l3gw_wan1iface} assigned to ."
          fi
@@ -130,7 +132,7 @@ done
 
 # OpenBaton likes to name the hosts with an appended hyphen and generated uid of some sort
 # Not sure if rest likes hyphens so we will grab the suffix id and use that for provisioning. 
-NODENUM=`echo ${l3gw_wan1iface} | cut -f3-4 -d "." | sed 's+\.+DT+'`
+NODENUM=`echo ${MYIP} | cut -f3-4 -d "." | sed 's+\.+DT+'`
 export VTCNAME=OPNBTN${NODENUM}
 
 logger "${SCRIPTNAME}:INFO: Checking for Python3."
