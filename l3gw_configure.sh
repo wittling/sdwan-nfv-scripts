@@ -75,8 +75,20 @@ elif [ ${l3gw_wan1iface} == "lo" ]; then
       logger "${SCRIPTNAME}:ERROR:Invalid loopback interface specified in wan1iface."
       exit 1
 else
-   logger "${SCRIPTNAME}:ERROR:No parameter wan1iface Found."
-   exit 1
+   logger "${SCRIPTNAME}:INFO: wan1iface specified as ${l3gw_wan1iface}."
+   # I tested this. 
+   # We will get a 0 back on a link OR an ip check if the link exists,
+   # regardless of whether the interface state is up or down.
+   # this is handy since we just need to make sure the iface if legit. 
+   # so we will exploit this here.
+   logger "${SCRIPTNAME}:INFO: Checking to see if ${l3gw_wan1iface} exists."
+   EXISTS=`ip a show ${l3gw_wan1iface}`
+   if [ ${EXISTS} -eq 0 ]; then
+      logger "${SCRIPTNAME}:INFO:${l3gw_wan1iface} is a legitimate interface."
+   else
+      logger "${SCRIPTNAME}:ERROR:${l3gw_wan1iface} is NOT a legitimate interface. Exiting."
+      exit 1
+   fi
 fi
 
 # 
