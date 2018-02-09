@@ -5,7 +5,7 @@
 # If this is in fact how the orchestrator is doing this, we can take advantage of this
 # by making RESTful API calls to provision each one at their time of instantiation.
 
-SCRIPTNAME="gw_configure"
+SCRIPTNAME="l3gw_configure"
 SCRIPTDIR="/opt/openbaton/scripts"
 
 logger "${SCRIPTNAME}:INFO:Configure LifeCycle Event Triggered!"
