@@ -175,7 +175,7 @@ else
 fi
 
 CLASSFILE=rxtxnode
-logger "${SCRIPTNAME}: INFO: Attempting to provision new vtc ${hostname}."
+logger "${SCRIPTNAME}: INFO: Attempting to provision new vtc ${VTCNAME}."
 (python3 ${CLASSFILE}.py --operation provision --nodeid ${VTCNAME} --mnemonic ${VTCNAME} 1>${CLASSFILE}.py.log.$$ 2>&1)
 if [ $? -eq 0 -o $? -eq 4 ]; then
    if [ $? -eq 0 ]; then
