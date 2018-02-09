@@ -1,9 +1,19 @@
 #!/bin/bash
-
-SCRIPTNAME="deflect_start"
-SCRIPTDIR="/opt/openbaton/scripts"
+#title           :deflect_start.sh
+#author      :Wittling
+#date            :2018
+#version         :1.0   
+#usage       :bash deflect_start.sh
+#notes           :Service Orchestration Script
+#bash_version    :2.4
+#description     :See description further below.
+#==============================================================================
+# This script is invoked upon the start of a deflect, if so specified.
+#==============================================================================
 #env
 #set -x
+SCRIPTNAME="deflect_start"
+SCRIPTDIR="/opt/openbaton/scripts"
 
 logger "${SCRIPTNAME}:INFO:Start LifeCycle Event Triggered!"
 

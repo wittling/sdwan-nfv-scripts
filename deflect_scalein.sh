@@ -1,15 +1,21 @@
 #!/bin/bash
+#title           :deflect_scalein.sh
+#author      :Wittling
+#date            :2018
+#version         :1.0   
+#usage       :bash deflect_scalein.sh
+#notes           :Service Orchestration Script
+#bash_version    :2.4
+#description     :See description further below.
+#==============================================================================
+# This script is called whenever a specified scalein event occurs
+# on a deflect.
+#==============================================================================
 #env
 #set -x
-
-# It appears that this script gets cranked for every deflect that comes up.
-# If this is in fact how the orchestrator is doing this, we can take advantage of this
-# by making RESTful API calls to provision each one at their time of instantiation.
 
 SCRIPTNAME="deflect_scalein"
 SCRIPTDIR="/opt/openbaton/scripts"
-#env
-#set -x
 
 logger "${SCRIPTNAME}:INFO:SCALE_IN LifeCycle Event Triggered!"
 

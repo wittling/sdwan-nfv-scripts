@@ -1,8 +1,17 @@
 #!/bin/bash
-
+#title           :bootstrapdsx_configure.sh
+#author      :Wittling
+#date            :2018
+#version         :1.0   
+#usage       :bash bootstrapdsx_configure.sh
+#notes           :Service Orchestration Script
+#bash_version    :2.4
+#description     :See description further below.
+#==============================================================================
 # It appears that this script gets cranked for every dependent element that comes up.
 # If this is in fact how the orchestrator is doing this, we can take advantage of this
 # by making RESTful API calls to provision each one at their time of instantiation.
+#==============================================================================
 
 SCRIPTNAME="bootstrapdsx_configure"
 SCRIPTDIR="/opt/openbaton/scripts"
@@ -14,7 +23,6 @@ logger "${SCRIPTNAME}:INFO:Configure LifeCycle Event Triggered!"
 ENVFILE="${SCRIPTDIR}/${SCRIPTNAME}.env"
 logger "${SCRIPTNAME}:INFO:Dumping environment to ${ENVFILE}!"
 env > ${ENVFILE}
-
 
 # Originally we wanted to just swap an IP address and used sed as the way to do this. It did not
 # take long before we had more parameters and quickly figured out that sed was NOT the way to edit

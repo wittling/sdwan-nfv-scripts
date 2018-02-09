@@ -1,9 +1,18 @@
 #!/bin/bash
+#title           :gw_configure.sh
+#author      :Wittling
+#date            :2018
+#version         :1.0   
+#usage       :bash gw_configure.sh
+#notes           :Service Orchestration Script
+#bash_version    :2.4
+#description     :See description further below.
+#==============================================================================
+# THIS SCRIPT IS DEPRECATED. IT IS REPLACED WITH SCRIPTS FROM SPECIFIC KINDS
+# OF GATEWAYS, SUCH AS L3 STD GATEWAYS, L3MLX GATEWAYS, L2MLX and so forth.
+# IT IS MAINTAINED FOR HISTORICAL PURPOSES AND SUBJECT TO DELETION.
+#==============================================================================
 #set -x
-
-# It appears that this script gets cranked for every dependent element that comes up.
-# If this is in fact how the orchestrator is doing this, we can take advantage of this
-# by making RESTful API calls to provision each one at their time of instantiation.
 
 if [ -n ${SCRIPTNAME} ]; then
    echo "SCRIPTNAME is: ${SCRIPTNAME}"

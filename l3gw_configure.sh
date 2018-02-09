@@ -1,4 +1,15 @@
 #!/bin/bash
+#title           :l3gw_configure.sh
+#author      :Wittling
+#date            :2018
+#version         :1.0   
+#usage       :bash l3gw_configure.sh
+#notes           :Service Orchestration Script
+#bash_version    :2.4
+#description     :See description further below.
+#==============================================================================
+# This script is called by any element specified to be dependent upon the l3gw 
+#==============================================================================
 #set -x
 
 # It appears that this script gets cranked for every dependent element that comes up.
@@ -41,6 +52,8 @@ logger "${SCRIPTNAME}: My VLD Interface for internal network is: ${l3gw_vldinter
 logger "${SCRIPTNAME}: The Service Type I will attempt to provision is: ${l3gw_svctyp}" 
 logger "${SCRIPTNAME}: The Service ID I will attempt to provision is: ${l3gw_svcid}" 
 logger "${SCRIPTNAME}: The VLAN Id I will attempt to provision is: ${l3gw_vlanid}" 
+
+L3GW_VARPREFIX=l3gw_
 
 # export the variables
 export dsxnet
@@ -96,11 +109,11 @@ function findmyip()
 {
    local rc=1
    # grab all of the env var values related to the deflect element that orchestrator passes in.
-   for var in `env | grep -i deflect | cut -f 2 -d "="`; do
+   for var in `env | grep -i "${L3GW_VARPREFIX}" | cut -f 2 -d "="`; do
       # one will be the IP Address. we need to figure out which. w
       # we would not know unless we knew what network was specified in the descriptor.
       if valid_ip ${var}; then
-         DFL_IP=${var}
+         L3GW_IP=${var}
          rc=0
          break
       fi
@@ -110,11 +123,11 @@ function findmyip()
 
 findmyip
 if [ $? -eq 0 ]; then
-   logger "deflect_configure:INFO: IP Address discovered as: ${L3GW_IP}."
+   logger "${SCRIPTNAME}:INFO: IP Address discovered as: ${L3GW_IP}."
    NODENUM=`echo ${L3GW_IP} | cut -f3-4 -d "." | sed 's+\.+DT+'`
    export VTCNAME=OPNBTN${NODENUM}
 else
-   logger "deflect_configure:ERROR: IP Address NOT discovered: Still defaulted to: ${L3GW_IP}. Exiting."
+   logger "${SCRIPTNAME}:ERROR: IP Address NOT discovered: Still defaulted to: ${L3GW_IP}. Exiting."
    exit 1
 fi
 

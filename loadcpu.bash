@@ -1,4 +1,18 @@
 #!/bin/bash
+#title           :gw_configure.sh
+#author      :Wittling
+#date            :2018
+#version         :1.0   
+#usage       :bash deflect_start.sh
+#notes           :Service Orchestration Script
+#bash_version    :2.4
+#description     :See description further below.
+#==============================================================================
+# This script is kind of important for the scaling function. 
+# TODO: I plan to put together a unit file and run this as some kind of
+# service so that some nodes load up CPU while others do not and so forth
+# to ensure scaling is working correctly.
+#==============================================================================
 
 trap 'echo "Killing all dd processes"; pkill -f "dd if"; exit' INT
 

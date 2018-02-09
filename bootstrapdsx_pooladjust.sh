@@ -1,9 +1,15 @@
 #!/bin/bash
-
-# It appears that this script gets cranked for every deflect that comes up.
-# If this is in fact how the orchestrator is doing this, we can take advantage of this
-# by making RESTful API calls to provision each one at their time of instantiation.
-
+#title           :bootstrapdsx_pooladjust.sh
+#author      :Wittling
+#date            :2018
+#version         :1.0   
+#usage       :bash bootstrapdsx_pooladjust.sh
+#notes           :Service Orchestration Script
+#bash_version    :2.4
+#description     :See description further below.
+#==============================================================================
+# Script that gets invoked upon a SCALE_IN event
+#==============================================================================
 #env
 #set -x
 

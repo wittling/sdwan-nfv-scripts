@@ -1,11 +1,20 @@
 #!/bin/bash
-
+#title           :bootstrapdsx_instantiate.sh
+#author      :Wittling
+#date            :2018
+#version         :1.0   
+#usage       :bash bootstrapdsx_instantiate.sh
+#notes           :Service Orchestration Script
+#bash_version    :2.4
+#description     :See description further below.
+#==============================================================================
 # Originally we wanted to just swap an IP address and used sed as the way to do this. It did not
 # take long before we had more parameters and quickly figured out that sed was NOT the way to edit
 # parms in json files. So we ditched the sed and instead used this python script, which of course
 # now means that this will not work if python is not installed on the target. The good news is that
 # this script should work with python 2 or python 3. But we check first to make sure python is
 # installed before proceeding.
+#==============================================================================
 function jsonParmSwap
 {
    # Check for Python and see if it is installed (no sense wasting gas)

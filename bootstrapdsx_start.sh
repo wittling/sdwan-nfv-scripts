@@ -1,9 +1,26 @@
 #!/bin/bash
-
-SCRIPTNAME="bootstrapdsx_start.sh"
-SCRIPTDIR="/opt/openbaton/scripts"
+#title           :bootstrapdsx_start.sh
+#author      :Wittling
+#date            :2018
+#version         :1.0   
+#usage       :bash bootstrapdsx_start.sh
+#notes           :Service Orchestration Script
+#bash_version    :2.4
+#description     :See description further below.
+#==============================================================================
+# ATTENTION: THIS SCRIPT HAS BEEN DEPRECATED
+# This was originally written because of an issue with the orchestrator.
+# The orchestration team now passes another script INTO the orchestrator
+# at intialization and that script configures Zabbix - NOT this one.
+#
+# There may be a future reason to have a start script for a bootstrapdsx
+# and if there is, this logic will need to be supplanted with the new logic.
+# This script for now is kept for historical purposes.
+#==============================================================================
 #env
 #set -x
+SCRIPTNAME="bootstrapdsx_start.sh"
+SCRIPTDIR="/opt/openbaton/scripts"
 
 logger "${SCRIPTNAME}:INFO:Start LifeCycle Event Triggered!"
 

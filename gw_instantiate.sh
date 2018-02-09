@@ -1,13 +1,18 @@
 #!/bin/bash
-
-#!/bin/bash
+#title           :gw_instantiate.sh
+#author      :Wittling
+#date            :2018
+#version         :1.0   
+#usage       :bash gw_instantiate.sh
+#notes           :Service Orchestration Script
+#bash_version    :2.4
+#description     :See description further below.
+#==============================================================================
+# This script is invoked for each instantiation of the gateway if so specified.
+#==============================================================================
 #set -x
 
-# It appears that this script gets cranked for every dependent element that comes up.
-# If this is in fact how the orchestrator is doing this, we can take advantage of this
-# by making RESTful API calls to provision each one at their time of instantiation.
-
-SCRIPTNAME="gw_configure"
+SCRIPTNAME="gw_instantiate"
 SCRIPTDIR="/opt/openbaton/scripts"
 logger "${SCRIPTNAME}:INFO:Configure LifeCycle Event Triggered!"
 
