@@ -58,82 +58,65 @@ export l3gw_svctyp
 export l3gw_svcid
 export l3gw_vlanid
 
-# We should be passing in a var that tells us what interface to use as our traffic interface.
-# If we do not get that, we could decide to die, or we could decide to be clever and use 
-# the interface that is currently associated with the default route.
-if [ -z "${l3gw_wan1iface}" ]; then
-   logger "${SCRIPTNAME}:WARN:No wan1iface specified on this instance (ifacetraffic)!"
-   logger "${SCRIPTNAME}:WARN:Attempting to locate an interface that can be used with defgw."
-   DFLTNIC=`ip -4 r ls | grep default | grep -Po '(?<=dev )(\S+)'`
-   if [ $? -eq 0 ]; then
-      logger "${SCRIPTNAME}:WARN:Found default gw interface ${DFLTNIC}.Attempting to use that."
-      l3gw_wan1iface=${DFLTNIC}
-   else
-      logger "${SCRIPTNAME}:ERROR:Unable to find an appropriate interface for DVN
-      traffic."
-      exit 1
-   fi
-elif [ ${l3gw_wan1iface} == "lo" ]; then
-      logger "${SCRIPTNAME}:ERROR:Invalid loopback interface specified in wan1iface."
-      exit 1
-else
-   logger "${SCRIPTNAME}:INFO: wan1iface specified as ${l3gw_wan1iface}."
-   # I tested this. 
-   # We will get a 0 back on a link OR an ip check if the link exists,
-   # regardless of whether the interface state is up or down.
-   # this is handy since we just need to make sure the iface if legit. 
-   # so we will exploit this here.
-   logger "${SCRIPTNAME}:INFO: Checking to see if ${l3gw_wan1iface} exists."
-   WAN1IFACEDETAIL=`ip a show ${l3gw_wan1iface}`
-   if [ $? -eq 0 ]; then
-      logger "${SCRIPTNAME}:INFO: ${l3gw_wan1iface} is a legitimate interface."
-   else
-      logger "${SCRIPTNAME}:ERROR: ${l3gw_wan1iface} is NOT a legitimate interface. Exiting."
-      exit 1
-   fi
-fi
+# We will initialize the deflect IP to an anycast. 
+# Maybe not the smartest idea but # we will make sure we check it.
+L3GW_IP="0.0.0.0"
 
-# 
-# OpenBaton assigns every node a unique id and passes it into the environment.
-# This environment is a temp shell environment btw - not the static one that
-# you see if you log in later and dump the environment variables out.
 #
-# OpenBaton does not send the unique id in as its own env variable but rather uses
-# it to name the host in a convention of VNFM name dashhyphen unique id. So we
-# could grab that and use that as the way to provision our nodes uniquely. But
-# that would or could be confusing since those IDs only mean something to the
-# orchestrator. I think a better id is to grab the IP of the node and use that
-# instead. Of course a box can have any number of IPs on it and even a single
-# interface can have multiple IPs. So we need to choose the RIGHT ip address to
-# use. And to do that requires some mojo. 
-MYIP="127.0.0.1"
-NTWK="local"
-# We may have multiple IPs on a given interface! So this needs to be a loop.
-for IP in `ip -4 a show ${l3gw_wan1iface} | grep -oP '(?<=inet\s)\d+(\.\d+){3}'`; do
-   for LINE in `env`; do
-      SRCH=`echo ${LINE} | grep ${IP}`
-      if [ $? -eq 0 ]; then
-         logger "${SCRIPTNAME}.sh:DEBUG: Found interface ${l3gw_wan1iface} in environment."
-         MYIP=${IP}
-         NTWK=`echo ${SRCH} | cut -f 1 -d "="`
-         if [ $? -eq 0 ]; then
-            logger "${SCRIPTNAME}.sh:DEBUG: Interface ${l3gw_wan1iface} assigned to ${NTWK} with IP: ${MYIP}."
-         else
-            logger "${SCRIPTNAME}.sh:WARN: Cannot figure out network ${l3gw_wan1iface} assigned to ."
-         fi
-         break
-      fi  
-   done
-   # This is a nested loop.  Need to break out fully if we found it.
-   if [ ${NTWK} != "local" ]; then
-      break
-   fi  
-done
+# As the orchestrator orchestrates scripts between VMs one of the challenges we face
+# is that there is no smoking gun means of determining what the variable name is 
+# so that we can find that element IP Address. This is because it is a concatenation
+# of the name of the element and the network that is supplied in the descriptor.
+# We can figure it out. But it takes a little smarts and processing to do so.
+# 
+# TODO: FOLLOWUP: If a deflect were to ever have more than one network specified in the
+# descriptor we could actually have an issue with this strategy of IP determination.
+# We might consider adopting the logic I put in place for the gateways which I knew
+# going in would have multiple interfaces.
+#
+function valid_ip()
+{
+   local  IP=$1
+   local  RC=1
 
-# OpenBaton likes to name the hosts with an appended hyphen and generated uid of some sort
-# Not sure if rest likes hyphens so we will grab the suffix id and use that for provisioning. 
-NODENUM=`echo ${MYIP} | cut -f3-4 -d "." | sed 's+\.+DT+'`
-export VTCNAME=OPNBTN${NODENUM}
+   if [[ $IP =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+      # placehold the default IFS the system is using.
+      OIFS=$IFS
+      IFS='.'
+      IP=($IP)
+      # restore original system IFS.  
+      IFS=$OIFS
+      [[ ${IP[0]} -le 255 && ${IP[1]} -le 255 && ${IP[2]} -le 255 && ${IP[3]} -le 255 ]]
+      rc=$?
+   fi  
+   return $rc 
+}
+
+function findmyip()
+{
+   local rc=1
+   # grab all of the env var values related to the deflect element that orchestrator passes in.
+   for var in `env | grep -i deflect | cut -f 2 -d "="`; do
+      # one will be the IP Address. we need to figure out which. w
+      # we would not know unless we knew what network was specified in the descriptor.
+      if valid_ip ${var}; then
+         DFL_IP=${var}
+         rc=0
+         break
+      fi
+   done
+   return $rc
+}
+
+findmyip
+if [ $? -eq 0 ]; then
+   logger "deflect_configure:INFO: IP Address discovered as: ${L3GW_IP}."
+   NODENUM=`echo ${L3GW_IP} | cut -f3-4 -d "." | sed 's+\.+DT+'`
+   export VTCNAME=OPNBTN${NODENUM}
+else
+   logger "deflect_configure:ERROR: IP Address NOT discovered: Still defaulted to: ${L3GW_IP}. Exiting."
+   exit 1
+fi
 
 logger "${SCRIPTNAME}:INFO: Checking for Python3."
 python3 -V
