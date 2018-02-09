@@ -82,8 +82,8 @@ else
    # this is handy since we just need to make sure the iface if legit. 
    # so we will exploit this here.
    logger "${SCRIPTNAME}:INFO: Checking to see if ${l3gw_wan1iface} exists."
-   EXISTS=`ip a show ${l3gw_wan1iface}`
-   if [ ${EXISTS} -eq 0 ]; then
+   `ip a show ${l3gw_wan1iface}`
+   if [ $? -eq 0 ]; then
       logger "${SCRIPTNAME}:INFO:${l3gw_wan1iface} is a legitimate interface."
    else
       logger "${SCRIPTNAME}:ERROR:${l3gw_wan1iface} is NOT a legitimate interface. Exiting."
