@@ -395,37 +395,41 @@ for i in 1 2 3; do
    esac
 
    logger "bootstrapdsx_instantiate: INFO: Attempting to provision new ${svcgroup} service group." 
-   (python3 servicegroup.py --operation provision --grpid ${svcgroup} --mnemonic ${svcgroup} --grptyp ${svcgrptyp} 1>servicegroup.py.log 2>&1)
-   if [ $? -eq 0 ]; then
-      logger "bootstrap_instantiate:INFO: Service Group ${svcgroup} provisioned!"
-      PROVSUCCESS=true
+   RC=`(python3 servicegroup.py --operation provision --grpid ${svcgroup} --mnemonic ${svcgroup} --grptyp ${svcgrptyp} 1>servicegroup.py.log.$$ 2>&1)`
+   case "${RC}" in
+      0) logger "bootstrap_instantiate:INFO: Service Group ${svcgroup} provisioned!"
+         PROVSUCCESS=true ;;
+      4) logger "bootstrap_instantiate:INFO: Service Group ${svcgroup} already pre-provisioned (assumed correct)."
+         PROVSUCCESS=true ;;
+      *) logger "bootstrap_instantiate:INFO: Unable to provision Service Group ${svcgroup}. Attempt: $i: Shell Code: $?"
+         logger "bootstrap_instantiate:INFO: DBMgr may not be up yet. So we will sleep ${SLEEPTIME} secs and retry."
+         sleep ${SLEEPTIME} ;;
+   esac
+
+   if [[ "${PROVSUCCESS}" == true ]]; then
       break
-   elif [ $? -eq 4 ]; then
-      logger "bootstrap_instantiate:INFO: Service Group ${svcgroup} already pre-provisioned (assumed correct)."
-      PROVSUCCESS=true
-      break
-   else
-      logger "bootstrap_instantiate:INFO: Unable to provision Service Group ${svcgroup}. Attempt: $i: Shell Code: $?"
-      logger "bootstrap_instantiate:INFO: DBMgr may not be up yet. So we will sleep ${SLEEPTIME} secs and retry."
-      sleep ${SLEEPTIME}
    fi
 done
 
-if [ ! ${PROVSUCCESS} ]; then
+# If we did not provision service group we will bail and not provision the ensuing deflect pool.
+if [[ "${PROVSUCCESS}" != true ]]; then
    logger "bootstrap_instantiate:INFO: Unable to provision Service Group ${svcgroup}. Please check logs."
    popd
    exit 1
 fi
 
-logger "bootstrap_instantiate:INFO: Provisioning Deflect Pool ${svcgroup} and adding to Service Group ${svcgroup}."
-(python3 deflectpool.py --operation provision --poolid ${svcgroup} --mnemonic ${svcgroup} --targethigh 1 --targetlow 1 --minchannels 1 --directchannels 0 --selectsize 1 --rollinterval 5 --lowbandwidth "no" 1>deflectpool.py.log 2>&1)
-if [ $? -eq 0 ]; then
-   logger "bootstrap_instantiate:INFO: Deflect Pool ${svcgroup} properly provisioned!"
-elif [ $? -eq 4 ]; then
-   logger "bootstrap_instantiate:INFO: Deflect Pool already provisioned (assumed correct)."
-else
-   # The fact that we have svcgroup down below in var is not an error. We use the same name for group and pool.
-   logger "bootstrap_instantiate:ERROR: Error occured in attempt to provision Deflect Pool ${svcgroup}. Shell Code: $?"
+logger "bootstrap_instantiate:INFO: Provisioning Deflect Pool ${poolid} and adding to Service Group ${svcgroup}."
+RC=`(python3 deflectpool.py --operation provision --poolid ${poolid} --mnemonic ${svcgroup} --targethigh 1 --targetlow 1 --minchannels 1 --directchannels 0 --selectsize 1 --rollinterval 5 --lowbandwidth "no" 1>deflectpool.py.log 2>&1)`
+case "${RC}" in
+   0) logger "bootstrap_instantiate:INFO: Deflect Pool ${poolid} properly provisioned!"
+      PROVSUCCESS=true ;;
+   4) logger "bootstrap_instantiate:INFO: Deflect Pool already provisioned (assumed correct)."
+      PROVSUCCESS=true ;;
+   *) logger "bootstrap_instantiate:ERROR: Error occured in attempt to provision Deflect Pool ${poolid}. Shell Code: $?" ;;
+esac
+
+if [[ "${PROVSUCCESS}" != true ]]; then
+   logger "bootstrap_instantiate:ERROR: Error occured in attempt to provision Deflect Pool ${poolid}. Shell Code: $?"
    popd
    exit 1
 fi
