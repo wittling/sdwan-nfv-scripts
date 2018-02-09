@@ -22,7 +22,7 @@ echo "====================================================" >> ${ENVFILE}
 echo "Environment relevant to ${SCRIPTNAME}.sh script: " >> ${ENVFILE}
 env >> ${ENVFILE}
 echo "" >> ${ENVFILE}
-echo "====================================================" >> ${ENVOUT}
+echo "====================================================" >> ${ENVFILE}
 
 logger "${SCRIPTNAME}: Greetings Bootstrap DSX! I am a Gateway."
 logger "${SCRIPTNAME}: I see your IP Address is: ${dsxnet}"
