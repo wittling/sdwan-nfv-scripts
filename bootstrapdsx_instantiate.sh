@@ -395,7 +395,8 @@ for i in 1 2 3; do
    esac
 
    logger "bootstrapdsx_instantiate: INFO: Attempting to provision new ${svcgroup} service group." 
-   RC=`(python3 servicegroup.py --operation provision --grpid ${svcgroup} --mnemonic ${svcgroup} --grptyp ${svcgrptyp} 1>servicegroup.py.log.$$ 2>&1)`
+   (python3 servicegroup.py --operation provision --grpid ${svcgroup} --mnemonic ${svcgroup} --grptyp ${svcgrptyp} 1>servicegroup.py.log.$$ 2>&1)
+   RC=$?
    case "${RC}" in
       0) logger "bootstrap_instantiate:INFO: Service Group ${svcgroup} provisioned!"
          PROVSUCCESS=true ;;
@@ -419,7 +420,8 @@ if [[ "${PROVSUCCESS}" != true ]]; then
 fi
 
 logger "bootstrap_instantiate:INFO: Provisioning Deflect Pool ${poolid} and adding to Service Group ${svcgroup}."
-RC=`(python3 deflectpool.py --operation provision --poolid ${poolid} --mnemonic ${svcgroup} --targethigh 1 --targetlow 1 --minchannels 1 --directchannels 0 --selectsize 1 --rollinterval 5 --lowbandwidth "no" 1>deflectpool.py.log.$$ 2>&1)`
+(python3 deflectpool.py --operation provision --poolid ${poolid} --mnemonic ${svcgroup} --targethigh 1 --targetlow 1 --minchannels 1 --directchannels 0 --selectsize 1 --rollinterval 5 --lowbandwidth "no" 1>deflectpool.py.log.$$ 2>&1)
+RC=$?
 case "${RC}" in
    0) logger "bootstrap_instantiate:INFO: Deflect Pool ${poolid} properly provisioned!"
       PROVSUCCESS=true ;;
