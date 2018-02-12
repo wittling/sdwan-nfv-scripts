@@ -1,9 +1,9 @@
 #!/bin/bash
-#title           :gw_instantiate.sh
+#title           :l3gw_instantiate.sh
 #author      :Wittling
 #date            :2018
 #version         :1.0   
-#usage       :bash gw_instantiate.sh
+#usage       :bash l3gw_instantiate.sh
 #notes           :Service Orchestration Script
 #bash_version    :2.4
 #description     :See description further below.
@@ -12,7 +12,7 @@
 #==============================================================================
 #set -x
 
-SCRIPTNAME="gw_instantiate"
+SCRIPTNAME="l3gw_instantiate"
 SCRIPTDIR="/opt/openbaton/scripts"
 logger "${SCRIPTNAME}:INFO:Configure LifeCycle Event Triggered!"
 
