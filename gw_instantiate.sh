@@ -24,7 +24,7 @@ logger "${SCRIPTNAME}:INFO:Dumping environment to ${ENVFILE}!"
 env >> ${ENVFILE}
 echo "====================================================" >> ${ENVFILE}
 
-logger "${SCRIPTNAME}: INSTANTIATION of the Deflect"
+logger "${SCRIPTNAME}: INSTANTIATION Script"
 
 logger "${SCRIPTNAME}: Hostname: ${hostname}"
 logger "${SCRIPTNAME}: Hostname: ${wan1iface}"
