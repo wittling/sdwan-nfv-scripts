@@ -35,23 +35,22 @@ env >> ${ENVFILE}
 echo "" >> ${ENVFILE}
 echo "====================================================" >> ${ENVFILE}
 
-logger "${SCRIPTNAME}: Greetings Bootstrap DSX! I am a Gateway."
-logger "${SCRIPTNAME}: I see your IP Address is: ${dsxnet}"
-logger "${SCRIPTNAME}: I see your hostname is: ${hostname}"
-logger "${SCRIPTNAME}: It appears you will be using the ctl plane interface: ${ifacectlplane}" 
+logger "${SCRIPTNAME}:INFO: Greetings Bootstrap DSX! I am a Gateway."
+logger "${SCRIPTNAME}:INFO: I see your IP Address is: ${dsxnet}"
+logger "${SCRIPTNAME}:INFO: I see your hostname is: ${hostname}"
+logger "${SCRIPTNAME}:INFO: It appears you will be using the ctl plane interface: ${ifacectlplane}" 
 
-logger "${SCRIPTNAME}: Enough about you. Lets talk about ME!" 
-logger "${SCRIPTNAME}: I will be sending data on port: ${l2mlx_portdata}" 
-logger "${SCRIPTNAME}: I will be sending callp on port: ${l2mlx_portcallp}" 
-logger "${SCRIPTNAME}: I will be using svc group: ${l2mlx_svcgroup}" 
-logger "${SCRIPTNAME}: I will be using deflect pool id: ${l2mlx_poolid}" 
-logger "${SCRIPTNAME}: My WAN 1 Interface is: ${l2mlx_wan1iface}" 
-logger "${SCRIPTNAME}: My WAN 2 Interface is: ${l2mlx_wan2iface}" 
-logger "${SCRIPTNAME}: My LAN Interface is: ${l2mlx_laniface}" 
-logger "${SCRIPTNAME}: My VLD Interface for internal network is: ${l2mlx_vldinternal}" 
-logger "${SCRIPTNAME}: The Service Type I will attempt to provision is: ${l2mlx_svctyp}" 
-logger "${SCRIPTNAME}: The Service ID I will attempt to provision is: ${l2mlx_svcid}" 
-logger "${SCRIPTNAME}: The VLAN Id I will attempt to provision is: ${l2mlx_vlanid}" 
+logger "${SCRIPTNAME}:INFO: Enough about you. Lets talk about ME!" 
+logger "${SCRIPTNAME}:INFO: I will be sending data on port: ${l2mlx_portdata}" 
+logger "${SCRIPTNAME}:INFO: I will be sending callp on port: ${l2mlx_portcallp}" 
+logger "${SCRIPTNAME}:INFO: My WAN 1 Interface is: ${l2mlx_wan1iface}" 
+logger "${SCRIPTNAME}:INFO: My WAN 2 Interface is: ${l2mlx_wan2iface}" 
+logger "${SCRIPTNAME}:INFO: My LAN Interface is: ${l2mlx_laniface}" 
+logger "${SCRIPTNAME}:INFO: My VLD Interface for internal network is: ${l2mlx_vldinternal}" 
+logger "${SCRIPTNAME}:INFO: The Service Group I will attempt to use is: ${l2mlx_svcgrp}" 
+logger "${SCRIPTNAME}:INFO: The Service Type I will attempt to provision is: ${l2mlx_svctyp}" 
+logger "${SCRIPTNAME}:INFO: The Service ID I will attempt to provision is: ${l2mlx_svcid}" 
+logger "${SCRIPTNAME}:INFO: The VLAN Id I will attempt to provision is: ${l2mlx_vlanid}" 
 
 L3GW_VARPREFIX=l2mlx_
 
@@ -61,12 +60,11 @@ export hostname
 export ifacectlplane
 export l2mlx_portdata
 export l2mlx_portcallp
-export l2mlx_svcgroup
-export l2mlx_poolid
 export l2mlx_wan1iface
 export l2mlx_wan2iface
 export l2mlx_laniface
 export l2mlx_vldinternal
+export l2mlx_svcgrp
 export l2mlx_svctyp
 export l2mlx_svcid
 export l2mlx_vlanid
@@ -171,7 +169,7 @@ else
 fi
 
 CLASSFILE=rxtxnode
-logger "${SCRIPTNAME}: INFO: Attempting to provision new vtc ${VTCNAME}."
+logger "${SCRIPTNAME}:INFO: Attempting to provision new vtc ${VTCNAME}."
 (python3 ${CLASSFILE}.py --operation provision --nodeid ${VTCNAME} --mnemonic ${VTCNAME} 1>${CLASSFILE}.py.log.$$ 2>&1)
 if [ $? -eq 0 -o $? -eq 4 ]; then
    if [ $? -eq 0 ]; then
@@ -182,35 +180,37 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
 
    # We could automagically drop a loopback service on a gateway. Not a bad idea.
    # TODO: Consider the notion. 
-   logger "${SCRIPTNAME}: INFO: Checking for a service to provision."
+   logger "${SCRIPTNAME}:INFO: Checking for a service to provision."
    if [ -z "${l2mlx_svctyp}" ]; then
-      logger "${SCRIPTNAME}: INFO: No service type passed in. Therefore no service to provision."
+      logger "${SCRIPTNAME}:INFO: No service type passed in. Therefore no service to provision."
    else
-      logger "${SCRIPTNAME}: INFO: Found service type: ${l2mlx_svctyp}. Looking for additional parms so we can provision it."
+      logger "${SCRIPTNAME}:INFO: Found service type: ${l2mlx_svctyp}. Looking for additional parms so we can provision it."
       if [ -z "{l2mlx_svcid}" -o -z "${l2mlx_vlanid}" ]; then
-         logger "${SCRIPTNAME}: ERROR: Missing required parm: svcid ${l2mlx_svcid} or vlanid ${l2mlx_vlanid}."
+         logger "${SCRIPTNAME}:ERROR: Missing required parm: svcid ${l2mlx_svcid} or vlanid ${l2mlx_vlanid}."
          popd
          exit 1
       fi
 
-      if [ ${l2mlx_svctyp} != "L3C" -a \
-           ${l2mlx_svctyp} != "L3G" -a \
-           ${l2mlx_svctyp} != "L2G" -a \
-           ${l2mlx_svdtyp} != "L2X" ]; then
-         logger "${SCRIPTNAME}: ERROR: Unknown Service Type: ${l2mlx_svctyp}"
-         logger "${SCRIPTNAME}: ERROR: Cannot provision Service id: ${l2mlx_svcid} on vtc ${VTCNAME} ."
+      if [ ${l2mlx_svctyp} == "L2G" -o ${l2mlx_svctyp} == "L2X" ]; then
+         logger "${SCRIPTNAME}:ERROR: Service Type ${l2mlx_svctyp} not valid on an L3 Gateway."
+         logger "${SCRIPTNAME}:ERROR: Cannot provision Service id: ${l2mlx_svcid} on vtc ${VTCNAME} ."
+         popd
+         exit 1
+      elif [ ${l2mlx_svctyp} != "L3C" -a ${l2mlx_svdtyp} != "L3G" ]; then
+         logger "${SCRIPTNAME}:ERROR: Unknown Service Type: ${l2mlx_svctyp}"
+         logger "${SCRIPTNAME}:ERROR: Cannot provision Service id: ${l2mlx_svcid} on vtc ${VTCNAME} ."
          popd
          exit 1
       else
          CLASSFILE=service
-         logger "${SCRIPTNAME}: INFO: Attempting to provision ${l2mlx_svctyp} service with id: ${l2mlx_svcid} on vtc ${VTCNAME} ."
+         logger "${SCRIPTNAME}:INFO: Attempting to provision ${l2mlx_svctyp} service with id: ${l2mlx_svcid} on vtc ${VTCNAME} ."
          (python3 ${CLASSFILE}.py --operation provision --svcid ${l2mlx_svcid} --svctyp ${l2mlx_svctyp} --nodeid ${VTCNAME}  --vlanid ${l2mlx_vlanid} 1>${CLASSFILE}.py.log.$$ 2>&1)
          if [ $? -ne 0 ]; then
-            logger "${SCRIPTNAME}: ERROR: Error provisioning Service id: ${l2mlx_svcid} on vtc ${VTCNAME} ."
+            logger "${SCRIPTNAME}:ERROR: Error provisioning Service id: ${l2mlx_svcid} on vtc ${VTCNAME} ."
             popd
             exit 1
          fi
-         logger "${SCRIPTNAME}: INFO: Service id: ${l2mlx_svcid} successfully provisioned on vtc ${VTCNAME} ."
+         logger "${SCRIPTNAME}:INFO: Service id: ${l2mlx_svcid} successfully provisioned on vtc ${VTCNAME} ."
       fi
    fi
 else
