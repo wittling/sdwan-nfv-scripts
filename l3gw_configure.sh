@@ -204,8 +204,8 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
       else
          CLASSFILE=service
          SVCID="${l3gw_svcid}${NODENUM}"
-         logger "${SCRIPTNAME}:INFO: Attempting to provision ${l3gw_svctyp} service with id: ${l3gw_svcid} on vtc ${VTCNAME} ."
-         (python3 ${CLASSFILE}.py --operation provision --svcid ${l3gw_svcid} --svctyp ${l3gw_svctyp} --nodeid ${VTCNAME}  --vlanid ${l3gw_vlanid} 1>${CLASSFILE}.py.log.$$ 2>&1)
+         logger "${SCRIPTNAME}:INFO: Attempting to provision ${l3gw_svctyp} service with id: ${SVCID} on vtc ${VTCNAME} ."
+         (python3 ${CLASSFILE}.py --operation provision --svcid ${SVCID} --svctyp ${l3gw_svctyp} --nodeid ${VTCNAME}  --vlanid ${l3gw_vlanid} 1>${CLASSFILE}.py.log.$$ 2>&1)
          if [ $? -ne 0 ]; then
             logger "${SCRIPTNAME}:ERROR: Error provisioning Service id: ${l3gw_svcid} on vtc ${VTCNAME} ."
             popd
