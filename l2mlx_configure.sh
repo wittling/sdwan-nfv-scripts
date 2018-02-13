@@ -203,8 +203,10 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
          exit 1
       else
          CLASSFILE=service
-         logger "${SCRIPTNAME}:INFO: Attempting to provision ${l2mlx_svctyp} service with id: ${l2mlx_svcid} on vtc ${VTCNAME} ."
-         (python3 ${CLASSFILE}.py --operation provision --svcid ${l2mlx_svcid} --svctyp ${l2mlx_svctyp} --nodeid ${VTCNAME}  --vlanid ${l2mlx_vlanid} 1>${CLASSFILE}.py.log.$$ 2>&1)
+         # avoid duplicate service id error
+         SVCID="${l2mlx_svcid}${NODENUM}"
+         logger "${SCRIPTNAME}:INFO: Attempting to provision ${l2mlx_svctyp} service with id: ${SVCID} on vtc ${VTCNAME} ."
+         (python3 ${CLASSFILE}.py --operation provision --svcid ${SVCID} --svctyp ${l2mlx_svctyp} --nodeid ${VTCNAME}  --vlanid ${l2mlx_vlanid} 1>${CLASSFILE}.py.log.$$ 2>&1)
          if [ $? -ne 0 ]; then
             logger "${SCRIPTNAME}:ERROR: Error provisioning Service id: ${l2mlx_svcid} on vtc ${VTCNAME} ."
             popd
