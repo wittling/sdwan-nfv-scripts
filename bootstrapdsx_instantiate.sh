@@ -153,7 +153,7 @@ function configureCluster
       [[ $? -ne 0 ]] && return 2
 
       logger "${SCRIPTNAME}:INFO:Configuring wsrep_cluster_name."
-      sed -i 's+^wsrep_cluster_address.*+wsrep_cluster_name = '"${clustername}"'+' ${CFGFILE} 
+      sed -i 's+^wsrep_cluster_name.*+wsrep_cluster_name = '"${clustername}"'+' ${CFGFILE} 
       [[ $? -ne 0 ]] && return 2
 
       logger "${SCRIPTNAME}:INFO:Configuring wsrep_node_name."
