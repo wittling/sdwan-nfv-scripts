@@ -151,23 +151,38 @@ function configureCluster
    else
       logger "${SCRIPTNAME}:INFO:Backing up file: ${CFGFILE} to ${CFGFILE}.$$."
       cp ${CFGFILE} /etc/${CFGFILE}.$$
-      [[ $? -ne 0 ]] && logger "${SCRIPTNAME}:WARN: Unable to back up my.cnf file" && return 3
+      if [ $? -ne 0]; then
+         logger "${SCRIPTNAME}:WARN: Unable to back up my.cnf file" 
+         # return 3
+      fi
 
       logger "${SCRIPTNAME}:INFO:Configuring wsrep_cluster_address."
       sed -i 's+^wsrep_cluster_address.*+wsrep_cluster_address = '"gcomm:\\${dsxnet}"'+' ${CFGFILE} 
-      [[ $? -ne 0 ]] && logger "${SCRIPTNAME}:ERROR: sed replacement failure" && return 2
+      if [ $? -ne 0 ]; then
+         logger "${SCRIPTNAME}:ERROR: sed replacement failure" 
+         return 2
+      fi
 
       logger "${SCRIPTNAME}:INFO:Configuring wsrep_cluster_name."
       sed -i 's+^wsrep_cluster_name.*+wsrep_cluster_name = '"${clustername}"'+' ${CFGFILE} 
-      [[ $? -ne 0 ]] && logger "${SCRIPTNAME}:ERROR: sed replacement failure" && return 2
+      if [ $? -ne 0 ]; then
+         logger "${SCRIPTNAME}:ERROR: sed replacement failure" 
+         return 2
+      fi
 
       logger "${SCRIPTNAME}:INFO:Configuring wsrep_node_name."
       sed -i 's+^wsrep_node_name.*+wsrep_node_name = '"${clusternodename}"'+' ${CFGFILE} 
-      [[ $? -ne 0 ]] && logger "${SCRIPTNAME}:ERROR: sed replacement failure" && return 2
+      if [ $? -ne 0 ]; then
+         logger "${SCRIPTNAME}:ERROR: sed replacement failure" 
+         return 2
+      fi
 
       logger "${SCRIPTNAME}:INFO:Configuring wsrep_node_address."
       sed -i 's+^wsrep_node_address.*+wsrep_node_address = '"${dsxnet}"'+' ${CFGFILE} 
-      [[ $? -ne 0 ]] && logger "${SCRIPTNAME}:ERROR: sed replacement failure" && return 2
+      if [ $? -ne 0 ]; then
+         logger "${SCRIPTNAME}:ERROR: sed replacement failure" 
+         return 2
+      fi
    fi
    logger "${SCRIPTNAME}:INFO:All parms successfully replaced!" && return 0
 }
