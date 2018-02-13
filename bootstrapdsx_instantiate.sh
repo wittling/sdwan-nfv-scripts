@@ -311,6 +311,7 @@ logger "${SCRIPTNAME}:INFO: Registration Port: ${portreg}"
 logger "${SCRIPTNAME}:INFO: REST RA Port: ${portra}" 
 logger "${SCRIPTNAME}:INFO: REST RW Port: ${portrw}" 
 logger "${SCRIPTNAME}:INFO: Service Group: ${clustername}" 
+logger "${SCRIPTNAME}:INFO: Service Group: ${clusternodename}" 
 logger "${SCRIPTNAME}:INFO: Service Group: ${svcgroup}" 
 logger "${SCRIPTNAME}:INFO: Service Group Type: ${svcgrptyp}" 
 logger "${SCRIPTNAME}:INFO: Deflect Pool: ${poolid}" 
@@ -322,6 +323,8 @@ export ifacectlplane
 export portreg
 export portra
 export portrw
+export clustername
+export clusternodename
 export svcgroup
 export svcgrptyp
 
