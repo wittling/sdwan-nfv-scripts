@@ -64,6 +64,7 @@ export l3gw_portcallp
 export l3gw_wan1iface
 export l3gw_wan2iface
 export l3gw_laniface
+export l3gw_vldext1
 export l3gw_vldinternal
 export l3gw_svcgrp
 export l3gw_svctyp
@@ -135,7 +136,7 @@ function findmyip()
 #  L3GW_IP=${l3gw_dvnidentifier}
 WAN1IP=$(findmyip ${l3gw_vldext1})
 if [ $? -eq 0 ]; then
-   logger "${SCRIPTNAME}:INFO: IP Address located for VLD ${l3gw_vldext1}: ${WAN1IP}."
+   logger "${SCRIPTNAME}:INFO: IP Address located for the vldext1 VLD ${l3gw_vldext1}: ${WAN1IP}."
    # We probably need to consider using all octets if we are going to this.
    NODENUM=`echo ${WAN1IP} | cut -f3-4 -d "." | sed 's+\.+DT+'`
    export VTCNAME=OPNBTN${NODENUM}
