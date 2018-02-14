@@ -13,9 +13,12 @@
 #set -x
 
 SCRIPTNAME="l3gw_instantiate"
-SCRIPTDIR="/opt/openbaton/scripts"
 logger "${SCRIPTNAME}:INFO:Configure LifeCycle Event Triggered!"
 
+SCRIPTDIR="/opt/openbaton/scripts"
+if [ ! -d ${SCRIPTDIR} ]; then
+   SCRIPTDIR=${PWD}
+fi
 ENVFILE="${SCRIPTDIR}/${SCRIPTNAME}.env"
 echo "====================================================" >> ${ENVFILE}
 echo "Environment relevant to ${SCRIPTNAME}.sh script: " >> ${ENVFILE}
@@ -39,7 +42,7 @@ logger "${SCRIPTNAME}: DVN Identifier (initialized to loopback): ${dvnidentifier
 
 function getDefaultNic()
 {
-    local dfltnic = ""
+    local dfltnic 
     local rc
     dfltnic=`ip -4 r ls | grep default | grep -Po '(?<=dev )(\S+)'`
     rc=$?
@@ -152,6 +155,10 @@ else
                exit 1
             fi  
          fi 
+      else
+         logger "${SCRIPTNAME}:ERROR:Could not find interface opertate file to determine interface status."
+         exit 1
+      fi
    else
       logger "${SCRIPTNAME}:ERROR:Interface ${wan1iface} does not appear to be a valid interface on VFNM."
       exit 1
@@ -180,7 +187,7 @@ for IP in `ip -4 a show ${wan1iface} | grep -oP '(?<=inet\s)\d+(\.\d+){3}'`; do
       exit 1
    fi
 
-   VNFC=ipAssignedToVNFC ${IP} 
+   VNFC=$(ipAssignedToVNFC ${IP}) 
    if [ $? -eq 0 ]; then
       logger "${SCRIPTNAME}:INFO: IP: ${IP} assigned to ${VNFC}." 
       MYIP=${IP}
