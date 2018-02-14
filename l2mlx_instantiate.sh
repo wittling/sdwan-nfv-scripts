@@ -36,6 +36,7 @@ logger "${SCRIPTNAME}: Internal VLD: ${vldinternal}"
 logger "${SCRIPTNAME}: Service Type: ${svctyp}" 
 logger "${SCRIPTNAME}: Service ID: ${svcid}" 
 logger "${SCRIPTNAME}: VLAN ID: ${vlanid}" 
+logger "${SCRIPTNAME}: DVN Identifier (initialized to loopback): ${dvnidentifier}" 
 
 logger "${SCRIPTNAME}: IP Address: ${aaacorp-site1}" 
 

@@ -51,6 +51,7 @@ logger "${SCRIPTNAME}:INFO: The Service Group I will attempt to use is: ${l3gw_s
 logger "${SCRIPTNAME}:INFO: The Service Type I will attempt to provision is: ${l3gw_svctyp}" 
 logger "${SCRIPTNAME}:INFO: The Service ID I will attempt to provision is: ${l3gw_svcid}" 
 logger "${SCRIPTNAME}:INFO: The VLAN Id I will attempt to provision is: ${l3gw_vlanid}" 
+logger "${SCRIPTNAME}:INFO: The dvn identifier value is: ${l3gw_dvnidentifier}" 
 
 L3GW_VARPREFIX=l3gw_
 
@@ -68,6 +69,7 @@ export l3gw_svcgrp
 export l3gw_svctyp
 export l3gw_svcid
 export l3gw_vlanid
+export l3gw_dvnidentifier
 
 # We will initialize the deflect IP to an anycast. 
 # Maybe not the smartest idea but # we will make sure we check it.
@@ -119,15 +121,25 @@ function findmyip()
    return $rc
 }
 
-findmyip
-if [ $? -eq 0 ]; then
-   logger "${SCRIPTNAME}:INFO: IP Address discovered as: ${L3GW_IP}."
+# findmyip
+if valid_ip ${l3gw_dvnidentifier}; then
+   L3GW_IP=${l3gw_dvnidentifier}
+   # We probably need to consider using all octets if we are going to this.
    NODENUM=`echo ${L3GW_IP} | cut -f3-4 -d "." | sed 's+\.+DT+'`
    export VTCNAME=OPNBTN${NODENUM}
 else
-   logger "${SCRIPTNAME}:ERROR: IP Address NOT discovered: Still defaulted to: ${L3GW_IP}. Exiting."
+   logger "${SCRIPTNAME}:ERROR: Invalid IP Address on variabl dvnidentifier: ${l3gw_dvnidentifier}."
    exit 1
 fi
+
+#if [ $? -eq 0 ]; then
+#   logger "${SCRIPTNAME}:INFO: IP Address discovered as: ${L3GW_IP}."
+#   NODENUM=`echo ${L3GW_IP} | cut -f3-4 -d "." | sed 's+\.+DT+'`
+#   export VTCNAME=OPNBTN${NODENUM}
+#else
+#   logger "${SCRIPTNAME}:ERROR: IP Address NOT discovered: Still defaulted to: ${L3GW_IP}. Exiting."
+#   exit 1
+#fi
 
 logger "${SCRIPTNAME}:INFO: Checking for Python3."
 python3 -V
