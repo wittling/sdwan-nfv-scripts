@@ -42,6 +42,7 @@ logger "${SCRIPTNAME}:INFO: I see your portreg is: ${portreg}"
 logger "${SCRIPTNAME}:INFO: I see your portra is: ${portra}"
 
 logger "${SCRIPTNAME}:INFO: Enough about you. Lets talk about ME!" 
+logger "${SCRIPTNAME}:INFO: My hostname is: ${l3gw_hostname}" 
 logger "${SCRIPTNAME}:INFO: I will be sending data on port: ${l3gw_portdata}" 
 logger "${SCRIPTNAME}:INFO: I will be sending callp on port: ${l3gw_portcallp}" 
 logger "${SCRIPTNAME}:INFO: My WAN 1 Interface is: ${l3gw_wan1iface}" 
