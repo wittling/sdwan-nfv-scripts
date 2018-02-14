@@ -26,7 +26,7 @@ if [ ! -d "${SCRIPTDIR}" ]; then
    SCRIPTDIR=${PWD}
 fi
 
-ENVFILE="${SCRIPTDIR}/${SCRIPTNAME}.env"
+ENVFILE="${SCRIPTDIR}/${SCRIPTNAME}.env.$$"
 logger "${SCRIPTNAME}:INFO:Dumping environment to ${ENVFILE}!"
 # Print env out so we can see what is getting passed into us from orchestrator.
 echo "====================================================" >> ${ENVFILE}
@@ -38,7 +38,8 @@ echo "====================================================" >> ${ENVFILE}
 logger "${SCRIPTNAME}:INFO: Greetings Bootstrap DSX! I am a Gateway."
 logger "${SCRIPTNAME}:INFO: I see your IP Address is: ${dsxnet}"
 logger "${SCRIPTNAME}:INFO: I see your hostname is: ${hostname}"
-logger "${SCRIPTNAME}:INFO: It appears you will be using the ctl plane interface: ${ifacectlplane}" 
+logger "${SCRIPTNAME}:INFO: I see your portreg is: ${portreg}"
+logger "${SCRIPTNAME}:INFO: I see your portra is: ${portra}"
 
 logger "${SCRIPTNAME}:INFO: Enough about you. Lets talk about ME!" 
 logger "${SCRIPTNAME}:INFO: I will be sending data on port: ${l3gw_portdata}" 
@@ -46,7 +47,7 @@ logger "${SCRIPTNAME}:INFO: I will be sending callp on port: ${l3gw_portcallp}"
 logger "${SCRIPTNAME}:INFO: My WAN 1 Interface is: ${l3gw_wan1iface}" 
 logger "${SCRIPTNAME}:INFO: My WAN 2 Interface is: ${l3gw_wan2iface}" 
 logger "${SCRIPTNAME}:INFO: My LAN Interface is: ${l3gw_laniface}" 
-logger "${SCRIPTNAME}:INFO: My VLD Interface for internal network is: ${l3gw_vldext1}" 
+logger "${SCRIPTNAME}:INFO: My VLD Interface for external network is: ${l3gw_vldext1}" 
 logger "${SCRIPTNAME}:INFO: My VLD Interface for internal network is: ${l3gw_vldinternal}" 
 logger "${SCRIPTNAME}:INFO: The Service Group I will attempt to use is: ${l3gw_svcgrp}" 
 logger "${SCRIPTNAME}:INFO: The Service Type I will attempt to provision is: ${l3gw_svctyp}" 
