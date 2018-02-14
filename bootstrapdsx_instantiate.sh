@@ -157,7 +157,7 @@ function configureCluster
       fi
 
       logger "${SCRIPTNAME}:INFO:Configuring wsrep_cluster_address."
-      sed -i 's+^wsrep_cluster_address.*+wsrep_cluster_address = '"gcomm:\\${dsxnet}"'+' ${CFGFILE} 
+      sed -i 's+^wsrep_cluster_address.*+wsrep_cluster_address = '"gcomm\:\/\/${dsxnet}"'+' ${CFGFILE} 
       if [ $? -ne 0 ]; then
          logger "${SCRIPTNAME}:ERROR: sed replacement failure" 
          return 2
