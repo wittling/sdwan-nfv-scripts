@@ -16,7 +16,6 @@ SCRIPTNAME="l3gw_instantiate"
 SCRIPTDIR="/opt/openbaton/scripts"
 logger "${SCRIPTNAME}:INFO:Configure LifeCycle Event Triggered!"
 
-logger "${SCRIPTNAME}:INFO:Dumping environment to ${ENVFILE}!"
 ENVFILE="${SCRIPTDIR}/${SCRIPTNAME}.env"
 echo "====================================================" >> ${ENVFILE}
 echo "Environment relevant to ${SCRIPTNAME}.sh script: " >> ${ENVFILE}
@@ -27,9 +26,9 @@ echo "====================================================" >> ${ENVFILE}
 logger "${SCRIPTNAME}: INSTANTIATION Script"
 
 logger "${SCRIPTNAME}: Hostname: ${hostname}"
-logger "${SCRIPTNAME}: Hostname: ${wan1iface}"
-logger "${SCRIPTNAME}: Hostname: ${wan2iface}"
-logger "${SCRIPTNAME}: Hostname: ${laniface}"
+logger "${SCRIPTNAME}: wan1iface: ${wan1iface}"
+logger "${SCRIPTNAME}: wan2iface: ${wan2iface}"
+logger "${SCRIPTNAME}: laniface: ${laniface}"
 logger "${SCRIPTNAME}: Data Port: ${portdata}" 
 logger "${SCRIPTNAME}: CallP Port: ${portcallp}" 
 logger "${SCRIPTNAME}: Internal VLD: ${vldinternal}" 
@@ -115,10 +114,11 @@ if [ -z "${wan1iface}" ]; then
       logger "${SCRIPTNAME}:ERROR:Unable to find an appropriate interface for DVN traffic."
       exit 1
    fi  
-elif [ ${wan1iface} == "lo" ]; then
+elif [ "${wan1iface}" == "lo" ]; then
    logger "${SCRIPTNAME}:ERROR:Invalid loopback interface specified in wan1iface."
    exit 1
 else
+   logger "${SCRIPTNAME}:INFO:wan1iface set to: ${wan1face}."
    # Check the wan1iface and make sure it really exists.
    # If we have specified it properly in the descriptor it sure as hell should be. If it is not
    # we have a major problem. We could confer with the kernel but ip link does the job just fine.
@@ -158,6 +158,8 @@ else
    fi
 fi
 
+logger "${SCRIPTNAME}:DEBUG:DEBUG POINT 1 TO BE REMOVED"
+
 # Now that we know we have a valid WAN IP address and that it is indeed the default nic, we can
 # do a quick check to make sure it is a valid IP passed in from orchestrator and assigned to a VNFC.
 # It should be. If it passes THIS test, we can use this as our unique identifying ip address for 
@@ -193,13 +195,13 @@ for IP in `ip -4 a show ${wan1iface} | grep -oP '(?<=inet\s)\d+(\.\d+){3}'`; do
       exit 1
    fi
 done
+logger "${SCRIPTNAME}:DEBUG:DEBUG POINT 2 TO BE REMOVED"
 
-if [ ${MYIP} == "127.0.0.1" ]; then
+if [ "${MYIP}" == "127.0.0.1" ]; then
    logger "${SCRIPTNAME}:ERROR: No IP Address assigned to interface: ${wan1iface}."
    exit 1
-else
-   logger "${SCRIPTNAME}:INFO: The IP Address assigned to wan1iface is: ${MYIP}."
 fi
+
 if [ ${VNFC} == "local" ]; then
    logger "${SCRIPTNAME}:ERROR: IP Address ${MYIP} not assigned to recognizable VNFC."
    exit 1
