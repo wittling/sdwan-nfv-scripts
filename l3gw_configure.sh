@@ -22,8 +22,8 @@ SCRIPTNAME="l3gw_configure"
 SCRIPTDIR="/opt/openbaton/scripts"
 
 if [ ! -d "${SCRIPTDIR}" ]; then
-   logger "${SCRIPTNAME}:ERROR:Directory Not Found:${SCRIPTDIR}" 
-   exit 1
+   logger "${SCRIPTNAME}:ERROR:Directory Not Found:${SCRIPTDIR}. Using ${PWD}".
+   SCRIPTDIR=${PWD}
 fi
 
 ENVFILE="${SCRIPTDIR}/${SCRIPTNAME}.env"
@@ -46,14 +46,13 @@ logger "${SCRIPTNAME}:INFO: I will be sending callp on port: ${l3gw_portcallp}"
 logger "${SCRIPTNAME}:INFO: My WAN 1 Interface is: ${l3gw_wan1iface}" 
 logger "${SCRIPTNAME}:INFO: My WAN 2 Interface is: ${l3gw_wan2iface}" 
 logger "${SCRIPTNAME}:INFO: My LAN Interface is: ${l3gw_laniface}" 
+logger "${SCRIPTNAME}:INFO: My VLD Interface for internal network is: ${l3gw_vldext1}" 
 logger "${SCRIPTNAME}:INFO: My VLD Interface for internal network is: ${l3gw_vldinternal}" 
 logger "${SCRIPTNAME}:INFO: The Service Group I will attempt to use is: ${l3gw_svcgrp}" 
 logger "${SCRIPTNAME}:INFO: The Service Type I will attempt to provision is: ${l3gw_svctyp}" 
 logger "${SCRIPTNAME}:INFO: The Service ID I will attempt to provision is: ${l3gw_svcid}" 
 logger "${SCRIPTNAME}:INFO: The VLAN Id I will attempt to provision is: ${l3gw_vlanid}" 
 logger "${SCRIPTNAME}:INFO: The dvn identifier value is: ${l3gw_dvnidentifier}" 
-
-L3GW_VARPREFIX=l3gw_
 
 # export the variables
 export dsxnet
@@ -105,15 +104,21 @@ function valid_ip()
    return $rc 
 }
 
+# originally this would look for all VLD IP addresses.
+# modified so that a specific VLD can be passed in which helps us avoid getting
+# and setting the wrong IP address.
 function findmyip()
 {
    local rc=1
+   L3GW_VARPREFIX=l3gw_
+
    # grab all of the env var values related to the deflect element that orchestrator passes in.
-   for var in `env | grep -i "${L3GW_VARPREFIX}" | cut -f 2 -d "="`; do
+   #for var in `env | grep -i "${L3GW_VARPREFIX}" | cut -f 2 -d "="`; do
+   for var in `env | grep -i "${L3GW_VARPREFIX}" | grep $1 | cut -f 2 -d "="`; do
       # one will be the IP Address. we need to figure out which. w
       # we would not know unless we knew what network was specified in the descriptor.
       if valid_ip ${var}; then
-         L3GW_IP=${var}
+         echo ${var}
          rc=0
          break
       fi
@@ -121,14 +126,21 @@ function findmyip()
    return $rc
 }
 
-# findmyip
-if valid_ip ${l3gw_dvnidentifier}; then
-   L3GW_IP=${l3gw_dvnidentifier}
+# we discovered in testing that the modified value of dvnidentified modified in INSTANTIATE script
+# did not get passed in and we only got the original descriptor value. unless this is fixed by 
+# open baton team we have to do something else.
+#
+#if valid_ip ${l3gw_dvnidentifier}; then
+#  L3GW_IP=${l3gw_dvnidentifier}
+WAN1IP=$(findmyip ${l3gw_vldext1})
+if [ $? -eq 0 ]; then
+   logger "${SCRIPTNAME}:INFO: IP Address located for VLD ${l3gw_vldext1}: ${WAN1IP}."
    # We probably need to consider using all octets if we are going to this.
-   NODENUM=`echo ${L3GW_IP} | cut -f3-4 -d "." | sed 's+\.+DT+'`
+   NODENUM=`echo ${WAN1IP} | cut -f3-4 -d "." | sed 's+\.+DT+'`
    export VTCNAME=OPNBTN${NODENUM}
 else
-   logger "${SCRIPTNAME}:ERROR: Invalid IP Address on variabl dvnidentifier: ${l3gw_dvnidentifier}."
+   #logger "${SCRIPTNAME}:ERROR: Invalid IP Address on var dvnidentifier: ${l3gw_dvnidentifier}."
+   logger "${SCRIPTNAME}:ERROR: No IP Address located for VLD: ${l3gw_vldext1}."
    exit 1
 fi
 
