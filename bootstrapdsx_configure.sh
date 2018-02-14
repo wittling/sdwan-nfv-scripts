@@ -23,7 +23,7 @@ if [ ! -d ${SCRIPTDIR} ]; then
    SCRIPTDIR=${PWD}
 fi
 
-ENVFILE="${SCRIPTDIR}/${SCRIPTNAME}.env"
+ENVFILE="${SCRIPTDIR}/${SCRIPTNAME}.env.$$"
 logger "${SCRIPTNAME}:INFO:Dumping environment to ${ENVFILE}!"
 env > ${ENVFILE}
 

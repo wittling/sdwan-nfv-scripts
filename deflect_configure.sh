@@ -13,15 +13,24 @@
 #==============================================================================
 #env
 #set -x
-SCRIPTNAME=${SCRIPTNAME}
+SCRIPTNAME="deflect_configure"
+logger "${SCRIPTNAME}:INFO:Configure LifeCycle Event Triggered!"
 
+SCRIPTDIR="/opt/openbaton/scripts"
+if [ ! -d "${SCRIPTDIR}" ]; then
+logger "${SCRIPTNAME}:ERROR:Directory Not Found:${SCRIPTDIR}. Using ${PWD}".
+SCRIPTDIR=${PWD}
+fi
+
+ENVFILE="${SCRIPTDIR}/${SCRIPTNAME}.env.$$"
+logger "${SCRIPTNAME}:INFO:Dumping environment to ${ENVFILE}!"
 # Print env out so we can see what is getting passed into us from orchestrator.
-ENVOUT="/opt/openbaton/scripts/${SCRIPTNAME}.env"
-echo "====================================================" >> ${ENVOUT}
-echo "Environment relevant to ${SCRIPTNAME}.sh script: " >> ${ENVOUT}
-env >> ${ENVOUT}
-echo "" >> ${ENVOUT}
-echo "====================================================" >> ${ENVOUT}
+echo "====================================================" >> ${ENVFILE}
+echo "Environment relevant to ${SCRIPTNAME}.sh script: " >> ${ENVFILE}
+env >> ${ENVFILE}
+echo "" >> ${ENVFILE}
+echo "====================================================" >> ${ENVFILE}
+
 
 # It appears that this script gets cranked for every deflect that comes up.
 # If this is in fact how the orchestrator is doing this, we can take advantage of this

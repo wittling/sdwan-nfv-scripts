@@ -16,11 +16,10 @@
 # If this is in fact how the orchestrator is doing this, we can take advantage of this
 # by making RESTful API calls to provision each one at their time of instantiation.
 
+SCRIPTNAME="l3gw_configure"
 logger "${SCRIPTNAME}:INFO:Configure LifeCycle Event Triggered!"
 
-SCRIPTNAME="l3gw_configure"
 SCRIPTDIR="/opt/openbaton/scripts"
-
 if [ ! -d "${SCRIPTDIR}" ]; then
    logger "${SCRIPTNAME}:ERROR:Directory Not Found:${SCRIPTDIR}. Using ${PWD}".
    SCRIPTDIR=${PWD}
@@ -115,9 +114,12 @@ function findmyip()
    local rc=1
    L3GW_VARPREFIX=l3gw_
 
+   logger "${SCRIPTNAME}:DEBUG: Function findmyip: arg: ${1}."
+   SRCHSTR="${L3GW_VARPREFIX}$1"
+   logger "${SCRIPTNAME}:DEBUG: SRCHSTR: ${SRCHSTR}."
    # grab all of the env var values related to the deflect element that orchestrator passes in.
    #for var in `env | grep -i "${L3GW_VARPREFIX}" | cut -f 2 -d "="`; do
-   for var in `env | grep -i "${L3GW_VARPREFIX}" | grep $1 | cut -f 2 -d "="`; do
+   for var in `env | grep -i "${SRCHSTR}" | cut -f 2 -d "="`; do
       # one will be the IP Address. we need to figure out which. w
       # we would not know unless we knew what network was specified in the descriptor.
       if valid_ip ${var}; then
