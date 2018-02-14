@@ -34,6 +34,7 @@ logger "${SCRIPTNAME}:INFO: wan2iface: ${wan2iface}"
 logger "${SCRIPTNAME}:INFO: laniface: ${laniface}"
 logger "${SCRIPTNAME}:INFO: Data Port: ${portdata}" 
 logger "${SCRIPTNAME}:INFO: CallP Port: ${portcallp}" 
+logger "${SCRIPTNAME}:INFO: External1 VLD: ${vldext1}" 
 logger "${SCRIPTNAME}:INFO: Internal VLD: ${vldinternal}" 
 logger "${SCRIPTNAME}:INFO: Service Type: ${svctyp}" 
 logger "${SCRIPTNAME}:INFO: Service ID: ${svcid}" 
@@ -211,6 +212,10 @@ if [ ${VNFC} == "local" ]; then
    exit 1
 else
    logger "${SCRIPTNAME}:INFO: IP Address ${MYIP} assigned to VNFC: ${VNFC}."
+   # ACHTUNG - I have discovered that we cannot update these parameters such that dependent
+   # VNFs or even this same VNF can see the updated values.
+   # I am in discussions with OB team about this topic. For now we will set this incorrectly
+   # but we will not use it until and unless this is fixed. -- Wittling
    logger "${SCRIPTNAME}:INFO: dvnidentifier being initialized to: ${MYIP}."
    export dvnidentifier=${MYIP}
 fi
