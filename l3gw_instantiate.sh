@@ -67,10 +67,10 @@ function ipAssignedToVNFC
       for LINE in `env`; do
          SRCH=`echo ${LINE} | grep ${IP}`
          if [ $? -eq 0 ]; then
-            logger "${SCRIPTNAME}.sh:DEBUG: Found IP ${IP} set to ${LINE}."
+            # logger "${SCRIPTNAME}.sh:DEBUG: Found IP ${IP} set to ${LINE}."
             NTWK=`echo ${SRCH} | cut -f 1 -d "="`
             if [ $? -eq 0 ]; then
-               logger "${SCRIPTNAME}.sh:DEBUG: IP assigned to VNFC ${NTWK}."
+               # logger "${SCRIPTNAME}.sh:DEBUG: IP assigned to VNFC ${NTWK}."
                rc=0
                echo ${NTWK}
             else
@@ -156,7 +156,7 @@ else
             fi  
          fi 
       else
-         logger "${SCRIPTNAME}:ERROR:Could not find interface opertate file to determine interface status."
+         logger "${SCRIPTNAME}:ERROR:Could not find interface operstate file to determine interface status."
          exit 1
       fi
    else
@@ -164,8 +164,6 @@ else
       exit 1
    fi
 fi
-
-logger "${SCRIPTNAME}:DEBUG:DEBUG POINT 1 TO BE REMOVED"
 
 # Now that we know we have a valid WAN IP address and that it is indeed the default nic, we can
 # do a quick check to make sure it is a valid IP passed in from orchestrator and assigned to a VNFC.
@@ -202,7 +200,6 @@ for IP in `ip -4 a show ${wan1iface} | grep -oP '(?<=inet\s)\d+(\.\d+){3}'`; do
       exit 1
    fi
 done
-logger "${SCRIPTNAME}:DEBUG:DEBUG POINT 2 TO BE REMOVED"
 
 if [ "${MYIP}" == "127.0.0.1" ]; then
    logger "${SCRIPTNAME}:ERROR: No IP Address assigned to interface: ${wan1iface}."
@@ -215,25 +212,24 @@ if [ ${VNFC} == "local" ]; then
 else
    logger "${SCRIPTNAME}:INFO: IP Address ${MYIP} assigned to VNFC: ${VNFC}."
    logger "${SCRIPTNAME}:INFO: dvnidentifier being initialized to: ${MYIP}."
-   dvnidentifier=${MYIP}
-   export dvnidentifier
+   export dvnidentifier=${MYIP}
 fi
 
-logger "${SCRIPTNAME}: INFO: A process is resetting the sysctl.conf file." 
-logger "${SCRIPTNAME}: INFO: We will attempt to set the socket buffer receive parm here."
-logger "${SCRIPTNAME}: INFO: This will alleviate an alarm that complains about this parm being set too low."
+logger "${SCRIPTNAME}:INFO: A process is resetting the sysctl.conf file." 
+logger "${SCRIPTNAME}:INFO: We will attempt to set the socket buffer receive parm here."
+logger "${SCRIPTNAME}:INFO: This will alleviate an alarm that complains about this parm being set too low."
 
 # Obviously we need to be running this script as root to do this. Fortunately we are.
 PARMPATH='/proc/sys/net/core/rmem_max'
 echo 'net.core.rmem_max=2048000' >> /etc/sysctl.conf
 sysctl -p 
 if [ $? -eq 0 ]; then
-   logger "${SCRIPTNAME}: INFO: Call to sysctl appears to be successful."
-   logger "${SCRIPTNAME}: INFO: Verifying Socket Buffer Receive Parameter."
+   logger "${SCRIPTNAME}:INFO: Call to sysctl appears to be successful."
+   logger "${SCRIPTNAME}:INFO: Verifying Socket Buffer Receive Parameter."
    echo "Socket Buffer Receive Parm rmem_max is now: `cat ${PARMPATH}`" | logger
 else
-   logger "${SCRIPTNAME}: WARN: Call to sysctl appears to have failed."
-   logger "${SCRIPTNAME}: WARN: Please set net.core.rmem_max parameter to 2048000 manually to avoid alarm."
+   logger "${SCRIPTNAME}:WARN: Call to sysctl appears to have failed."
+   logger "${SCRIPTNAME}:WARN: Please set net.core.rmem_max parameter to 2048000 manually to avoid alarm."
 fi
 
 # In case dvn is autostarted we will stop it until it is
