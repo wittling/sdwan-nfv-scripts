@@ -26,19 +26,19 @@ logger "${SCRIPTNAME}:INFO:Dumping environment to ${ENVFILE}!"
 env >> ${ENVFILE}
 echo "====================================================" >> ${ENVFILE}
 
-logger "${SCRIPTNAME}: INSTANTIATION Script"
+logger "${SCRIPTNAME}:INFO: INSTANTIATION Script"
 
-logger "${SCRIPTNAME}: Hostname: ${hostname}"
-logger "${SCRIPTNAME}: wan1iface: ${wan1iface}"
-logger "${SCRIPTNAME}: wan2iface: ${wan2iface}"
-logger "${SCRIPTNAME}: laniface: ${laniface}"
-logger "${SCRIPTNAME}: Data Port: ${portdata}" 
-logger "${SCRIPTNAME}: CallP Port: ${portcallp}" 
-logger "${SCRIPTNAME}: Internal VLD: ${vldinternal}" 
-logger "${SCRIPTNAME}: Service Type: ${svctyp}" 
-logger "${SCRIPTNAME}: Service ID: ${svcid}" 
-logger "${SCRIPTNAME}: VLAN ID: ${vlanid}" 
-logger "${SCRIPTNAME}: DVN Identifier (initialized to loopback): ${dvnidentifier}" 
+logger "${SCRIPTNAME}:INFO: Hostname: ${hostname}"
+logger "${SCRIPTNAME}:INFO: wan1iface: ${wan1iface}"
+logger "${SCRIPTNAME}:INFO: wan2iface: ${wan2iface}"
+logger "${SCRIPTNAME}:INFO: laniface: ${laniface}"
+logger "${SCRIPTNAME}:INFO: Data Port: ${portdata}" 
+logger "${SCRIPTNAME}:INFO: CallP Port: ${portcallp}" 
+logger "${SCRIPTNAME}:INFO: Internal VLD: ${vldinternal}" 
+logger "${SCRIPTNAME}:INFO: Service Type: ${svctyp}" 
+logger "${SCRIPTNAME}:INFO: Service ID: ${svcid}" 
+logger "${SCRIPTNAME}:INFO: VLAN ID: ${vlanid}" 
+logger "${SCRIPTNAME}: INFO:DVN Identifier (initialized to loopback): ${dvnidentifier}" 
 
 function getDefaultNic()
 {
@@ -121,20 +121,20 @@ elif [ "${wan1iface}" == "lo" ]; then
    logger "${SCRIPTNAME}:ERROR:Invalid loopback interface specified in wan1iface."
    exit 1
 else
-   logger "${SCRIPTNAME}:INFO:wan1iface set to: ${wan1face}."
+   logger "${SCRIPTNAME}:INFO:wan1iface set to: ${wan1iface}."
    # Check the wan1iface and make sure it really exists.
    # If we have specified it properly in the descriptor it sure as hell should be. If it is not
    # we have a major problem. We could confer with the kernel but ip link does the job just fine.
    ip link show ${wan1iface}
    if [ $? -eq 0 ]; then
-      logger "${SCRIPTNAME}:INFO:wan1iface: ${wan1face} is a valid interface."
+      logger "${SCRIPTNAME}:INFO:wan1iface: ${wan1iface} is a valid interface."
       # Is the interface up?
       KRNLSTFL=`find /sys/devices -name operstate | grep ${wan1iface}`
       if [ $? -eq 0 -a -f ${KRNLSTFL} ]; then
          OPRST=`cat ${KRNLSTFL}`
-         logger "${SCRIPTNAME}:INFO: ${wan1face} link status from kernel is ${OPRST}."
+         logger "${SCRIPTNAME}:INFO: ${wan1iface} link status from kernel is ${OPRST}."
          if [ ${OPRST} != "up" -a ${OPRST} != "UP" -a ${OPRST} != "Up" ]; then
-            logger "${SCRIPTNAME}:ERROR: ${wan1face} link status is not up: ${OPRST}."
+            logger "${SCRIPTNAME}:ERROR: ${wan1iface} link status is not up: ${OPRST}."
             # Yes we could get really cute and manage the interface and try to set link state up and so on.
             # But again, if we are in situations where we cannot find interfaces or the states are not 
             # initialized properly we are kind of in deep shit and need to just bail out.
