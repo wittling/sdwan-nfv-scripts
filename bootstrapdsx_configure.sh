@@ -12,17 +12,41 @@
 # If this is in fact how the orchestrator is doing this, we can take advantage of this
 # by making RESTful API calls to provision each one at their time of instantiation.
 #==============================================================================
-
-SCRIPTNAME="bootstrapdsx_configure"
-SCRIPTDIR="/opt/openbaton/scripts"
 #env
 #set -x
-
+SCRIPTNAME="bootstrapdsx_configure"
 logger "${SCRIPTNAME}:INFO:Configure LifeCycle Event Triggered!"
+
+SCRIPTDIR="/opt/openbaton/scripts"
+if [ ! -d ${SCRIPTDIR} ]; then
+   logger "${SCRIPTNAME}:WARN:Directory Not Found. Setting SCRIPTDIR to:${SCRIPTDIR}."
+   SCRIPTDIR=${PWD}
+fi
 
 ENVFILE="${SCRIPTDIR}/${SCRIPTNAME}.env"
 logger "${SCRIPTNAME}:INFO:Dumping environment to ${ENVFILE}!"
 env > ${ENVFILE}
+
+logger "${SCRIPTNAME}:INFO: Greetings! I am your Bootstrap DSX reporting in."
+logger "${SCRIPTNAME}:INFO: My Bootstrap DSX IP Address is: ${bootstrapdsx_dsxnet}."
+logger "${SCRIPTNAME}:INFO: My Bootstrap DSX Control Plane Interface is: ${bootstrapdsx_ifacectlplane}"
+logger "${SCRIPTNAME}:INFO: My Bootstrap DSX Registration Port is: ${bootstrapdsx_portreg}"
+logger "${SCRIPTNAME}:INFO: My Bootstrap DSX REST Port is: ${bootstrapdsx_portra}"
+logger "${SCRIPTNAME}:INFO: My default Service Group I will initialize is: ${bootstrapdsx_svcgroup}"
+logger "${SCRIPTNAME}:INFO: My default Service Group type I will initialize is: ${bootstrapdsx_svcgrptyp}"
+
+logger "${SCRIPTNAME}:INFO: The DVN Identifier value is: ${dvnidentifier}"
+
+# export these.
+export hostname
+export dvnidentifier
+
+export bootstrapdsx_dsxnet
+export bootstrapdsx_ifacectlplane
+export bootstrapdsx_portreg
+export bootstrapdsx_portra
+export bootstrapdsx_svcgroup
+export bootstrapdsx_svcgrptyp
 
 # Originally we wanted to just swap an IP address and used sed as the way to do this. It did not
 # take long before we had more parameters and quickly figured out that sed was NOT the way to edit
