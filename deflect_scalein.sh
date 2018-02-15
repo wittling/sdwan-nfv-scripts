@@ -149,7 +149,7 @@ fi
 # We know the IP of the element being scaled in. But we do not know its name. Actually we DO
 # know its name. Now. But we did not know it at spin up event so we had to use a convention to
 # name it. So we have to reverse into that convention to deprovision it.
-NODENUM=`echo ${removing_dflnet} | cut -f2-4 -d "." | sed 's+\.+x+'`
+NODENUM=`echo ${removing_dflnet} | cut -f1-4 -d "." | sed 's+\.+x+g'`
 if [ $? -ne 0 ]; then
    logger
    exit 1
@@ -163,7 +163,7 @@ do
    elif [ $element -eq "deflect" ]; then
       export NODENAME=DFL${NODENUM}
    elif [ $element -eq "rxtxnode" ]; then
-      export NODENAME=OPNBTN${NODENUM}
+      export NODENAME=OB${NODENUM}
    fi
 
    deprovElement $element ${NODENAME}

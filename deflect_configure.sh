@@ -108,7 +108,7 @@ function findmyip()
 findmyip
 if [ $? -eq 0 ]; then
    logger "${SCRIPTNAME}:INFO: IP Address discovered as: ${DFL_IP}."
-   NODENUM=`echo ${DFL_IP} | cut -f2-4 -d "." | sed 's+\.+x+'`
+   NODENUM=`echo ${DFL_IP} | cut -f1-4 -d "." | sed 's+\.+x+g'`
    export VTCNAME=OB${NODENUM}
 else
    logger "${SCRIPTNAME}:ERROR: Unable to determine NODENUM based on IP. Exiting."

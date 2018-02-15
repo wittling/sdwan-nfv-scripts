@@ -50,8 +50,6 @@ logger "${SCRIPTNAME}:INFO: The vlanid value is: ${vlanid}"
 logger "${SCRIPTNAME}:INFO: The external network hint is: ${xtrnlhint}"
 logger "${SCRIPTNAME}:INFO: The internal network hint is: ${ntrnlhint}"
 
-exit 0
-
 # export these.
 export hostname
 export wan1iface
@@ -366,7 +364,7 @@ for IP in `ip -4 a show ${ifacetraffic} | grep -oP '(?<=inet\s)\d+(\.\d+){3}'`; 
    fi
 done
 
-NODENUM=`echo ${MYIP} | cut -f2-4 -d "." | sed 's+\.+x+'`
+NODENUM=`echo ${MYIP} | cut -f1-4 -d "." | sed 's+\.+x+g'`
 if [ $? -eq 0 ]; then
    export VTCNAME=OB${NODENUM}
 else

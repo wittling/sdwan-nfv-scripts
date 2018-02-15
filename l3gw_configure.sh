@@ -139,7 +139,7 @@ else
    exit 1
 fi
 
-NODENUM=`echo ${WAN1IP} | cut -f2-4 -d "." | sed 's+\.+x+'`
+NODENUM=`echo ${WAN1IP} | cut -f1-4 -d "." | sed 's+\.+x+g'`
 if [ $? -eq 0 ]; then
    export VTCNAME=OB${NODENUM}
 else

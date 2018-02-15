@@ -15,16 +15,23 @@
 # this script should work with python 2 or python 3. But we check first to make sure python is
 # installed before proceeding.
 #==============================================================================
-SCRIPTNAME="${SCRIPTNAME}"
-SCRIPTDIR="/opt/openbaton/scripts"
 #env
 #set -x
-
+SCRIPTNAME="bootstrapdsx_instantiate"
+SCRIPTDIR="/opt/openbaton/scripts"
 logger "${SCRIPTNAME}: INFO:Instantiate LifeCycle Event Triggered!"
 
-ENVFILE="${SCRIPTDIR}/${SCRIPTNAME}.env"
-logger "${SCRIPTNAME}: INFO:Dumping environment to ${ENVFILE}!"
-env > ${ENVFILE}
+SCRIPTDIR="/opt/openbaton/scripts"
+if [ ! -d ${SCRIPTDIR} ]; then
+   SCRIPTDIR=${PWD}
+fi
+
+ENVFILE="${SCRIPTDIR}/${SCRIPTNAME}.env.$$"
+logger "${SCRIPTNAME}:INFO:Dumping environment to ${ENVFILE}!"
+echo "====================================================" >> ${ENVFILE}
+echo "Environment relevant to ${SCRIPTNAME}.sh script: " >> ${ENVFILE}
+env >> ${ENVFILE}
+echo "====================================================" >> ${ENVFILE}
 
 function jsonParmSwap
 {
