@@ -19,10 +19,11 @@ SCRIPTDIR="/opt/openbaton/scripts"
 if [ ! -d ${SCRIPTDIR} ]; then
    SCRIPTDIR=${PWD}
 fi
+
 ENVFILE="${SCRIPTDIR}/${SCRIPTNAME}.env.$$"
+logger "${SCRIPTNAME}:INFO:Dumping environment to ${ENVFILE}!"
 echo "====================================================" >> ${ENVFILE}
 echo "Environment relevant to ${SCRIPTNAME}.sh script: " >> ${ENVFILE}
-logger "${SCRIPTNAME}:INFO:Dumping environment to ${ENVFILE}!"
 env >> ${ENVFILE}
 echo "====================================================" >> ${ENVFILE}
 

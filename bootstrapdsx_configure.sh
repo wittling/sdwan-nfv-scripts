@@ -25,7 +25,10 @@ fi
 
 ENVFILE="${SCRIPTDIR}/${SCRIPTNAME}.env.$$"
 logger "${SCRIPTNAME}:INFO:Dumping environment to ${ENVFILE}!"
-env > ${ENVFILE}
+echo "====================================================" >> ${ENVFILE}
+echo "Environment relevant to ${SCRIPTNAME}.sh script: " >> ${ENVFILE}
+env | sort >> ${ENVFILE}
+echo "====================================================" >> ${ENVFILE}
 
 logger "${SCRIPTNAME}:INFO: Greetings! I am your Bootstrap DSX reporting in."
 logger "${SCRIPTNAME}:INFO: My Bootstrap DSX IP Address is: ${bootstrapdsx_dsxnet}."
@@ -47,6 +50,8 @@ logger "${SCRIPTNAME}:INFO: The svctyp value is: ${svctyp}"
 logger "${SCRIPTNAME}:INFO: The svcid value is: ${svcid}"
 logger "${SCRIPTNAME}:INFO: The vlanid value is: ${vlanid}"
 logger "${SCRIPTNAME}:INFO: The DVN Identifier value is: ${dvnidentifier}"
+
+exit 0
 
 # export these.
 export hostname
