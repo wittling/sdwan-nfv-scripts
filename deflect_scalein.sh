@@ -15,32 +15,29 @@
 #set -x
 
 SCRIPTNAME="deflect_scalein"
-SCRIPTDIR="/opt/openbaton/scripts"
-
 logger "${SCRIPTNAME}:INFO:SCALE_IN LifeCycle Event Triggered!"
 
-ENVFILE="${SCRIPTDIR}/${SCRIPTNAME}.env"
+SCRIPTDIR="/opt/openbaton/scripts"
+if [ ! -d "${SCRIPTDIR}" ]; then
+   logger "${SCRIPTNAME}:ERROR:Directory Not Found:${SCRIPTDIR}. Using ${PWD}".
+   SCRIPTDIR=${PWD}
+fi
+
+ENVFILE="${SCRIPTDIR}/${SCRIPTNAME}.env.$$"
 logger "${SCRIPTNAME}:INFO:Dumping environment to ${ENVFILE}!"
-env > ${ENVFILE}
+# Print env out so we can see what is getting passed into us from orchestrator.
+echo "====================================================" >> ${ENVFILE}
+echo "Environment relevant to ${SCRIPTNAME}.sh script: " >> ${ENVFILE}
+env >> ${ENVFILE}
+echo "" >> ${ENVFILE}
+echo "====================================================" >> ${ENVFILE}
 
 RESTCLTDIR="/usr/local/dart-rest-client/local-client-projects"
 
-logger "deflect_scalein: Greetings Bootstrap DSX! I am a Deflect."
-logger "deflect_scalein: My Deflect IP Address is: ${deflect_dflnet}" 
-logger "deflect_scalein: I see your IP Address is: ${dsxnet}"
-logger "deflect_scalein: It appears you will be using the ctl plane interface: ${ifacectlplane}" 
-logger "deflect_scalein: I will be sending data on port: ${deflect_portdata}" 
-logger "deflect_scalein: I will be sending callp on port: ${deflect_portcallp}" 
-logger "deflect_scalein: I will be using svc group and deflect pool: ${svcgroup}" 
-logger "deflect_scalein: Hostname being scaled in is: ${removing_hostname}"
-logger "deflect_scalein: IP being scaled in is: ${removing_dflnet}"
+logger "${SCRIPTNAME}: Hostname being scaled in is: ${removing_hostname}"
+logger "${SCRIPTNAME}: IP being scaled in is: ${removing_dflnet}"
 
 # export the variables
-export hostname
-export deflect_dflnet
-export deflect_portdata
-export deflect_portcallp
-export svcgroup
 export removing_hostname
 export removing_dflnet
 
@@ -53,16 +50,16 @@ function adjustPool
       fi
 
       # Consider using svcgroup here. Check env to make sure it is being passed in.
-      logger "deflect_scalein: INFO: Attempting to scale in the deflect pool target min and max."
+      logger "${SCRIPTNAME}: INFO: Attempting to scale in the deflect pool target min and max."
       (python3 ${CLASSFILE}.py ${svcgroup} 1>${CLASSFILE}.py.log 2>&1)
       if [ $? -eq 0 ]; then
-         logger "deflect_scalein:INFO: Deflect Pool Size Adjusted to reflect removal of: ${removing_hostname}."
+         logger "${SCRIPTNAME}:INFO: Deflect Pool Size Adjusted to reflect removal of: ${removing_hostname}."
       else
-         logger "deflect_scalein:ERROR: Error in attempt to adjust deflect pool size."
+         logger "${SCRIPTNAME}:ERROR: Error in attempt to adjust deflect pool size."
          return 1
       fi
    else
-      logger "deflect_scalein:ERROR: FileNotExists: ${CLASSFILE}"
+      logger "${SCRIPTNAME}:ERROR: FileNotExists: ${CLASSFILE}"
       return 1
    fi
    return 0
@@ -71,19 +68,19 @@ function adjustPool
 function deprovElement
 {
    if [ -z $1 ]; then
-      logger "deflect_scalein:removeDartElement:ERROR:Invalid or NoneExistant Argument: Arg1:Element"
+      logger "${SCRIPTNAME}:removeDartElement:ERROR:Invalid or NoneExistant Argument: Arg1:Element"
       return 1
    fi
 
    if [ -z $2 ]; then
-      logger "deflect_scalein:removeDartElement:ERROR:Invalid or NoneExistant Argument: Arg2:Variable"
+      logger "${SCRIPTNAME}:removeDartElement:ERROR:Invalid or NoneExistant Argument: Arg2:Variable"
       return 1
    fi
 
    CLASSFILE=$1
    ID=$2
    if [ ! -f ${CLASSFILE}.py ]; then
-      logger "deflect_scalein:ERROR: FileNotExists: ${CLASSFILE}"
+      logger "${SCRIPTNAME}:ERROR: FileNotExists: ${CLASSFILE}"
       return 1
    fi
 
@@ -92,7 +89,7 @@ function deprovElement
    fi
 
    # Consider using svcgroup here. Check env to make sure it is being passed in.
-   logger "deflect_scalein: INFO: Attempting to call Python Script: ${CLASSFILE} with arg $2."
+   logger "${SCRIPTNAME}: INFO: Attempting to call Python Script: ${CLASSFILE} with arg $2."
    if [ $1 == "callp" ]; then
       (python3 ${CLASSFILE}.py --operation deprovision --callpid ${ID} 1>${CLASSFILE}.py.log 2>&1)
    elif [ $1 == "deflect" ]; then
@@ -100,29 +97,28 @@ function deprovElement
    elif [ $1 == "rxtxnode" ]; then
       (python3 ${CLASSFILE}.py --operation deprovision --nodeid ${ID} 1>${CLASSFILE}.py.log 2>&1)
    else
-      logger "deflect_scalein:ERROR:deprovElement:Unrecognized element."
+      logger "${SCRIPTNAME}:ERROR:deprovElement:Unrecognized element."
       return 1
    fi
 
    if [ $? -eq 0 ]; then
-      logger "deflect_scalein:INFO: Successful return code calling ${CLASSFILE} deprov operation:ID $2."
+      logger "${SCRIPTNAME}:INFO: Successful return code calling ${CLASSFILE} deprov operation:ID $2."
    else
-      logger "deflect_scalein:ERROR: Error calling: ${CLASSFILE} deprov operation:ID $2:Code  is: $?"
+      logger "${SCRIPTNAME}:ERROR: Error calling: ${CLASSFILE} deprov operation:ID $2:Code  is: $?"
       return 1
    fi
    return 0
 }
 
-
-logger "deflect_scalein:INFO: Attempting to provision VTC via REST interface"
+logger "${SCRIPTNAME}:INFO: Attempting to provision VTC via REST interface"
 python3 -V
 if [ $? -ne 0 ]; then
-   logger "deflect_scalein:ERROR: FileNotExists: Python3 Not Installed"
+   logger "${SCRIPTNAME}:ERROR: FileNotExists: Python3 Not Installed"
    exit 1
 fi
 
 if [ ! -d ${RESTCLTDIR} ]; then
-   logger "deflect_scalein:ERROR: DirNotExists: ${RSTCLTDIR}"
+   logger "${SCRIPTNAME}:ERROR: DirNotExists: ${RSTCLTDIR}"
    exit 1
 fi
 
@@ -130,10 +126,10 @@ pushd ${RESTCLTDIR}
 
 DVNRESTENV=".dvnrestenv"
 if [ -f ${DVNRESTENV} ]; then
-   logger "deflect_scalein:INFO: Sourcing rest environment..."
+   logger "${SCRIPTNAME}:INFO: Sourcing rest environment..."
    source "${DVNRESTENV}"
 else
-   logger "deflect_scalein:ERROR: Error Sourcing rest environment. File Not Found: ${DVNRESTENV}."
+   logger "${SCRIPTNAME}:ERROR: Error Sourcing rest environment. File Not Found: ${DVNRESTENV}."
    popd
    exit 1
 fi
@@ -153,7 +149,12 @@ fi
 # We know the IP of the element being scaled in. But we do not know its name. Actually we DO
 # know its name. Now. But we did not know it at spin up event so we had to use a convention to
 # name it. So we have to reverse into that convention to deprovision it.
-NODENUM=`echo ${removing_dflnet} | cut -f3-4 -d "." | sed 's+\.+DT+'`
+NODENUM=`echo ${removing_dflnet} | cut -f2-4 -d "." | sed 's+\.+x+'`
+if [ $? -ne 0 ]; then
+   logger
+   exit 1
+fi
+
 FULLDEPROV=true
 for element in callp deflect rxtxnode
 do
@@ -167,7 +168,7 @@ do
 
    deprovElement $element ${NODENAME}
    if [ $? -ne 0 ]; then
-      logger "deflect_scalein:ERROR:Error deprovisioning ${element}."
+      logger "${SCRIPTNAME}:ERROR:Error deprovisioning ${element}."
       FULLDEPROV=false 
    fi
 done
@@ -177,7 +178,6 @@ if [ ! ${FULLDEPROV} ]; then
    exit 1
 fi
 
-
-logger "deflect_scalein:INFO: Successful implementation of deflect_scalein script. Exiting 0."
+logger "${SCRIPTNAME}:INFO: Successful implementation of deflect_scalein script. Exiting 0."
 exit 0
 #set +x

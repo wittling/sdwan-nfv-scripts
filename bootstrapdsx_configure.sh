@@ -44,12 +44,11 @@ logger "${SCRIPTNAME}:INFO: The wan2iface value is: ${wan2iface}"
 logger "${SCRIPTNAME}:INFO: The laniface value is: ${laniface}"
 logger "${SCRIPTNAME}:INFO: The port data value is: ${portdata}"
 logger "${SCRIPTNAME}:INFO: The port callp value is: ${portcallp}"
-logger "${SCRIPTNAME}:INFO: The vldext1 value is: ${vldext1}"
-logger "${SCRIPTNAME}:INFO: The vldinternal value is: ${vldinternal}"
 logger "${SCRIPTNAME}:INFO: The svctyp value is: ${svctyp}"
 logger "${SCRIPTNAME}:INFO: The svcid value is: ${svcid}"
 logger "${SCRIPTNAME}:INFO: The vlanid value is: ${vlanid}"
-logger "${SCRIPTNAME}:INFO: The DVN Identifier value is: ${dvnidentifier}"
+logger "${SCRIPTNAME}:INFO: The external network hint is: ${xtrnlhint}"
+logger "${SCRIPTNAME}:INFO: The internal network hint is: ${ntrnlhint}"
 
 exit 0
 
@@ -60,12 +59,11 @@ export wan2iface
 export laniface 
 export portdata
 export portcallp
-export vldext1
-export vldinternal
 export svctyp
 export svcid
 export vlanid
-export dvnidentifier
+export xtrnlhint
+export ntrnlhint
 
 export bootstrapdsx_dsxnet
 export bootstrapdsx_ifacectlplane
@@ -368,8 +366,13 @@ for IP in `ip -4 a show ${ifacetraffic} | grep -oP '(?<=inet\s)\d+(\.\d+){3}'`; 
    fi
 done
 
-NODENUM=`echo ${MYIP} | cut -f3-4 -d "." | sed 's+\.+DT+'`
-export VTCNAME=OPNBTN${NODENUM}
+NODENUM=`echo ${MYIP} | cut -f2-4 -d "." | sed 's+\.+x+'`
+if [ $? -eq 0 ]; then
+   export VTCNAME=OB${NODENUM}
+else
+   logger "${SCRIPTNAME}: Unable to determine NODENUM by IP Address." 
+   exit 1
+fi
 
 logger "${SCRIPTNAME}: Changing vtcname in CFG: ${VTCNAME}" 
 jsonParmSwap CFGVTCNM ${VTCNAME}
