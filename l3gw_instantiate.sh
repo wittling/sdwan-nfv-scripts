@@ -19,7 +19,7 @@ SCRIPTDIR="/opt/openbaton/scripts"
 if [ ! -d ${SCRIPTDIR} ]; then
    SCRIPTDIR=${PWD}
 fi
-ENVFILE="${SCRIPTDIR}/${SCRIPTNAME}.env"
+ENVFILE="${SCRIPTDIR}/${SCRIPTNAME}.env.$$"
 echo "====================================================" >> ${ENVFILE}
 echo "Environment relevant to ${SCRIPTNAME}.sh script: " >> ${ENVFILE}
 logger "${SCRIPTNAME}:INFO:Dumping environment to ${ENVFILE}!"
@@ -35,11 +35,15 @@ logger "${SCRIPTNAME}:INFO: laniface: ${laniface}"
 logger "${SCRIPTNAME}:INFO: Data Port: ${portdata}" 
 logger "${SCRIPTNAME}:INFO: CallP Port: ${portcallp}" 
 logger "${SCRIPTNAME}:INFO: External1 VLD: ${vldext1}" 
+logger "${SCRIPTNAME}:INFO: External1 VLD: ${gw1vldext1}" 
+logger "${SCRIPTNAME}:INFO: External1 VLD: ${gw2vldext1}" 
 logger "${SCRIPTNAME}:INFO: Internal VLD: ${vldinternal}" 
 logger "${SCRIPTNAME}:INFO: Service Type: ${svctyp}" 
 logger "${SCRIPTNAME}:INFO: Service ID: ${svcid}" 
 logger "${SCRIPTNAME}:INFO: VLAN ID: ${vlanid}" 
 logger "${SCRIPTNAME}: INFO:DVN Identifier (initialized to loopback): ${dvnidentifier}" 
+
+exit 0
 
 function getDefaultNic()
 {

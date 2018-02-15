@@ -50,13 +50,15 @@ logger "${SCRIPTNAME}:INFO: My LAN Interface is: ${l3gw_laniface}"
 logger "${SCRIPTNAME}:INFO: My VLD Interface for external network is: ${l3gw_gw1vldext1}" 
 logger "${SCRIPTNAME}:INFO: My VLD Interface for external network is: ${l3gw_gw2vldext1}" 
 # Bug with using same var in both gateways
-#logger "${SCRIPTNAME}:INFO: My VLD Interface for external network is: ${l3gw_vldext1}" 
+logger "${SCRIPTNAME}:INFO: My VLD Interface for external network is: ${l3gw_vldext1}" 
 logger "${SCRIPTNAME}:INFO: My VLD Interface for internal network is: ${l3gw_vldinternal}" 
 logger "${SCRIPTNAME}:INFO: The Service Group I will attempt to use is: ${l3gw_svcgrp}" 
 logger "${SCRIPTNAME}:INFO: The Service Type I will attempt to provision is: ${l3gw_svctyp}" 
 logger "${SCRIPTNAME}:INFO: The Service ID I will attempt to provision is: ${l3gw_svcid}" 
 logger "${SCRIPTNAME}:INFO: The VLAN Id I will attempt to provision is: ${l3gw_vlanid}" 
 logger "${SCRIPTNAME}:INFO: The dvn identifier value is: ${l3gw_dvnidentifier}" 
+
+exit 0
 
 # export the variables
 #export dsxnet
