@@ -44,8 +44,6 @@ logger "${SCRIPTNAME}:INFO: Service ID: ${svcid}"
 logger "${SCRIPTNAME}:INFO: VLAN ID: ${vlanid}" 
 logger "${SCRIPTNAME}: INFO:DVN Identifier (initialized to loopback): ${dvnidentifier}" 
 
-exit 0
-
 function getDefaultNic()
 {
     local dfltnic 
@@ -222,7 +220,10 @@ else
    # I am in discussions with OB team about this topic. For now we will set this incorrectly
    # but we will not use it until and unless this is fixed. -- Wittling
    logger "${SCRIPTNAME}:INFO: dvnidentifier being initialized to: ${MYIP}."
-   export dvnidentifier=${MYIP}
+   vldext1=${VNFC}
+   dvnidentifier=${MYIP}
+   export vldext1
+   export dvnidentifier
 fi
 
 logger "${SCRIPTNAME}:INFO: A process is resetting the sysctl.conf file." 
