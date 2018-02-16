@@ -509,19 +509,38 @@ if [[ "${PROVSUCCESS}" != true ]]; then
    exit 1
 fi
 
-logger "${SCRIPTNAME}:INFO: Provisioning Deflect Pool ${poolid} and adding to Service Group ${svcgroup}."
-(python3 deflectpool.py --operation provision --poolid ${poolid} --mnemonic ${svcgroup} --targethigh 1 --targetlow 1 --minchannels 1 --directchannels 0 --selectsize 1 --rollinterval 5 --lowbandwidth "no" 1>deflectpool.py.log.$$ 2>&1)
+logger "${SCRIPTNAME}:INFO: Provisioning Deflect Pool ${poolid}."
+(python3 deflectpool.py --operation provision --poolid ${poolid} --mnemonic ${poolid} --targethigh 1 --targetlow 1 --minchannels 1 --directchannels 0 --selectsize 1 --rollinterval 5 --lowbandwidth "no" 1>deflectpool.py.log.$$ 2>&1)
 RC=$?
 case "${RC}" in
    0) logger "${SCRIPTNAME}:INFO: Deflect Pool ${poolid} properly provisioned!"
       PROVSUCCESS=true ;;
    4) logger "${SCRIPTNAME}:INFO: Deflect Pool already provisioned (assumed correct)."
       PROVSUCCESS=true ;;
-   *) logger "${SCRIPTNAME}:ERROR: Error occured in attempt to provision Deflect Pool ${poolid}. Shell Code: $?" ;;
+   *) logger "${SCRIPTNAME}:ERROR: Error occured in attempt to provision Deflect Pool ${poolid}. Shell Code: $?" 
+   PROVSUCCESS=false ;;
 esac
 
 if [[ "${PROVSUCCESS}" != true ]]; then
    logger "${SCRIPTNAME}:ERROR: Error occured in attempt to provision Deflect Pool ${poolid}. Shell Code: $?"
+   popd
+   exit 1
+fi
+
+logger "${SCRIPTNAME}:INFO: Adding ${poolid} to Service Group ${svcgroup}."
+(python3 deflectpool.py --operation assign --poolid ${poolid} --svcgrp ${svcgroup} 1>deflectpool.py.log.$$ 2>&1)
+RC=$?
+case "${RC}" in
+   0) logger "${SCRIPTNAME}:INFO: Deflect Pool ${poolid} properly provisioned!"
+      PROVSUCCESS=true ;;
+   4) logger "${SCRIPTNAME}:INFO: Deflect Pool already provisioned (assumed correct)."
+      PROVSUCCESS=true ;;
+   *) logger "${SCRIPTNAME}:ERROR: Error occured in attempt to provision Deflect Pool ${poolid}. Shell Code: $?" 
+      PROVSUCCESS=true ;;
+esac
+
+if [[ "${PROVSUCCESS}" != true ]]; then
+   # printing an error message would be redundant so we will just exit.
    popd
    exit 1
 fi
