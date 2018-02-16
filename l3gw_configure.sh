@@ -113,9 +113,13 @@ function findmyip()
    L3GW_VARPREFIX=l3gw_
    HINT=$1
    logger "${SCRIPTNAME}:DEBUG: Function findmyip: arg: ${HINT}."
-   # grab all of the env var values related to the deflect element that orchestrator passes in.
-   #for var in `env | grep -i "${L3GW_VARPREFIX}" | cut -f 2 -d "="`; do
-   for var in `env | grep -i "${L3GW_VARPREFIX}" | grep -i ${HINT} | cut -f 2 -d "="`; do
+
+   # grab all of the env var values germane to our specific element the orchestrator passes in.
+   # we will ignore the orchestrator element prefix and use our hint to distinguish wan from lan.
+   #
+   # TODO: this is a klugic workaround to the problem of having a bunch of IPs that come in and not
+   # having a cleaner way to make the runtime distinction of which is which. NFVO Issue 272.
+   for var in `env | grep -i "${L3GW_VARPREFIX}" | cut -f 2 -d "_" | grep -i ${HINT} | cut -f 2 -d "="`; do
       # one will be the IP Address. we need to figure out which. w
       # we would not know unless we knew what network was specified in the descriptor.
       if valid_ip ${var}; then
