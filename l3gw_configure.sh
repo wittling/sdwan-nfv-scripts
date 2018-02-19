@@ -50,7 +50,7 @@ logger "${SCRIPTNAME}:INFO: My LAN Interface is: ${l3gw_laniface}"
 logger "${SCRIPTNAME}:INFO: The Service Group I will attempt to use is: ${l3gw_svcgrp}" 
 logger "${SCRIPTNAME}:INFO: The Service Type I will attempt to provision is: ${l3gw_svctyp}" 
 logger "${SCRIPTNAME}:INFO: The Service ID I will attempt to provision is: ${l3gw_svcid}" 
-logger "${SCRIPTNAME}:INFO: The VLAN Id I will attempt to provision is: ${l3gw_vlanid}" 
+logger "${SCRIPTNAME}:INFO: The VLAN Id I will attempt to provision is: ${l3gw_interceptip}" 
 logger "${SCRIPTNAME}:INFO: I will use this to find external networks: ${l3gw_xtrnlhint}" 
 logger "${SCRIPTNAME}:INFO: The VLAN Id I will attempt to provision is: ${l3gw_ntrnlhint}" 
 
@@ -66,7 +66,7 @@ export l3gw_laniface
 export l3gw_svcgrp
 export l3gw_svctyp
 export l3gw_svcid
-export l3gw_vlanid
+export l3gw_interceptip
 export l3gw_xtrnlhint
 export l3gw_ntrnlhint
 
@@ -207,8 +207,8 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
       logger "${SCRIPTNAME}:INFO: No service type passed in. Therefore no service to provision."
    else
       logger "${SCRIPTNAME}:INFO: Found service type: ${l3gw_svctyp}. Looking for additional parms so we can provision it."
-      if [ -z "{l3gw_svcid}" -o -z "${l3gw_vlanid}" ]; then
-         logger "${SCRIPTNAME}:ERROR: Missing required parm: svcid ${l3gw_svcid} or vlanid ${l3gw_vlanid}."
+      if [ -z "{l3gw_svcid}" -o -z "${l3gw_interceptip}" ]; then
+         logger "${SCRIPTNAME}:ERROR: Missing required parm: svcid ${l3gw_svcid} or intercept ip ${l3gw_interceptip}."
          popd
          exit 1
       fi

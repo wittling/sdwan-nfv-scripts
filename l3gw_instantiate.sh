@@ -37,7 +37,7 @@ logger "${SCRIPTNAME}:INFO: Data Port: ${portdata}"
 logger "${SCRIPTNAME}:INFO: CallP Port: ${portcallp}" 
 logger "${SCRIPTNAME}:INFO: Service Type: ${svctyp}" 
 logger "${SCRIPTNAME}:INFO: Service ID: ${svcid}" 
-logger "${SCRIPTNAME}:INFO: VLAN ID: ${vlanid}" 
+logger "${SCRIPTNAME}:INFO: Intercept IP: ${interceptip}" 
 logger "${SCRIPTNAME}:INFO: External Network Hint: ${extrnlhint}" 
 logger "${SCRIPTNAME}:INFO: Internal Network Hint: ${intrnlhint}" 
 

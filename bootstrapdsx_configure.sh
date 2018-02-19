@@ -46,7 +46,7 @@ logger "${SCRIPTNAME}:INFO: The port data value is: ${portdata}"
 logger "${SCRIPTNAME}:INFO: The port callp value is: ${portcallp}"
 logger "${SCRIPTNAME}:INFO: The svctyp value is: ${svctyp}"
 logger "${SCRIPTNAME}:INFO: The svcid value is: ${svcid}"
-logger "${SCRIPTNAME}:INFO: The vlanid value is: ${vlanid}"
+logger "${SCRIPTNAME}:INFO: The interceptip value is: ${interceptip}"
 logger "${SCRIPTNAME}:INFO: The external network hint is: ${xtrnlhint}"
 logger "${SCRIPTNAME}:INFO: The internal network hint is: ${ntrnlhint}"
 
@@ -59,7 +59,7 @@ export portdata
 export portcallp
 export svctyp
 export svcid
-export vlanid
+export interceptip
 export xtrnlhint
 export ntrnlhint
 
