@@ -227,7 +227,7 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
          CLASSFILE=service
          SVCID="${l3gw_svcid}${NODENUM}"
          logger "${SCRIPTNAME}:INFO: Attempting to provision ${l3gw_svctyp} service with id: ${SVCID} on vtc ${VTCNAME} ."
-         (python3 ${CLASSFILE}.py --operation provision --svcid ${SVCID} --svctyp ${l3gw_svctyp} --nodeid ${VTCNAME}  --interceptip 127.0.0.1 --interceptfirstport 1 --interceptlastport 65535 1>${CLASSFILE}.py.log.$$ 2>&1)
+         (python3 ${CLASSFILE}.py --operation provision --svcid ${SVCID} --svctyp ${l3gw_svctyp} --nodeid ${VTCNAME}  --interceptip 127.0.0.1 --interceptfirstport 1 --interceptlastport 65535 --proto tcp 1>${CLASSFILE}.py.log.$$ 2>&1)
          if [ $? -ne 0 ]; then
             logger "${SCRIPTNAME}:ERROR: Error provisioning Service id: ${l3gw_svcid} on vtc ${VTCNAME} ."
             popd
