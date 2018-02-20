@@ -36,15 +36,15 @@ echo "====================================================" >> ${ENVFILE}
 # If this is in fact how the orchestrator is doing this, we can take advantage of this
 # by making RESTful API calls to provision each one at their time of instantiation.
 
-logger "${SCRIPTNAME}: Greetings Bootstrap DSX! I am a Deflect."
-logger "${SCRIPTNAME}: My Deflect IP Address is: ${deflect_dflnet}" 
-logger "${SCRIPTNAME}: I see your IP Address is: ${dsxnet}"
-logger "${SCRIPTNAME}: I see your hostname is: ${hostname}"
-logger "${SCRIPTNAME}: It appears you will be using the ctl plane interface: ${ifacectlplane}" 
-logger "${SCRIPTNAME}: I will be sending data on port: ${deflect_portdata}" 
-logger "${SCRIPTNAME}: I will be sending callp on port: ${deflect_portcallp}" 
-logger "${SCRIPTNAME}: I will be using svc group: ${svcgroup}" 
-logger "${SCRIPTNAME}: I will be using deflect pool: ${poolid}" 
+logger "${SCRIPTNAME}:INFO: Greetings Bootstrap DSX! I am a Deflect."
+logger "${SCRIPTNAME}:INFO: My Deflect IP Address is: ${deflect_dflnet}" 
+logger "${SCRIPTNAME}:INFO: I see your IP Address is: ${dsxnet}"
+logger "${SCRIPTNAME}:INFO: I see your hostname is: ${hostname}"
+logger "${SCRIPTNAME}:INFO: It appears you will be using the ctl plane interface: ${ifacectlplane}" 
+logger "${SCRIPTNAME}:INFO: I will be sending data on port: ${deflect_portdata}" 
+logger "${SCRIPTNAME}:INFO: I will be sending callp on port: ${deflect_portcallp}" 
+logger "${SCRIPTNAME}:INFO: I will be using svc group: ${svcgroup}" 
+logger "${SCRIPTNAME}:INFO: I will be using deflect pool: ${poolid}" 
 
 # export the variables
 export hostname
@@ -157,7 +157,7 @@ else
 fi
 
 CLASSFILE=rxtxnode
-logger "${SCRIPTNAME}: INFO: Attempting to provision new vtc ${VTCNAME}."
+logger "${SCRIPTNAME}:INFO: Attempting to provision new vtc ${VTCNAME}."
 (python3 ${CLASSFILE}.py --operation provision --nodeid ${VTCNAME} --mnemonic ${VTCNAME} 1>${CLASSFILE}.py.log.$$ 2>&1)
 if [ $? -eq 0 -o $? -eq 4 ]; then
    if [ $? -eq 0 ]; then
@@ -174,13 +174,13 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
    CALLPNAME=CP${NODENUM}
    CLASSFILE=callp
    if [ -n "${deflect_portcallp}" ]; then
-      logger "${SCRIPTNAME}: INFO: CallP Port ${deflect_portcallp}."
+      logger "${SCRIPTNAME}:INFO: CallP Port ${deflect_portcallp}."
    else
       # use a default port
       deflect_portcallp=5535
-      logger "${SCRIPTNAME}: WARN: No CallP Port variable supplied. Using:${deflect_portcallp}."
+      logger "${SCRIPTNAME}:WARN: No CallP Port variable supplied. Using:${deflect_portcallp}."
    fi
-   logger "${SCRIPTNAME}: INFO: Attempting to provision new callp deflect ${CALLPNAME}."
+   logger "${SCRIPTNAME}:INFO: Attempting to provision new callp deflect ${CALLPNAME}."
    (python3 ${CLASSFILE}.py --operation provision --callpid ${CALLPNAME} --nodeid ${VTCNAME} --ipaddr ${deflect_dflnet} --port ${deflect_portcallp} --proto "udp" --addrtyp "Static" 1>${CLASSFILE}.py.log.$$ 2>&1)
    if [ $? -eq 0 -o $? -eq 4 ]; then
       if [ $? -eq 0 ]; then
@@ -190,7 +190,7 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
       fi
 
       if [ -n "${deflect_portdata}" ]; then
-         logger "${SCRIPTNAME}: INFO: Data Deflect Port ${deflect_portdata}."
+         logger "${SCRIPTNAME}:INFO: Data Deflect Port ${deflect_portdata}."
       else
          # use a default
          deflect_portdata=5525
@@ -198,7 +198,7 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
       fi
       DFLNAME=DFL${NODENUM}
       CLASSFILE=deflect
-      logger "${SCRIPTNAME}: INFO: Attempting to provision new data deflect ${DFLNAME}."
+      logger "${SCRIPTNAME}:INFO: Attempting to provision new data deflect ${DFLNAME}."
       # This will not only provision the deflect but it will add it to the deflect pool, so no separate call needed.
       (python3 ${CLASSFILE}.py --operation provision --dflid ${DFLNAME} --mnemonic ${DFLNAME} --nodeid ${VTCNAME} --port ${deflect_portdata} --channeltype "udp" 1>${CLASSFILE}.py.log.$$ 2>&1)
       if [ $? -eq 0 -o $? -eq 4 ]; then
@@ -212,9 +212,9 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
          # We should be passing the pool id in from orchestrator. If not we can look and use service group.
          # If neither of those are set we will use a default. 
          if [ -n "${poolid}" ]; then
-            logger "${SCRIPTNAME}: ERROR: Attempting to assign ${DFLNAME} to ${poolid}."
+            logger "${SCRIPTNAME}:INFO: Attempting to assign ${DFLNAME} to ${poolid}."
          else
-            logger "${SCRIPTNAME}: ERROR: No valid poolid parameter."
+            logger "${SCRIPTNAME}:ERROR: No valid poolid parameter."
             popd
             exit 1
          fi
@@ -249,7 +249,7 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
       # The provisioning up above has logic to put the deflect in the OPENBATON deflect pool. We will use a var.
       DFLPOOL=OPENBATON
 
-      logger "${SCRIPTNAME}: INFO: Attempting to adjust deflect pool size."
+      logger "${SCRIPTNAME}:INFO: Attempting to adjust deflect pool size."
       # This will not only provision the deflect but it will add it to the deflect pool, so no separate call needed.
       (python3 ${CLASSFILE}.py --operation autoadjchan --poolid ${DFLPOOL} 1>${CLASSFILE}.py.log 2>&1)
       if [ $? -eq 0 ]; then
