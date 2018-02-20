@@ -51,6 +51,7 @@ logger "${SCRIPTNAME}:INFO: My LAN Interface is: ${l3gw_laniface}"
 logger "${SCRIPTNAME}:INFO: The Service Group to use is: ${l3gw_svcgrp}" 
 logger "${SCRIPTNAME}:INFO: The Service Type to provision is: ${l3gw_svctyp}" 
 logger "${SCRIPTNAME}:INFO: The Service ID to provision is: ${l3gw_svcid}" 
+logger "${SCRIPTNAME}:INFO: The Service Gateway Node to provision is: ${l3gw_svcl3gnode}" 
 logger "${SCRIPTNAME}:INFO: The Service Destination Net to provision is: ${l3gw_svcl3gdstnet}" 
 logger "${SCRIPTNAME}:INFO: The Service Dest Netmask to provision is: ${l3gw_svcl3gdstmask}" 
 logger "${SCRIPTNAME}:INFO: The Service Intercept IP is: ${l3gw_svcl3ginterceptip}" 
@@ -198,53 +199,63 @@ fi
 CLASSFILE=rxtxnode
 logger "${SCRIPTNAME}:INFO: Attempting to provision new vtc ${VTCNAME}."
 (python3 ${CLASSFILE}.py --operation provision --nodeid ${VTCNAME} --mnemonic ${VTCNAME} 1>${CLASSFILE}.py.log.$$ 2>&1)
-if [ $? -eq 0 -o $? -eq 4 ]; then
-   if [ $? -eq 0 ]; then
-      logger "${SCRIPTNAME}:INFO: RxTxNode (VTC) ${VTCNAME} provisioned!"
-   else     
-       logger "${SCRIPTNAME}:WARN: RxTxNode ${VTCNAME} already provisioned (assumed correct)."
-   fi
-
-   # We could automagically drop a loopback service on a gateway. Not a bad idea.
-   # TODO: Consider the notion. 
-   logger "${SCRIPTNAME}:INFO: Checking for a service to provision."
-   if [ -z "${l3gw_svctyp}" ]; then
-      logger "${SCRIPTNAME}:INFO: No service type passed in. Therefore no service to provision."
-   else
-      logger "${SCRIPTNAME}:INFO: Found service type: ${l3gw_svctyp}. Looking for additional parms so we can provision it."
-      if [ -z "{l3gw_svcid}" -o -z "${l3gw_svcl3ginterceptip}" ]; then
-         logger "${SCRIPTNAME}:ERROR: Missing required parm: svcid ${l3gw_svcid} or intercept ip ${l3gw_svcl3ginterceptip}."
-         popd
-         exit 1
-      fi
-
-      if [ ${l3gw_svctyp} == "L2G" -o ${l3gw_svctyp} == "L2X" ]; then
-         logger "${SCRIPTNAME}:ERROR: Service Type ${l3gw_svctyp} not valid on an L3 Gateway."
-         logger "${SCRIPTNAME}:ERROR: Cannot provision Service id: ${l3gw_svcid} on vtc ${VTCNAME} ."
-         popd
-         exit 1
-      elif [ ${l3gw_svctyp} != "L3C" -a ${l3gw_svdtyp} != "L3G" ]; then
-         logger "${SCRIPTNAME}:ERROR: Unknown Service Type: ${l3gw_svctyp}"
-         logger "${SCRIPTNAME}:ERROR: Cannot provision Service id: ${l3gw_svcid} on vtc ${VTCNAME} ."
-         popd
-         exit 1
-      else
-         CLASSFILE=service
-         SVCID="${l3gw_svcid}${NODENUM}"
-         logger "${SCRIPTNAME}:INFO: Attempting to provision ${l3gw_svctyp} service with id: ${SVCID} on vtc ${VTCNAME} ."
-         (python3 ${CLASSFILE}.py --operation provision --svcid ${SVCID} --svctyp ${l3gw_svctyp} --nodeid ${VTCNAME}  --l3gdstnet  ${l3gw_svcl3gdstnet} --l3gdstmask ${l3gw_svcl3gdstmask} --interceptip ${l3gw_svcl3ginterceptip} --interceptfirstport 1 --interceptlastport 65535 --proto ${l3gw_svcl3gproto} 1>${CLASSFILE}.py.log.$$ 2>&1)
-         if [ $? -ne 0 ]; then
-            logger "${SCRIPTNAME}:ERROR: Error provisioning Service id: ${l3gw_svcid} on vtc ${VTCNAME}."
-            popd
-            exit 1
-         fi
-         logger "${SCRIPTNAME}:INFO: Service id: ${l3gw_svcid} successfully provisioned on vtc ${VTCNAME}."
-      fi
-   fi
-else
+if [ $? -ne 0 -a $? -ne 4 ]; then
    logger "${SCRIPTNAME}:ERROR: Error provisioning RxTxNode ${VTCNAME}." 
    popd
    exit 1
+fi
+
+if [ $? -ne 0 ]; then
+   logger "${SCRIPTNAME}:WARN: RxTxNode ${VTCNAME} already provisioned (assumed correct)."
+fi
+logger "${SCRIPTNAME}:INFO: RxTxNode (VTC) ${VTCNAME} provisioned!"
+
+# We could automagically drop a loopback service on a gateway. Not a bad idea.
+# TODO: Consider the notion. 
+logger "${SCRIPTNAME}:INFO: Checking for a service to provision."
+if [ -z "${l3gw_svctyp}" ]; then
+   logger "${SCRIPTNAME}:INFO: No service type passed in. Therefore no service to provision."
+else
+   logger "${SCRIPTNAME}:INFO: Found service type: ${l3gw_svctyp}. Looking for additional parms so we can provision it."
+   if [ -z "{l3gw_svcid}" -o -z "${l3gw_svcl3ginterceptip}" ]; then
+      logger "${SCRIPTNAME}:ERROR: Missing required parm: svcid ${l3gw_svcid} or intercept ip ${l3gw_svcl3ginterceptip}."
+      popd
+      exit 1
+   fi
+
+   if [ ${l3gw_svctyp} == "L2G" -o ${l3gw_svctyp} == "L2X" ]; then
+      logger "${SCRIPTNAME}:ERROR: Service Type ${l3gw_svctyp} not valid on an L3 Gateway."
+      logger "${SCRIPTNAME}:ERROR: Cannot provision Service id: ${l3gw_svcid} on vtc ${VTCNAME} ."
+      popd
+      exit 1
+   elif [ ${l3gw_svctyp} != "L3C" -a ${l3gw_svdtyp} != "L3G" ]; then
+      logger "${SCRIPTNAME}:ERROR: Unknown Service Type: ${l3gw_svctyp}"
+      logger "${SCRIPTNAME}:ERROR: Cannot provision Service id: ${l3gw_svcid} on vtc ${VTCNAME} ."
+      popd
+      exit 1
+   else
+      CLASSFILE=service
+      SVCID="${l3gw_svcid}${NODENUM}"
+
+      # We want to make sure we put the service on the right gateway and this was the only easy
+      # way I could think of to do that. We basically pass a parm in that states the VLD that
+      # is eligible to host the service. But we need to runtime verify that since this script is
+      # called by all gateways whether they are connected to that VLD or not.
+      LANIP=$(findmyip ${l3gw_svcl3gnode})
+      if [ $? -ne 0 ]; then
+         logger "${SCRIPTNAME}:WARN: No IP Address located on vld: ${l3gw_svcl3gnode}. Skipping service provisioning."
+         exit 0
+      fi
+      logger "${SCRIPTNAME}:INFO: GW eligible to host service. Has IP ${LANIP} on vld: ${l3gw_svcl3gnode}."
+      logger "${SCRIPTNAME}:INFO: Attempting to provision ${l3gw_svctyp} service with id: ${SVCID} on vtc ${VTCNAME} ."
+      (python3 ${CLASSFILE}.py --operation provision --svcid ${SVCID} --svctyp ${l3gw_svctyp} --nodeid ${VTCNAME}  --l3gdstnet  ${l3gw_svcl3gdstnet} --l3gdstmask ${l3gw_svcl3gdstmask} --interceptip ${l3gw_svcl3ginterceptip} --interceptfirstport 1 --interceptlastport 65535 --proto ${l3gw_svcl3gproto} 1>${CLASSFILE}.py.log.$$ 2>&1)
+      if [ $? -ne 0 ]; then
+         logger "${SCRIPTNAME}:ERROR: Error provisioning Service id: ${l3gw_svcid} on vtc ${VTCNAME}."
+         popd
+         exit 1
+      fi
+      logger "${SCRIPTNAME}:INFO: Service id: ${l3gw_svcid} successfully provisioned on vtc ${VTCNAME}."
+   fi
 fi
 
 logger "${SCRIPTNAME}:INFO: Successful implementation of ${SCRIPTNAME} script. Exiting 0."
