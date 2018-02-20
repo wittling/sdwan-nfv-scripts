@@ -47,10 +47,15 @@ logger "${SCRIPTNAME}:INFO: I will be sending callp on port: ${l3gw_portcallp}"
 logger "${SCRIPTNAME}:INFO: My WAN 1 Interface is: ${l3gw_wan1iface}" 
 logger "${SCRIPTNAME}:INFO: My WAN 2 Interface is: ${l3gw_wan2iface}" 
 logger "${SCRIPTNAME}:INFO: My LAN Interface is: ${l3gw_laniface}" 
-logger "${SCRIPTNAME}:INFO: The Service Group I will attempt to use is: ${l3gw_svcgrp}" 
-logger "${SCRIPTNAME}:INFO: The Service Type I will attempt to provision is: ${l3gw_svctyp}" 
-logger "${SCRIPTNAME}:INFO: The Service ID I will attempt to provision is: ${l3gw_svcid}" 
-logger "${SCRIPTNAME}:INFO: The VLAN Id I will attempt to provision is: ${l3gw_interceptip}" 
+
+logger "${SCRIPTNAME}:INFO: The Service Group to use is: ${l3gw_svcgrp}" 
+logger "${SCRIPTNAME}:INFO: The Service Type to provision is: ${l3gw_svctyp}" 
+logger "${SCRIPTNAME}:INFO: The Service ID to provision is: ${l3gw_svcid}" 
+logger "${SCRIPTNAME}:INFO: The Service Destination Net to provision is: ${l3gw_svcl3gdestnet}" 
+logger "${SCRIPTNAME}:INFO: The Service Dest Netmask to provision is: ${l3gw_svcl3gdestmask}" 
+logger "${SCRIPTNAME}:INFO: The Service Intercept IP is: ${l3gw_svcl3ginterceptip}" 
+logger "${SCRIPTNAME}:INFO: The Service Protocol is: ${l3gw_svcl3gproto}" 
+
 logger "${SCRIPTNAME}:INFO: I will use this to find external networks: ${l3gw_xtrnlhint}" 
 logger "${SCRIPTNAME}:INFO: The VLAN Id I will attempt to provision is: ${l3gw_ntrnlhint}" 
 
@@ -227,7 +232,7 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
          CLASSFILE=service
          SVCID="${l3gw_svcid}${NODENUM}"
          logger "${SCRIPTNAME}:INFO: Attempting to provision ${l3gw_svctyp} service with id: ${SVCID} on vtc ${VTCNAME} ."
-         (python3 ${CLASSFILE}.py --operation provision --svcid ${SVCID} --svctyp ${l3gw_svctyp} --nodeid ${VTCNAME}  --interceptip 127.0.0.1 --interceptfirstport 1 --interceptlastport 65535 --proto tcp 1>${CLASSFILE}.py.log.$$ 2>&1)
+         (python3 ${CLASSFILE}.py --operation provision --svcid ${SVCID} --svctyp ${l3gw_svctyp} --nodeid ${VTCNAME}  --l3gdstnet  ${l3gw_svcl3gdestnet} --l3gdestmask ${l3gw_svcl3gdestmask} --interceptip ${l3gw_svcl3ginterceptip} --interceptfirstport 1 --interceptlastport 65535 --proto ${l3gw_svcl3gproto} 1>${CLASSFILE}.py.log.$$ 2>&1)
          if [ $? -ne 0 ]; then
             logger "${SCRIPTNAME}:ERROR: Error provisioning Service id: ${l3gw_svcid} on vtc ${VTCNAME} ."
             popd
