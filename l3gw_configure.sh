@@ -51,8 +51,8 @@ logger "${SCRIPTNAME}:INFO: My LAN Interface is: ${l3gw_laniface}"
 logger "${SCRIPTNAME}:INFO: The Service Group to use is: ${l3gw_svcgrp}" 
 logger "${SCRIPTNAME}:INFO: The Service Type to provision is: ${l3gw_svctyp}" 
 logger "${SCRIPTNAME}:INFO: The Service ID to provision is: ${l3gw_svcid}" 
-logger "${SCRIPTNAME}:INFO: The Service Destination Net to provision is: ${l3gw_svcl3gdestnet}" 
-logger "${SCRIPTNAME}:INFO: The Service Dest Netmask to provision is: ${l3gw_svcl3gdestmask}" 
+logger "${SCRIPTNAME}:INFO: The Service Destination Net to provision is: ${l3gw_svcl3gdstnet}" 
+logger "${SCRIPTNAME}:INFO: The Service Dest Netmask to provision is: ${l3gw_svcl3gdstmask}" 
 logger "${SCRIPTNAME}:INFO: The Service Intercept IP is: ${l3gw_svcl3ginterceptip}" 
 logger "${SCRIPTNAME}:INFO: The Service Protocol is: ${l3gw_svcl3gproto}" 
 
@@ -232,13 +232,13 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
          CLASSFILE=service
          SVCID="${l3gw_svcid}${NODENUM}"
          logger "${SCRIPTNAME}:INFO: Attempting to provision ${l3gw_svctyp} service with id: ${SVCID} on vtc ${VTCNAME} ."
-         (python3 ${CLASSFILE}.py --operation provision --svcid ${SVCID} --svctyp ${l3gw_svctyp} --nodeid ${VTCNAME}  --l3gdstnet  ${l3gw_svcl3gdestnet} --l3gdestmask ${l3gw_svcl3gdestmask} --interceptip ${l3gw_svcl3ginterceptip} --interceptfirstport 1 --interceptlastport 65535 --proto ${l3gw_svcl3gproto} 1>${CLASSFILE}.py.log.$$ 2>&1)
+         (python3 ${CLASSFILE}.py --operation provision --svcid ${SVCID} --svctyp ${l3gw_svctyp} --nodeid ${VTCNAME}  --l3gdstnet  ${l3gw_svcl3gdstnet} --l3gdstmask ${l3gw_svcl3gdstmask} --interceptip ${l3gw_svcl3ginterceptip} --interceptfirstport 1 --interceptlastport 65535 --proto ${l3gw_svcl3gproto} 1>${CLASSFILE}.py.log.$$ 2>&1)
          if [ $? -ne 0 ]; then
-            logger "${SCRIPTNAME}:ERROR: Error provisioning Service id: ${l3gw_svcid} on vtc ${VTCNAME} ."
+            logger "${SCRIPTNAME}:ERROR: Error provisioning Service id: ${l3gw_svcid} on vtc ${VTCNAME}."
             popd
             exit 1
          fi
-         logger "${SCRIPTNAME}:INFO: Service id: ${l3gw_svcid} successfully provisioned on vtc ${VTCNAME} ."
+         logger "${SCRIPTNAME}:INFO: Service id: ${l3gw_svcid} successfully provisioned on vtc ${VTCNAME}."
       fi
    fi
 else
