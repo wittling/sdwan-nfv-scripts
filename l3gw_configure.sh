@@ -212,8 +212,8 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
       logger "${SCRIPTNAME}:INFO: No service type passed in. Therefore no service to provision."
    else
       logger "${SCRIPTNAME}:INFO: Found service type: ${l3gw_svctyp}. Looking for additional parms so we can provision it."
-      if [ -z "{l3gw_svcid}" -o -z "${l3gw_interceptip}" ]; then
-         logger "${SCRIPTNAME}:ERROR: Missing required parm: svcid ${l3gw_svcid} or intercept ip ${l3gw_interceptip}."
+      if [ -z "{l3gw_svcid}" -o -z "${l3gw_svcl3ginterceptip}" ]; then
+         logger "${SCRIPTNAME}:ERROR: Missing required parm: svcid ${l3gw_svcid} or intercept ip ${l3gw_svcl3ginterceptip}."
          popd
          exit 1
       fi
