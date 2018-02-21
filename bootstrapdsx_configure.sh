@@ -404,7 +404,7 @@ else
 fi
 
 # If we are an L3 Gateway we need to start the kernel module 
-if [ ${DVNELEMENT} == "l3gw" -o ${DVNELEMENT} -eq "l3x" ]; then
+if [ ${DVNELEMENT} == "l3gw" -o ${DVNELEMENT} == "l3x" ]; then
    # First make sure service exists and can in fact be enabled.
    systemctl enable ${DVNDRIVERSVC} 
    if [ $? -ne 0 ]; then
