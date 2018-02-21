@@ -473,18 +473,18 @@ else
    exit 1
 fi
 
-SLEEPTIME=4
+SLEEPTIME=8
 sleep ${SLEEPTIME}
 PROVSUCCESS=false
 for i in 1 2 3; do
    case "$i" in 
-      1) SLEEPTIME=$[SLEEPTIME+4] ;;
-      2) SLEEPTIME=$[SLEEPTIME+8] ;;
-      3) SLEEPTIME=$[SLEEPTIME+16] ;;
+      1) SLEEPTIME=$[SLEEPTIME] ;;
+      2) SLEEPTIME=$[SLEEPTIME+16] ;;
+      3) SLEEPTIME=$[SLEEPTIME+24] ;;
       *) ;;
    esac
 
-   logger "${SCRIPTNAME}: INFO: Attempting to provision new ${svcgroup} service group." 
+   logger "${SCRIPTNAME}:INFO: Attempting to provision new ${svcgroup} service group." 
    (python3 servicegroup.py --operation provision --grpid ${svcgroup} --mnemonic ${svcgroup} --grptyp ${svcgrptyp} 1>servicegroup.py.log.$$ 2>&1)
    RC=$?
    case "${RC}" in
