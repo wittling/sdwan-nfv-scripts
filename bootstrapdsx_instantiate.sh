@@ -19,7 +19,7 @@
 #set -x
 SCRIPTNAME="bootstrapdsx_instantiate"
 SCRIPTDIR="/opt/openbaton/scripts"
-logger "${SCRIPTNAME}: INFO:Instantiate LifeCycle Event Triggered!"
+logger "${SCRIPTNAME}:INFO:Instantiate LifeCycle Event Triggered!"
 
 SCRIPTDIR="/opt/openbaton/scripts"
 if [ ! -d ${SCRIPTDIR} ]; then
@@ -36,13 +36,13 @@ echo "====================================================" >> ${ENVFILE}
 function jsonParmSwap
 {
    # Check for Python and see if it is installed (no sense wasting gas)
-   logger "${SCRIPTNAME}:INFO:jsonParmSwap:INFO: Checking Python Version"
+   logger "${SCRIPTNAME}:INFO:jsonParmSwap: Checking Python Version"
    pyver=$(python -V 2>&1 | grep -Po '(?<=Python )(.+)')
    if [[ -z "$pyver" ]]; then
-      logger "${SCRIPTNAME}: jsonParmSwap:ERROR: No Python Version!"
+      logger "${SCRIPTNAME}:ERROR:jsonParmSwap: No Python Version!"
       return 1
    else
-      logger "${SCRIPTNAME}: jsonParmSwap:INFO: Python Version: ${pyver}"
+      logger "${SCRIPTNAME}:INFO:jsonParmSwap: Python Version: ${pyver}"
    fi
       
    FILENAME=""
@@ -210,7 +210,7 @@ logger "${SCRIPTNAME}.sh: Stopping DPS Services so we can start Percona bootstra
 systemctl stop dps.service
 OUTPUT=`systemctl is-active dps.service`
 if [ $? -eq 0 ]; then
-   logger "${SCRIPTNAME}:WARNING: dps.service did not stop. non-fatal. We will continue."
+   logger "${SCRIPTNAME}:WARN: dps.service did not stop. non-fatal. We will continue."
 else
    logger "${SCRIPTNAME}:INFO: dps.service stopped."
 fi
@@ -218,7 +218,7 @@ fi
 systemctl stop dart-rest.service
 OUTPUT=`systemctl is-active dart-rest.service`
 if [ $? -eq 0 ]; then
-   logger "${SCRIPTNAME}:WARNING: dart-rest.service did not stop. non-fatal. We will continue."
+   logger "${SCRIPTNAME}:WARN: dart-rest.service did not stop. non-fatal. We will continue."
 else
    logger "${SCRIPTNAME}:INFO: dart-rest.service stopped."
 fi
@@ -226,7 +226,7 @@ fi
 systemctl stop dart.service
 OUTPUT=`systemctl is-active dart.service`
 if [ $? -eq 0 ]; then
-   logger "${SCRIPTNAME}:WARNING: dart.service did not stop. non-fatal. We will continue."
+   logger "${SCRIPTNAME}:WARN: dart.service did not stop. non-fatal. We will continue."
 else
    logger "${SCRIPTNAME}:INFO: dart.service stopped."
 fi

@@ -217,12 +217,13 @@ if [ -z "${l3gw_svcgrp}" ]; then
    logger "${SCRIPTNAME}:ERROR: No VTC service group passed in from orchestrator."
    ROLLBACK=true
 else
+   logger "${SCRIPTNAME}:INFO: Assigning VTC ${VTCNAME} to service group ${l3gw_svcgrp}."
    (python3 ${CLASSFILE}.py --operation assign --nodeid ${VTCNAME} --svcgrp  ${l3gw_svcgrp} 1>${CLASSFILE}.py.log.$$ 2>&1)
    if [ $? -ne 0 ]; then
       ROLLBACK=true
 fi
    
-if [ $ROLLBACK ]; then
+if [ "${ROLLBACK}" ]; then
    logger "${SCRIPTNAME}:WARN: Attempting to roll back VTC Provisioning call."
    (python3 ${CLASSFILE}.py --operation deprovision --nodeid ${VTCNAME} 1>${CLASSFILE}.py.log.$$ 2>&1)
    if [ $? -eq 0 ]; then

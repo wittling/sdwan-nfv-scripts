@@ -81,7 +81,7 @@ function ipAssignedToVNFC
                rc=0
                echo ${NTWK}
             else
-               logger "${SCRIPTNAME}.sh:WARN: Error parsing IP from env var."
+               logger "${SCRIPTNAME}:WARN: Error parsing IP from env var."
                rc=-1
             fi
             break

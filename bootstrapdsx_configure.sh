@@ -90,14 +90,14 @@ function ipAssignedToVNFC
       for LINE in `env`; do
          SRCH=`echo ${LINE} | grep ${IP}`
          if [ $? -eq 0 ]; then
-            # logger "${SCRIPTNAME}.sh:DEBUG: Found IP ${IP} set to ${LINE}."
+            # logger "${SCRIPTNAME}:DEBUG: Found IP ${IP} set to ${LINE}."
             NTWK=`echo ${SRCH} | cut -f 1 -d "="`
             if [ $? -eq 0 ]; then
-               # logger "${SCRIPTNAME}.sh:DEBUG: IP assigned to VNFC ${NTWK}."
+               # logger "${SCRIPTNAME}:DEBUG: IP assigned to VNFC ${NTWK}."
                rc=0
                echo ${NTWK}
             else
-               logger "${SCRIPTNAME}.sh:WARN: Error parsing IP from env var."
+               logger "${SCRIPTNAME}:WARN: Error parsing IP from env var."
                rc=-1
             fi
             break
@@ -134,7 +134,7 @@ function jsonParmSwap
    fi
 
    # Check for Python and see if it is installed (no sense wasting gas)
-   logger "${SCRIPTNAME}: jsonParmSwap:INFO: Checking Python Version"
+   logger "${SCRIPTNAME}:INFO:jsonParmSwap: Checking Python Version"
    pyver=$(python -V 2>&1 | grep -Po '(?<=Python )(.+)')
    if [[ -z "$pyver" ]]; then
       logger "${SCRIPTNAME}:ERROR: jsonParmSwap: No Python Version!"
@@ -423,7 +423,7 @@ if [ ${DVNELEMENT} == "l3gw" -o ${DVNELEMENT} -eq "l3x" ]; then
    fi
 fi      
 
-logger "${SCRIPTNAME}.sh:INFO: Restarting dvn.service after setting parameters."
+logger "${SCRIPTNAME}:INFO: Restarting dvn.service after setting parameters."
 systemctl restart ${DVNSERVICENAME}
 OUTPUT=`systemctl is-active ${DVNSERVICENAME}`
 if [ $? -eq 0 ]; then

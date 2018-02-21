@@ -194,7 +194,7 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
       else
          # use a default
          deflect_portdata=5525
-         logger "${SCRIPTNAME}: WARN: No Data Deflect Port variable supplied. Using:${deflect_portdata}."
+         logger "${SCRIPTNAME}:WARN: No Data Deflect Port variable supplied. Using:${deflect_portdata}."
       fi
       DFLNAME=DFL${NODENUM}
       CLASSFILE=deflect
