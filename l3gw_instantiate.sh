@@ -237,13 +237,24 @@ else
    logger "${SCRIPTNAME}:WARN: Please set net.core.rmem_max parameter to 2048000 manually to avoid alarm."
 fi
 
-# In case dvn is autostarted we will stop it until it is
-# configured later on.
-RESP=`systemctl is-active ${DVNSERVICENAME}`
-if [ ${RESP} == "unknown" -o $? -eq 3 ]; then
-   logger "${SCRIPTNAME}:ERROR: Service ${DVNSERVICENAME} unrecognized. Exiting."
-   exit 1
+# If dvn is autocranked we will want to stop it until the configure event cycle.
+RESP=`systemctl is-enabled ${DVNSERVICENAME}`
+if [ $? -eq 0 -a "${RESP}" == "enabled" ]; then
+   systemctl stop ${DVNSERVICENAME}
+else
+   if [ ${RESP} == "disabled" ]; then
+      logger "${SCRIPTNAME}:WARN: Service ${DVNSERVICENAME} disabled. Enabling."
+      systemctl enable ${DVNSERVICENAME}
+      if [ $? -ne 0 ]; then
+         logger "${SCRIPTNAME}:ERROR: Unable to enable service ${DVNSERVICENAME}. Enabling."
+         exit 1
+      fi
+      # Enabling the service should not start it but we will do this just to be sure.
+      systemctl stop ${DVNSERVICENAME}
+   else
+      logger "${SCRIPTNAME}:ERROR: Service ${DVNSERVICENAME} unrecognized. Exiting."
+      exit 1
+   fi
 fi
-systemctl stop ${DVNSERVICENAME}
 
 exit 0
