@@ -403,18 +403,6 @@ else
    exit 1 
 fi
 
-# Now restart the DVN 
-logger "${SCRIPTNAME}.sh:INFO: Stopping dvn.service after setting parameters."
-systemctl stop dvn.service
-OUTPUT=`systemctl is-active dvn.service`
-if [ $? -eq 0 ]; then
-   logger "${SCRIPTNAME}:WARN: dvn.service did not stop. non-fatal. We will continue."
-else
-   logger "${SCRIPTNAME}:INFO: dvn.service stopped."
-fi
-
-sleep 3
-
 # If we are an L3 Gateway we need to start the kernel module 
 if [ ${DVNELEMENT} == "l3gw" -o ${DVNELEMENT} -eq "l3x" ]; then
    # First make sure service exists and can in fact be enabled.
