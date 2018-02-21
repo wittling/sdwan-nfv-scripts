@@ -45,6 +45,8 @@ logger "${SCRIPTNAME}:INFO: Intercept IP: ${svcl3gproto}"
 logger "${SCRIPTNAME}:INFO: External Network Hint: ${extrnlhint}" 
 logger "${SCRIPTNAME}:INFO: Internal Network Hint: ${intrnlhint}" 
 
+DVNSERVICENAME=dvn
+
 function getDefaultNic()
 {
     local dfltnic 
@@ -237,6 +239,11 @@ fi
 
 # In case dvn is autostarted we will stop it until it is
 # configured later on.
-systemctl stop dvn
+RESP=`systemctl is-active ${DVNSERVICENAME}`
+if [ ${RESP} == "unknown" -o $? -eq 3 ]; then
+   logger "${SCRIPTNAME}:ERROR: Service ${DVNSERVICENAME} unrecognized. Exiting."
+   exit 1
+fi
+systemctl stop ${DVNSERVICENAME}
 
 exit 0

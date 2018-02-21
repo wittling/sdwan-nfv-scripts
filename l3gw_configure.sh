@@ -205,10 +205,35 @@ if [ $? -ne 0 -a $? -ne 4 ]; then
    exit 1
 fi
 
-if [ $? -ne 0 ]; then
+if [ $? -eq 4 ]; then
    logger "${SCRIPTNAME}:WARN: RxTxNode ${VTCNAME} already provisioned (assumed correct)."
+else
+   logger "${SCRIPTNAME}:INFO: RxTxNode (VTC) ${VTCNAME} provisioned!"
 fi
-logger "${SCRIPTNAME}:INFO: RxTxNode (VTC) ${VTCNAME} provisioned!"
+
+ROLLBACK=false
+# Add the VTC to the service group.
+if [ -z "${l3gw_svcgrp}" ]; then
+   logger "${SCRIPTNAME}:ERROR: No VTC service group passed in from orchestrator."
+   ROLLBACK=true
+else
+   (python3 ${CLASSFILE}.py --operation assign --nodeid ${VTCNAME} --svcgrp  ${l3gw_svcgrp} 1>${CLASSFILE}.py.log.$$ 2>&1)
+   if [ $? -ne 0 ]; then
+      ROLLBACK=true
+fi
+   
+if [ $ROLLBACK ]; then
+   logger "${SCRIPTNAME}:WARN: Attempting to roll back VTC Provisioning call."
+   (python3 ${CLASSFILE}.py --operation deprovision --nodeid ${VTCNAME} 1>${CLASSFILE}.py.log.$$ 2>&1)
+   if [ $? -eq 0 ]; then
+      logger "${SCRIPTNAME}:WARN: VTC Provisioning call rolled back for node: ${VTCNAME}."
+   else
+      logger "${SCRIPTNAME}:WARN: VTC Provisioning call NOT rolled back for node: ${VTCNAME}."
+   fi
+   popd
+   exit 1
+fi
+
 
 # We could automagically drop a loopback service on a gateway. Not a bad idea.
 # TODO: Consider the notion. 
@@ -255,6 +280,17 @@ else
          exit 1
       fi
       logger "${SCRIPTNAME}:INFO: Service id: ${l3gw_svcid} successfully provisioned on vtc ${VTCNAME}."
+
+      # Assign Service to Service Group
+      logger "${SCRIPTNAME}:INFO: Attempting to assign Svc: ${SVCID} to SvcGrp: ${l3gw_svcgrp} ."
+      (python3 ${CLASSFILE}.py --operation assign --svcid ${SVCID} --svcgrp ${l3gw_svcgrp} 1>${CLASSFILE}.py.log.$$ 2>&1)
+      if [ $? -eq 0 ]; then
+         logger "${SCRIPTNAME}:INFO: Successfully assigned Svc: ${SVCID} to SvcGrp: ${l3gw_svcgrp} ."
+      else
+         logger "${SCRIPTNAME}:ERROR: Failed to assign Svc: ${SVCID} to SvcGrp: ${l3gw_svcgrp} ."
+         popd
+         exit 1
+      fi
    fi
 fi
 

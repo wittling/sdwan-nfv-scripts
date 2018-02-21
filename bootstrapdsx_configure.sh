@@ -70,6 +70,9 @@ export bootstrapdsx_portra
 export bootstrapdsx_svcgroup
 export bootstrapdsx_svcgrptyp
 
+DVNSERVICE=dvn
+DVNDRIVERSVC=dvn-driver
+
 # This function will take an IP and make sure that it is indeed a valid VNFC
 # by checking to ensure it is set by the orchestrator in our environment
 #
@@ -121,6 +124,15 @@ function ipAssignedToVNFC
 # installed before proceeding.
 function jsonParmSwap
 {
+   if [ -z "${DVNHOME}" ]; then
+      if [ -d /usr/local/dvn ]; then
+         DVNHOME=/usr/local/dvn
+      else
+         logger "${SCRIPTNAME}:ERROR: DVNHOME error."
+         return 1
+      fi
+   fi
+
    # Check for Python and see if it is installed (no sense wasting gas)
    logger "${SCRIPTNAME}: jsonParmSwap:INFO: Checking Python Version"
    pyver=$(python -V 2>&1 | grep -Po '(?<=Python )(.+)')
@@ -145,7 +157,7 @@ function jsonParmSwap
       "CFGMAC") ;&
       "CFGVTCNM") ;&
       "CFGVTCID") 
-           FILENAME=/usr/local/dvn/cfg/vtc_config.json
+           FILENAME=${DVNHOME}/cfg/vtc_config.json
            NEWPARM=$2
            FILECODE=$1;;
       *) return 1;;
@@ -263,6 +275,7 @@ if [ $? -eq 0 ]; then
    fi
 fi
     
+# we know this service exists if we are in this life cycle event. no need to check it.
 systemctl stop dvn.service
 
 logger "${SCRIPTNAME}:INFO: Changing IP Address in CFG: ${bootstrapdsx_dsxnet}" 
@@ -391,24 +404,45 @@ else
 fi
 
 # Now restart the DVN 
-logger "Script: ${SCRIPTNAME}.sh:INFO: Stopping dvn.service after setting parameters."
+logger "${SCRIPTNAME}.sh:INFO: Stopping dvn.service after setting parameters."
 systemctl stop dvn.service
 OUTPUT=`systemctl is-active dvn.service`
 if [ $? -eq 0 ]; then
-   logger "Script: ${SCRIPTNAME}:WARN: dvn.service did not stop. non-fatal. We will continue."
+   logger "${SCRIPTNAME}:WARN: dvn.service did not stop. non-fatal. We will continue."
 else
-   logger "Script: ${SCRIPTNAME}:INFO: dvn.service stopped."
+   logger "${SCRIPTNAME}:INFO: dvn.service stopped."
 fi
 
 sleep 3
 
-logger "Script: ${SCRIPTNAME}.sh:INFO: Restarting dvn.service after setting parameters."
-systemctl restart dvn.service
-OUTPUT=`systemctl is-active dvn.service`
+# If we are an L3 Gateway we need to start the kernel module 
+if [ ${DVNELEMENT} == "l3gw" -o ${DVNELEMENT} -eq "l3x" ]; then
+   # First make sure service exists and can in fact be enabled.
+   systemctl enable ${DVNDRIVERSVC} 
+   if [ $? -ne 0 ]; then
+      logger "${SCRIPTNAME}:ERROR: Service Error: DVN Driver: ${DVNDRIVERSVC}."
+      exit 1
+   else
+      if [ -f "${DVNHOME}/cfg/NODRIVER" ]; then
+         mv ${DVNHOME}/cfg/NODRIVER ${DVNHOME}/cfg/DRIVER
+         if [ $? -ne 0 ]; then
+            logger "${SCRIPTNAME}:ERROR: Failed to Enable DVN Driver."
+            exit 1
+         else
+            logger "${SCRIPTNAME}:WARN: DVN Driver Enabled."
+         fi
+      fi
+   fi
+fi      
+
+logger "${SCRIPTNAME}.sh:INFO: Restarting dvn.service after setting parameters."
+systemctl restart ${DVNSERVICENAME}
+OUTPUT=`systemctl is-active ${DVNSERVICENAME}`
 if [ $? -eq 0 ]; then
-   logger "Script: ${SCRIPTNAME}:INFO: dvn.service restarted."
+   # If the unit file is coded correctly the dvn driver service is dependent on the dvn service.
+   logger "${SCRIPTNAME}:INFO: dvn.service restarted."
 else
-   logger "Script: ${SCRIPTNAME}:ERROR: dvn.service did NOT restart. Manual intervention required."
+   logger "${SCRIPTNAME}:ERROR: dvn.service did NOT restart. Manual intervention required."
    exit 1 
 fi
 
