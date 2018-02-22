@@ -221,6 +221,7 @@ else
    (python3 ${CLASSFILE}.py --operation assign --nodeid ${VTCNAME} --svcgrp  ${l3gw_svcgrp} 1>${CLASSFILE}.py.log.$$ 2>&1)
    if [ $? -ne 0 ]; then
       ROLLBACK=true
+   fi
 fi
    
 if ( ${ROLLBACK} ); then
