@@ -31,7 +31,7 @@ logger "${SCRIPTNAME}:INFO: Something has CloudInit resetting the sysctl.conf fi
 logger "${SCRIPTNAME}:INFO: We will attempt to set the socket buffer receive parm here."
 logger "${SCRIPTNAME}:INFO: This will alleviate an alarm that complains about this parm being set too low."
 
-DVNSERVICENAME=dvn
+DVNSVC=dvn
 
 # Obviously we need to be running this script as root to do this. Fortunately we are.
 PARMPATH='/proc/sys/net/core/rmem_max'
@@ -47,30 +47,30 @@ else
 fi
 
 # If dvn is autocranked we will want to stop it until the configure event cycle.
-#RESP=`systemctl is-enabled ${DVNSERVICENAME}`
+RESP=`systemctl is-enabled ${DVNSVC}`
 # to avoid shell issue
-#if [ -z "${RESP}" ]; then
-#   RESP=invalid
-#fi
-#if [ $? -eq 0 -a "${RESP}" == "enabled" ]; then
-#   systemctl stop ${DVNSERVICENAME}
-#else
-#   if [ ${RESP} == "disabled" ]; then
-#      logger "${SCRIPTNAME}:WARN: Service ${DVNSERVICENAME} disabled. Enabling."
-#      systemctl enable ${DVNSERVICENAME}
-#      if [ $? -ne 0 ]; then
-#         logger "${SCRIPTNAME}:ERROR: Unable to enable service ${DVNSERVICENAME}. Enabling."
-#         exit 1
-#      fi  
-#      # Enabling the service should not start it but we will do this just to be sure.
-#      systemctl stop ${DVNSERVICENAME}
-#   else
-#      logger "${SCRIPTNAME}:ERROR: Service ${DVNSERVICENAME} unrecognized. Exiting."
-#      exit 1
-#   fi  
-#fi
-systemctl enable dvn
-systemctl stop dvn
+if [ -z "${RESP}" -o "${RESP}" == "" ]; then
+   RESP=invalid
+fi
+if [ $? -eq 0 -a "${RESP}" == "enabled" ]; then
+   systemctl stop ${DVNSVC}
+else
+   if [ "${RESP}" == "disabled" ]; then
+      logger "${SCRIPTNAME}:WARN: Service ${DVNSVC} disabled. Enabling."
+      systemctl enable ${DVNSVC}
+      if [ $? -ne 0 ]; then
+         logger "${SCRIPTNAME}:ERROR: Unable to enable service ${DVNSVC}. Enabling."
+         exit 1
+      fi  
+      # Enabling the service should not start it but we will do this just to be sure.
+      systemctl stop ${DVNSVC}
+   else
+      logger "${SCRIPTNAME}:ERROR: Service ${DVNSVC} unrecognized. Exiting."
+      exit 1
+   fi  
+fi
+#systemctl enable dvn
+#systemctl stop dvn
 
 logger "${SCRIPTNAME}:INFO: End of Script. Return Code 0."
 exit 0
