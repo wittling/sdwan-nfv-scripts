@@ -197,9 +197,16 @@ else
    exit 1
 fi
 
+# important parm check. bail if not set.
+if [ -z "${clusternodename}" ]; then
+   logger "${SCRIPTNAME}:ERROR: Parameter error: clusternodename."
+   popd
+   exit 1
+fi
+   
 CLASSFILE=rxtxnode
 logger "${SCRIPTNAME}:INFO: Attempting to provision new vtc ${VTCNAME}."
-(python3 ${CLASSFILE}.py --operation provision --nodeid ${VTCNAME} --mnemonic ${VTCNAME} --homedsx 368dsxn1 1>${CLASSFILE}.py.log.$$ 2>&1)
+(python3 ${CLASSFILE}.py --operation provision --nodeid ${VTCNAME} --mnemonic ${VTCNAME} --homedsx ${clusternodename} 1>${CLASSFILE}.py.log.$$ 2>&1)
 if [ $? -ne 0 -a $? -ne 4 ]; then
    logger "${SCRIPTNAME}:ERROR: Error provisioning RxTxNode ${VTCNAME}." 
    popd
