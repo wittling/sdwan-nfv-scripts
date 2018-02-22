@@ -213,7 +213,7 @@ if [ "${MYIP}" == "127.0.0.1" ]; then
    exit 1
 fi
 
-if [ ${VNFC} == "local" ]; then
+if [ "${VNFC}" == "local" ]; then
    logger "${SCRIPTNAME}:ERROR: IP Address ${MYIP} not assigned to recognizable VNFC."
    exit 1
 else
@@ -239,6 +239,10 @@ fi
 
 # If dvn is autocranked we will want to stop it until the configure event cycle.
 RESP=`systemctl is-enabled ${DVNSERVICENAME}`
+# to avoid shell issue
+if [ -z "${RESP}" ]; then
+   RESP=invalid
+fi
 if [ $? -eq 0 -a "${RESP}" == "enabled" ]; then
    systemctl stop ${DVNSERVICENAME}
 else
@@ -257,4 +261,5 @@ else
    fi
 fi
 
+logger "${SCRIPTNAME}:INFO: Successful Exit."
 exit 0

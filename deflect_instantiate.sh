@@ -31,6 +31,8 @@ logger "${SCRIPTNAME}:INFO: Something has CloudInit resetting the sysctl.conf fi
 logger "${SCRIPTNAME}:INFO: We will attempt to set the socket buffer receive parm here."
 logger "${SCRIPTNAME}:INFO: This will alleviate an alarm that complains about this parm being set too low."
 
+DVNSERVICENAME=dvn
+
 # Obviously we need to be running this script as root to do this. Fortunately we are.
 PARMPATH='/proc/sys/net/core/rmem_max'
 echo 'net.core.rmem_max=2048000' >> /etc/sysctl.conf
@@ -43,4 +45,30 @@ else
    logger "${SCRIPTNAME}:WARN: Call to sysctl appears to have failed."
    logger "${SCRIPTNAME}:WARN: Please set net.core.rmem_max parameter to 2048000 manually to avoid alarm."
 fi
+
+# If dvn is autocranked we will want to stop it until the configure event cycle.
+RESP=`systemctl is-enabled ${DVNSERVICENAME}`
+# to avoid shell issue
+if [ -z "${RESP}" ]; then
+   RESP=invalid
+fi
+if [ $? -eq 0 -a "${RESP}" == "enabled" ]; then
+   systemctl stop ${DVNSERVICENAME}
+else
+   if [ ${RESP} == "disabled" ]; then
+      logger "${SCRIPTNAME}:WARN: Service ${DVNSERVICENAME} disabled. Enabling."
+      systemctl enable ${DVNSERVICENAME}
+      if [ $? -ne 0 ]; then
+         logger "${SCRIPTNAME}:ERROR: Unable to enable service ${DVNSERVICENAME}. Enabling."
+         exit 1
+      fi  
+      # Enabling the service should not start it but we will do this just to be sure.
+      systemctl stop ${DVNSERVICENAME}
+   else
+      logger "${SCRIPTNAME}:ERROR: Service ${DVNSERVICENAME} unrecognized. Exiting."
+      exit 1
+   fi  
+fi
+
+logger "${SCRIPTNAME}:INFO: Successful Exit."
 exit 0

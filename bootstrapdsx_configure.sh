@@ -73,6 +73,15 @@ export bootstrapdsx_svcgrptyp
 DVNSERVICE=dvn
 DVNDRIVERSVC=dvn-driver
 
+if [ -z "${DVNHOME}" ]; then
+   if [ -d /usr/local/dvn ]; then
+      DVNHOME=/usr/local/dvn
+   else
+      logger "${SCRIPTNAME}:ERROR: DVNHOME error."
+      exit 1
+   fi
+fi
+
 # This function will take an IP and make sure that it is indeed a valid VNFC
 # by checking to ensure it is set by the orchestrator in our environment
 #
@@ -124,15 +133,6 @@ function ipAssignedToVNFC
 # installed before proceeding.
 function jsonParmSwap
 {
-   if [ -z "${DVNHOME}" ]; then
-      if [ -d /usr/local/dvn ]; then
-         DVNHOME=/usr/local/dvn
-      else
-         logger "${SCRIPTNAME}:ERROR: DVNHOME error."
-         return 1
-      fi
-   fi
-
    # Check for Python and see if it is installed (no sense wasting gas)
    logger "${SCRIPTNAME}:INFO:jsonParmSwap: Checking Python Version"
    pyver=$(python -V 2>&1 | grep -Po '(?<=Python )(.+)')
@@ -421,6 +421,8 @@ if [ ${DVNELEMENT} == "l3gw" -o ${DVNELEMENT} == "l3x" ]; then
          fi
       fi
    fi
+else
+   logger "${SCRIPTNAME}:INFO: Deflect. Skipping Driver."
 fi      
 
 logger "${SCRIPTNAME}:INFO: Restarting dvn.service after setting parameters."
