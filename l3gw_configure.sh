@@ -39,6 +39,7 @@ logger "${SCRIPTNAME}:INFO: I see your IP Address is: ${dsxnet}"
 logger "${SCRIPTNAME}:INFO: I see your hostname is: ${hostname}"
 logger "${SCRIPTNAME}:INFO: I see your portreg is: ${portreg}"
 logger "${SCRIPTNAME}:INFO: I see your portra is: ${portra}"
+logger "${SCRIPTNAME}:INFO: I see your cluster node name is: ${clusternodename}"
 
 logger "${SCRIPTNAME}:INFO: Enough about you. Lets talk about ME!" 
 logger "${SCRIPTNAME}:INFO: My hostname is: ${l3gw_hostname}" 
@@ -198,7 +199,7 @@ fi
 
 CLASSFILE=rxtxnode
 logger "${SCRIPTNAME}:INFO: Attempting to provision new vtc ${VTCNAME}."
-(python3 ${CLASSFILE}.py --operation provision --nodeid ${VTCNAME} --mnemonic ${VTCNAME} 1>${CLASSFILE}.py.log.$$ 2>&1)
+(python3 ${CLASSFILE}.py --operation provision --nodeid ${VTCNAME} --mnemonic --homedsx 368dsxn1 ${VTCNAME} 1>${CLASSFILE}.py.log.$$ 2>&1)
 if [ $? -ne 0 -a $? -ne 4 ]; then
    logger "${SCRIPTNAME}:ERROR: Error provisioning RxTxNode ${VTCNAME}." 
    popd
