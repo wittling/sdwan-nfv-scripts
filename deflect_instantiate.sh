@@ -47,28 +47,30 @@ else
 fi
 
 # If dvn is autocranked we will want to stop it until the configure event cycle.
-RESP=`systemctl is-enabled ${DVNSERVICENAME}`
+#RESP=`systemctl is-enabled ${DVNSERVICENAME}`
 # to avoid shell issue
-if [ -z "${RESP}" ]; then
-   RESP=invalid
-fi
-if [ $? -eq 0 -a "${RESP}" == "enabled" ]; then
-   systemctl stop ${DVNSERVICENAME}
-else
-   if [ ${RESP} == "disabled" ]; then
-      logger "${SCRIPTNAME}:WARN: Service ${DVNSERVICENAME} disabled. Enabling."
-      systemctl enable ${DVNSERVICENAME}
-      if [ $? -ne 0 ]; then
-         logger "${SCRIPTNAME}:ERROR: Unable to enable service ${DVNSERVICENAME}. Enabling."
-         exit 1
-      fi  
-      # Enabling the service should not start it but we will do this just to be sure.
-      systemctl stop ${DVNSERVICENAME}
-   else
-      logger "${SCRIPTNAME}:ERROR: Service ${DVNSERVICENAME} unrecognized. Exiting."
-      exit 1
-   fi  
-fi
+#if [ -z "${RESP}" ]; then
+#   RESP=invalid
+#fi
+#if [ $? -eq 0 -a "${RESP}" == "enabled" ]; then
+#   systemctl stop ${DVNSERVICENAME}
+#else
+#   if [ ${RESP} == "disabled" ]; then
+#      logger "${SCRIPTNAME}:WARN: Service ${DVNSERVICENAME} disabled. Enabling."
+#      systemctl enable ${DVNSERVICENAME}
+#      if [ $? -ne 0 ]; then
+#         logger "${SCRIPTNAME}:ERROR: Unable to enable service ${DVNSERVICENAME}. Enabling."
+#         exit 1
+#      fi  
+#      # Enabling the service should not start it but we will do this just to be sure.
+#      systemctl stop ${DVNSERVICENAME}
+#   else
+#      logger "${SCRIPTNAME}:ERROR: Service ${DVNSERVICENAME} unrecognized. Exiting."
+#      exit 1
+#   fi  
+#fi
+systemctl enable dvn
+systemctl stop dvn
 
-logger "${SCRIPTNAME}:INFO: Successful Exit."
+logger "${SCRIPTNAME}:INFO: End of Script. Return Code 0."
 exit 0
