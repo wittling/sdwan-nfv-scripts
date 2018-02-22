@@ -38,13 +38,16 @@ echo "====================================================" >> ${ENVFILE}
 
 logger "${SCRIPTNAME}:INFO: Greetings Bootstrap DSX! I am a Deflect."
 logger "${SCRIPTNAME}:INFO: My Deflect IP Address is: ${deflect_dflnet}" 
-logger "${SCRIPTNAME}:INFO: I see your IP Address is: ${dsxnet}"
-logger "${SCRIPTNAME}:INFO: I see your hostname is: ${hostname}"
-logger "${SCRIPTNAME}:INFO: It appears you will be using the ctl plane interface: ${ifacectlplane}" 
 logger "${SCRIPTNAME}:INFO: I will be sending data on port: ${deflect_portdata}" 
 logger "${SCRIPTNAME}:INFO: I will be sending callp on port: ${deflect_portcallp}" 
 logger "${SCRIPTNAME}:INFO: I will be using svc group: ${svcgroup}" 
 logger "${SCRIPTNAME}:INFO: I will be using deflect pool: ${poolid}" 
+
+logger "${SCRIPTNAME}:INFO: Enough about me. Lets talk about YOU..." 
+logger "${SCRIPTNAME}:INFO: I see your IP Address is: ${dsxnet}"
+logger "${SCRIPTNAME}:INFO: I see your hostname is: ${hostname}"
+logger "${SCRIPTNAME}:INFO: It appears you will be using the ctl plane interface: ${ifacectlplane}" 
+logger "${SCRIPTNAME}:INFO: I see your cluster node name is: ${clusternodename}"
 
 # export the variables
 export hostname
@@ -156,9 +159,16 @@ else
    exit 1
 fi
 
+# important parm check. bail if not set.
+if [ -z "${clusternodename}" ]; then
+   logger "${SCRIPTNAME}:ERROR: Parameter error: clusternodename."
+   popd
+   exit 1
+fi
+
 CLASSFILE=rxtxnode
 logger "${SCRIPTNAME}:INFO: Attempting to provision new vtc ${VTCNAME}."
-(python3 ${CLASSFILE}.py --operation provision --nodeid ${VTCNAME} --mnemonic ${VTCNAME} 1>${CLASSFILE}.py.log.$$ 2>&1)
+(python3 ${CLASSFILE}.py --operation provision --nodeid ${VTCNAME} --mnemonic ${VTCNAME} --homedsx ${clusternodename} 1>${CLASSFILE}.py.log.$$ 2>&1)
 if [ $? -eq 0 -o $? -eq 4 ]; then
    if [ $? -eq 0 ]; then
       logger "${SCRIPTNAME}:INFO: RxTxNode (VTC) ${VTCNAME} provisioned!"
