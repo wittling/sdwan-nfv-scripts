@@ -199,7 +199,7 @@ fi
 
 CLASSFILE=rxtxnode
 logger "${SCRIPTNAME}:INFO: Attempting to provision new vtc ${VTCNAME}."
-(python3 ${CLASSFILE}.py --operation provision --nodeid ${VTCNAME} --mnemonic --homedsx 368dsxn1 ${VTCNAME} 1>${CLASSFILE}.py.log.$$ 2>&1)
+(python3 ${CLASSFILE}.py --operation provision --nodeid ${VTCNAME} --mnemonic ${VTCNAME} --homedsx 368dsxn1 1>${CLASSFILE}.py.log.$$ 2>&1)
 if [ $? -ne 0 -a $? -ne 4 ]; then
    logger "${SCRIPTNAME}:ERROR: Error provisioning RxTxNode ${VTCNAME}." 
    popd
