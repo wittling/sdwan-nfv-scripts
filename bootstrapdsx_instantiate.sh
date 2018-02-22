@@ -497,13 +497,13 @@ for i in 1 2 3; do
          sleep ${SLEEPTIME} ;;
    esac
 
-   if [[ "${PROVSUCCESS}" == true ]]; then
+   if ( ${PROVSUCCESS} ); then
       break
    fi
 done
 
 # If we did not provision service group we will bail and not provision the ensuing deflect pool.
-if [[ "${PROVSUCCESS}" != true ]]; then
+if ( ! ${PROVSUCCESS} ); then
    logger "${SCRIPTNAME}:INFO: Unable to provision Service Group ${svcgroup}. Please check logs."
    popd
    exit 1

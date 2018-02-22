@@ -223,7 +223,7 @@ else
       ROLLBACK=true
 fi
    
-if [ ${ROLLBACK} ]; then
+if ( ${ROLLBACK} ); then
    logger "${SCRIPTNAME}:WARN: Attempting to roll back VTC Provisioning call."
    (python3 ${CLASSFILE}.py --operation deprovision --nodeid ${VTCNAME} 1>${CLASSFILE}.py.log.$$ 2>&1)
    if [ $? -eq 0 ]; then
