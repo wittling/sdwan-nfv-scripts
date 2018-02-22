@@ -220,6 +220,7 @@ else
    logger "${SCRIPTNAME}:INFO: Assigning VTC ${VTCNAME} to service group ${l3gw_svcgrp}."
    (python3 ${CLASSFILE}.py --operation assign --nodeid ${VTCNAME} --svcgrp  ${l3gw_svcgrp} 1>${CLASSFILE}.py.log.$$ 2>&1)
    if [ $? -ne 0 ]; then
+      logger "${SCRIPTNAME}:ERROR: Error assigning VTC ${VTCNAME} to service group ${l3gw_svcgrp}."
       ROLLBACK=true
    fi
 fi
