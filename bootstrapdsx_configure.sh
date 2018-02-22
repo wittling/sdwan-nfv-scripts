@@ -241,6 +241,8 @@ SCRIPT
       python $parse_json_script && rm $parse_json_script
       if [ $? -eq 0 ]; then
          logger "${SCRIPTNAME}:INFO: jsonParmSwap: Parm Replaced"
+         popd
+         return 0
       else
          logger "${SCRIPTNAME}:ERROR: jsonParmSwap: Parm NOT Replaced"
          popd
@@ -253,7 +255,6 @@ SCRIPT
 }
 
 DVNELEMENT="vtc"
-
 # Orchestrator does not pass the name into the env. But they DO use it in the hostname.
 # We will take advantage of that.
 HSTNM=`hostname | cut -f 1 -d "-"`
@@ -406,7 +407,7 @@ fi
 # If we are an L3 Gateway we need to start the kernel module 
 if [ ${DVNELEMENT} == "l3gw" -o ${DVNELEMENT} == "l3x" ]; then
    # First make sure service exists and can in fact be enabled.
-   systemctl enable ${DVNDRIVERSVC} 
+   systemctl enable ${DVNDRIVERSVC}.service 
    if [ $? -ne 0 ]; then
       logger "${SCRIPTNAME}:ERROR: Service Error: DVN Driver: ${DVNDRIVERSVC}."
       exit 1
@@ -418,6 +419,15 @@ if [ ${DVNELEMENT} == "l3gw" -o ${DVNELEMENT} == "l3x" ]; then
             exit 1
          else
             logger "${SCRIPTNAME}:WARN: DVN Driver Enabled."
+            systemctl start ${DVNDRIVERSVC}.service 
+            # The service may success but driver still not be loaded. Double check.
+            SILENT=`lsmod | grep vtc`
+            if [ $? -eq 0 ]; then
+               logger "${SCRIPTNAME}:INFO: DVN Driver Active."
+            else   
+               logger "${SCRIPTNAME}:ERROR: DVN Driver Load Failure."
+               exit 1
+            fi
          fi
       fi
    fi
@@ -425,16 +435,21 @@ else
    logger "${SCRIPTNAME}:INFO: Deflect. Skipping Driver."
 fi      
 
-logger "${SCRIPTNAME}:INFO: Restarting ${DVNSVC}.service after setting parameters."
-systemctl restart ${DVNSVC}.service
+
+# I have never trusted restart ever since the initd days 
+logger "${SCRIPTNAME}:INFO: Stopping ${DVNSVC}.service after setting parameters."
+systemctl stop ${DVNSVC}.service
+logger "${SCRIPTNAME}:INFO: Starting ${DVNSVC}.service after setting parameters."
+systemctl start ${DVNSVC}.service
 OUTPUT=`systemctl is-active ${DVNSVC}`
 if [ $? -eq 0 ]; then
    # If the unit file is coded correctly the dvn driver service is dependent on the dvn service.
-   logger "${SCRIPTNAME}:INFO: ${DVNSVC}.service restarted."
+   logger "${SCRIPTNAME}:INFO: ${DVNSVC}.service active."
 else
-   logger "${SCRIPTNAME}:ERROR: ${DVNSVC}.service did NOT restart. Manual intervention required."
+   logger "${SCRIPTNAME}:ERROR: ${DVNSVC}.service NOT active. Manual intervention required."
    exit 1 
 fi
 
+logger "${SCRIPTNAME}:INFO: Exiting Script: Return Code 0."
 #set +x
 exit 0
