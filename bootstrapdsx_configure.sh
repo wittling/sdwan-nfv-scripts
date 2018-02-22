@@ -70,7 +70,7 @@ export bootstrapdsx_portra
 export bootstrapdsx_svcgroup
 export bootstrapdsx_svcgrptyp
 
-DVNSERVICE=dvn
+DVNSVC=dvn
 DVNDRIVERSVC=dvn-driver
 
 if [ -z "${DVNHOME}" ]; then
@@ -425,14 +425,14 @@ else
    logger "${SCRIPTNAME}:INFO: Deflect. Skipping Driver."
 fi      
 
-logger "${SCRIPTNAME}:INFO: Restarting dvn.service after setting parameters."
-systemctl restart ${DVNSERVICENAME}
-OUTPUT=`systemctl is-active ${DVNSERVICENAME}`
+logger "${SCRIPTNAME}:INFO: Restarting ${DVNSVC}.service after setting parameters."
+systemctl restart ${DVNSVC}.service
+OUTPUT=`systemctl is-active ${DVNSVC}`
 if [ $? -eq 0 ]; then
    # If the unit file is coded correctly the dvn driver service is dependent on the dvn service.
-   logger "${SCRIPTNAME}:INFO: dvn.service restarted."
+   logger "${SCRIPTNAME}:INFO: ${DVNSVC}.service restarted."
 else
-   logger "${SCRIPTNAME}:ERROR: dvn.service did NOT restart. Manual intervention required."
+   logger "${SCRIPTNAME}:ERROR: ${DVNSVC}.service did NOT restart. Manual intervention required."
    exit 1 
 fi
 
