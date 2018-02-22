@@ -74,10 +74,10 @@ function ipAssignedToVNFC
       for LINE in `env`; do
          SRCH=`echo ${LINE} | grep ${IP}`
          if [ $? -eq 0 ]; then
-            # logger "${SCRIPTNAME}.sh:DEBUG: Found IP ${IP} set to ${LINE}."
+            #logger "${SCRIPTNAME}:DEBUG: Found IP ${IP} set to ${LINE}."
             NTWK=`echo ${SRCH} | cut -f 1 -d "="`
             if [ $? -eq 0 ]; then
-               # logger "${SCRIPTNAME}.sh:DEBUG: IP assigned to VNFC ${NTWK}."
+               logger "${SCRIPTNAME}:DEBUG: IP assigned to VNFC ${NTWK}."
                rc=0
                echo ${NTWK}
             else
