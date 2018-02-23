@@ -406,35 +406,38 @@ fi
 
 # If we are an L3 Gateway we need to start the kernel module 
 if [ ${DVNELEMENT} == "l3gw" -o ${DVNELEMENT} == "l3x" ]; then
+   if [ -f "${DVNHOME}/cfg/NODRIVER" ]; then
+      logger "${SCRIPTNAME}:INFO: Enabling DVN Driver Configuration."
+      mv ${DVNHOME}/cfg/NODRIVER ${DVNHOME}/cfg/DRIVER
+      if [ $? -ne 0 ]; then
+         logger "${SCRIPTNAME}:ERROR: Failed to Enable DVN Driver Configuration."
+         exit 1
+      else
+         logger "${SCRIPTNAME}:INFO: DVN Driver Configuration Enabled."
+      fi
+   fi
    # First make sure service exists and can in fact be enabled.
    systemctl enable ${DVNDRIVERSVC}.service 
    if [ $? -ne 0 ]; then
       logger "${SCRIPTNAME}:ERROR: Service Error: DVN Driver: ${DVNDRIVERSVC}."
       exit 1
    else
-      if [ -f "${DVNHOME}/cfg/NODRIVER" ]; then
-         mv ${DVNHOME}/cfg/NODRIVER ${DVNHOME}/cfg/DRIVER
-         if [ $? -ne 0 ]; then
-            logger "${SCRIPTNAME}:ERROR: Failed to Enable DVN Driver."
-            exit 1
-         else
-            logger "${SCRIPTNAME}:WARN: DVN Driver Enabled."
-            systemctl start ${DVNDRIVERSVC}.service 
-            # The service may success but driver still not be loaded. Double check.
-            SILENT=`lsmod | grep vtc`
-            if [ $? -eq 0 ]; then
-               logger "${SCRIPTNAME}:INFO: DVN Driver Active."
-            else   
-               logger "${SCRIPTNAME}:ERROR: DVN Driver Load Failure."
-               exit 1
-            fi
-         fi
+      logger "${SCRIPTNAME}:INFO: Stopping DVN Driver Service."
+      systemctl stop ${DVNDRIVERSVC}.service 
+      logger "${SCRIPTNAME}:INFO: Starting DVN Driver Service."
+      systemctl start ${DVNDRIVERSVC}.service 
+      # The service may success but driver still not be loaded. Double check.
+      logger "${SCRIPTNAME}:DEBUG: Checking for module presence."
+      lsmod | grep vtc
+      if [ $? -eq 0 ]; then
+         logger "${SCRIPTNAME}:INFO: DVN Driver Active."
+      else   
+         logger "${SCRIPTNAME}:WARN: DVN Driver Load Failure."
       fi
    fi
 else
    logger "${SCRIPTNAME}:INFO: Deflect. Skipping Driver."
 fi      
-
 
 # I have never trusted restart ever since the initd days 
 logger "${SCRIPTNAME}:INFO: Stopping ${DVNSVC}.service after setting parameters."
