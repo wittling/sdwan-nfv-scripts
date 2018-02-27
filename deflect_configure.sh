@@ -237,13 +237,13 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
             exit 1
          fi
       else
-         logger "${SCRIPTNAME}:ERROR: Unable to provision CallP Deflect ${CALLPNAME}. Code $?."
+         logger "${SCRIPTNAME}:ERROR: Unable to provision Data Deflect ${DFLNAME}. Code $?."
          # TODO: We could implement a transactional rollback attempt. Look into.
          popd
          exit 1
       fi
    else
-      logger "${SCRIPTNAME}:ERROR: Unable to provision RxTxNode (VTC) ${VTCNAME}. Code $?."
+      logger "${SCRIPTNAME}:ERROR: Unable to provision CallP Deflect ${CALLPNAME}. Code $?."
       # TODO: We could implement a transactional rollback attempt. Look into.
       popd
       exit 1
@@ -268,6 +268,11 @@ if [ $? -eq 0 -o $? -eq 4 ]; then
          logger "${SCRIPTNAME}:WARN: Unable to adjust deflect pool size for pool ${DFLPOOL}. Code $?."
       fi
    fi
+else
+   logger "${SCRIPTNAME}:ERROR: Unable to provision RxTxNode (VTC) ${VTCNAME}. Code $?."
+   # TODO: We could implement a transactional rollback attempt. Look into.
+   popd
+   exit 1
 fi
 
 logger "${SCRIPTNAME}:INFO: Successful implementation of ${SCRIPTNAME} script. Exiting 0."
