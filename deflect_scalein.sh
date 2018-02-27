@@ -36,10 +36,12 @@ RESTCLTDIR="/usr/local/dart-rest-client/local-client-projects"
 
 logger "${SCRIPTNAME}: Hostname being scaled in is: ${removing_hostname}"
 logger "${SCRIPTNAME}: IP being scaled in is: ${removing_dflnet}"
+logger "${SCRIPTNAME}: Deflect Pool ID is: ${poolid}"
 
 # export the variables
 export removing_hostname
 export removing_dflnet
+export poolid
 
 function adjustPool
 {
@@ -49,9 +51,13 @@ function adjustPool
          chmod +x ${CLASSFILE}.py
       fi
 
-      # Consider using svcgroup here. Check env to make sure it is being passed in.
-      logger "${SCRIPTNAME}: INFO: Attempting to scale in the deflect pool target min and max."
-      (python3 ${CLASSFILE}.py ${svcgroup} 1>${CLASSFILE}.py.log 2>&1)
+      if [ -n "${poolid}" ]; then
+         logger "${SCRIPTNAME}: INFO: Attempting to scale in deflect pool ${poolid} target min max."
+      else
+          logger "${SCRIPTNAME}:WARN: No poolid variable set. Using Default: OPENBATON."
+      fi
+
+      (python3 ${CLASSFILE}.py --operation autoadjchan ${poolid} 1>${CLASSFILE}.py.scalein.log.$$ 2>&1)
       if [ $? -eq 0 ]; then
          logger "${SCRIPTNAME}:INFO: Deflect Pool Size Adjusted to reflect removal of: ${removing_hostname}."
       else
