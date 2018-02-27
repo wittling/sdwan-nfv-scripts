@@ -152,7 +152,7 @@ function configureCluster
 {
    # If we do not know where the files are we are in real trouble.
    local CFGFILE="/etc/my.cnf"
-   if [ ! -f ${CFGFILE} ]; then
+   if [ ! -f "${CFGFILE}" ]; then
       logger "${SCRIPTNAME}:ERROR:File Not Found: ${CFGFILE}."
       return 1
    else
