@@ -97,11 +97,11 @@ function deprovElement
    # Consider using svcgroup here. Check env to make sure it is being passed in.
    logger "${SCRIPTNAME}: INFO: Attempting to call Python Script: ${CLASSFILE} with arg $2."
    if [ $1 == "callp" ]; then
-      (python3 ${CLASSFILE}.py --operation deprovision --callpid ${ID} 1>${CLASSFILE}.py.log 2>&1)
+      (python3 ${CLASSFILE}.py --operation deprovision --callpid ${ID} 1>${CLASSFILE}.py.scalein.log.$$ 2>&1)
    elif [ $1 == "deflect" ]; then
-      (python3 ${CLASSFILE}.py --operation deprovision --dflid ${ID} 1>${CLASSFILE}.py.log 2>&1)
+      (python3 ${CLASSFILE}.py --operation deprovision --dflid ${ID} 1>${CLASSFILE}.py.scalein.log.$$ 2>&1)
    elif [ $1 == "rxtxnode" ]; then
-      (python3 ${CLASSFILE}.py --operation deprovision --nodeid ${ID} 1>${CLASSFILE}.py.log 2>&1)
+      (python3 ${CLASSFILE}.py --operation deprovision --nodeid ${ID} 1>${CLASSFILE}.py.scalein.log.$$ 2>&1)
    else
       logger "${SCRIPTNAME}:ERROR:deprovElement:Unrecognized element."
       return 1
