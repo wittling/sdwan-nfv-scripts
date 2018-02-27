@@ -157,18 +157,19 @@ fi
 # name it. So we have to reverse into that convention to deprovision it.
 NODENUM=`echo ${removing_dflnet} | cut -f1-4 -d "." | sed 's+\.+x+g'`
 if [ $? -ne 0 ]; then
-   logger
+   logger "${SCRIPTNAME}:ERROR: Improper return code trying to determine NODENUM."
    exit 1
 fi
 
+logger "${SCRIPTNAME}:INFO: NODENUM determined to be: ${NODENUM}."
 FULLDEPROV=true
 for element in callp deflect rxtxnode
 do
-   if [ $element -eq "callp" ]; then
+   if [ "${element}" == "callp" ]; then
       export NODENAME=CP${NODENUM}
-   elif [ $element -eq "deflect" ]; then
+   elif [ "${element}" == "deflect" ]; then
       export NODENAME=DFL${NODENUM}
-   elif [ $element -eq "rxtxnode" ]; then
+   elif [ "${element}" == "rxtxnode" ]; then
       export NODENAME=OB${NODENUM}
    fi
 
@@ -179,7 +180,7 @@ do
    fi
 done
 
-if [ ! ${FULLDEPROV} ]; then
+if ( ! ${FULLDEPROV} ); then
    popd
    exit 1
 fi
