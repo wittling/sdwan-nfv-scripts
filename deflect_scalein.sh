@@ -95,12 +95,15 @@ function deprovElement
    fi
 
    # Consider using svcgroup here. Check env to make sure it is being passed in.
-   logger "${SCRIPTNAME}: INFO: Attempting to call Python Script: ${CLASSFILE} with arg $2."
+   logger "${SCRIPTNAME}:DEBUG: Python Script: ${CLASSFILE} ID: ${ID}."
    if [ $1 == "callp" ]; then
+      logger "${SCRIPTNAME}:WARN: Attempting to deprovision CallP: ${ID}."
       (python3 ${CLASSFILE}.py --operation deprovision --callpid ${ID} 1>${CLASSFILE}.py.scalein.log.$$ 2>&1)
    elif [ $1 == "deflect" ]; then
+      logger "${SCRIPTNAME}:WARN: Attempting to deprovision Deflect: ${ID}."
       (python3 ${CLASSFILE}.py --operation deprovision --dflid ${ID} 1>${CLASSFILE}.py.scalein.log.$$ 2>&1)
    elif [ $1 == "rxtxnode" ]; then
+      logger "${SCRIPTNAME}:WARN: Attempting to deprovision VTC: ${ID}."
       (python3 ${CLASSFILE}.py --operation deprovision --nodeid ${ID} 1>${CLASSFILE}.py.scalein.log.$$ 2>&1)
    else
       logger "${SCRIPTNAME}:ERROR:deprovElement:Unrecognized element."
@@ -108,9 +111,9 @@ function deprovElement
    fi
 
    if [ $? -eq 0 ]; then
-      logger "${SCRIPTNAME}:INFO: Successful return code calling ${CLASSFILE} deprov operation:ID $2."
+      logger "${SCRIPTNAME}:INFO: Successful return code calling ${CLASSFILE} deprov operation:ID ${ID}."
    else
-      logger "${SCRIPTNAME}:ERROR: Error calling: ${CLASSFILE} deprov operation:ID $2:Code  is: $?"
+      logger "${SCRIPTNAME}:ERROR: Error calling: ${CLASSFILE} deprov operation:ID ${ID}:Code is: $?"
       return 1
    fi
    return 0
