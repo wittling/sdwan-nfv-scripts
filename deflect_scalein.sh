@@ -57,7 +57,7 @@ function adjustPool
           logger "${SCRIPTNAME}:WARN: No poolid variable set. Using Default: OPENBATON."
       fi
 
-      (python3 ${CLASSFILE}.py --operation autoadjchan ${poolid} 1>${CLASSFILE}.py.scalein.log.$$ 2>&1)
+      (python3 ${CLASSFILE}.py --operation autoadjchan --poolid ${poolid} 1>${CLASSFILE}.py.scalein.log.$$ 2>&1)
       if [ $? -eq 0 ]; then
          logger "${SCRIPTNAME}:INFO: Deflect Pool Size Adjusted to reflect removal of: ${removing_hostname}."
       else
